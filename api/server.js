@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const connectDB = require('./config/MongoDB');
+const InitRoutes = require('./routes/index');
 
 
 const app = express();
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
 connectDB();
+
+// Routes
+InitRoutes(app);
 
 Server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
