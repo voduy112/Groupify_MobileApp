@@ -1,0 +1,6 @@
+# Bỏ qua thư mục node_modules
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+.DS_Store
