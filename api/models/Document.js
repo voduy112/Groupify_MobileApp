@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
+const documentSchema = new mongoose.Schema({
     groupId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
