@@ -18,18 +18,17 @@ const groupSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    membersID: {
+    membersID: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-    },
+    }],
     inviteCode: {
         type: String,
         required: true,
     },
     createDate: {
         type: Date,
-        required: true,
+        default: Date.now
     }
 })
 module.exports = mongoose.model('Group', groupSchema);
