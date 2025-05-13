@@ -25,20 +25,41 @@ const profileController = {
 
     updateProfile: async (req, res) => {
         try {
+            const existingUser = await Profile.findById(req.params.id);
+            if (!existingUser) {
+                return res.status(404).json({ error: "Người dùng không tồn tại" });
+            }
+    
+            // Nếu có ảnh cũ → tìm và xóa trên Cloudinary
+            if (existingUser.profilePicture) {
+               
+                const result = await cloudinary.api.resources({
+                    type: 'upload',
+                    prefix: existingUser.profilePicture,
+                    max_results: 1
+                });
+    
+                if (result.resources.length > 0) {
+                    const publicId = result.resources[0].public_id;
+                    await cloudinary.uploader.destroy(publicId);
+                }
+            }
+    
+            // Chuẩn bị dữ liệu để cập nhật
             let updateData = { ...req.body };
     
-            // Nếu có ảnh được gửi kèm
+            // Nếu có ảnh mới
             if (req.file) {
-                const result = await cloudinary.uploader.upload(req.file.path, {
+                const uploadResult = await cloudinary.uploader.upload(req.file.path, {
                     folder: "Groupify_MobileApp/avatar_profile",
-                    public_id: `${req.params.id}_avatar`,  // Dùng params thay vì req.user
+                    public_id: `${req.params.id}_avatar`,
                     overwrite: true,
                 });
     
-                updateData.profilePicture = result.secure_url;
+                updateData.profilePicture = uploadResult.secure_url;
             }
     
-            // Cập nhật người dùng theo id từ URL
+            // Cập nhật người dùng và trả về kết quả mới
             const updatedUser = await Profile.findByIdAndUpdate(
                 req.params.id,
                 updateData,
@@ -50,7 +71,7 @@ const profileController = {
             console.error(error);
             res.status(500).json({ error: "Lỗi cập nhật thông tin người dùng" });
         }
-    },
+    },    
 
     deleteProfile: async (req, res) => {
         try {
