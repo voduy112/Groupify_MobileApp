@@ -1,9 +1,13 @@
 const profileController = require('../controllers/profileController.js');
 const express = require("express");
 const router = express.Router();
+const upload = require("../config/Multer");
 
 router.get('/:id', profileController.getProfileById);
-router.put('/:id', profileController.updateProfile);
+router.put('/:id',
+    upload.single("image"),
+    profileController.updateProfile
+);
 router.get('/', profileController.getAllProflie);
 router.delete('/:id', profileController.deleteProfile);
 module.exports = router;
