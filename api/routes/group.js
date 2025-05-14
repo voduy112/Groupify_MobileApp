@@ -9,8 +9,13 @@ router.delete('/:id', groupController.deleteGroup);
 router.post('/', groupController.createGroup);
 router.post('/join', groupController.joinGroupByCode);
 
+
 router.put('/:id',
     upload.single('image'),
     groupController.updateGroup
 )
+=======
+router.post('/leave', groupController.leaveGroup);
+router.get('/members/:id', groupController.getGroupMembers); //id la id cua group
+
 module.exports = router;
