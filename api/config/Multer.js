@@ -8,7 +8,7 @@ const storage = new CloudinaryStorage({
     const isPdf = file.mimetype === 'application/pdf';
 
     return {
-      ...(isPdf && { folder: "Groupify_MobileApp/file_document" }),
+      // ...(isPdf && { folder: "Groupify_MobileApp/file_document" }),
       allowed_formats: ["jpg", "png", "pdf"],
       resource_type: isPdf ? "raw" : "image", // PDF phải dùng resource_type: "raw"
       transformation: isPdf
@@ -20,4 +20,10 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-module.exports = upload;
+module.exports = {
+  upload,
+  uploadImageAndFile: upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "mainFile", maxCount: 1 },
+  ]),
+};

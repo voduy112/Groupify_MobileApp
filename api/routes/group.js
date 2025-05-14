@@ -1,7 +1,7 @@
 const groupController = require('../controllers/groupController.js');
 const express = require("express");
 const router = express.Router();
-const upload = require ("../config/Multer")
+const {upload} = require ("../config/Multer")
 
 router.get('/:id', groupController.getGroupById);
 router.get('/', groupController.getAllGroup);

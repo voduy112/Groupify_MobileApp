@@ -118,7 +118,7 @@ const groupController = {
             res.status(500).json({error: "Lỗi cập nhật thông tin nhóm"});
         }
     },
-
+    
 };
 
 module.exports = groupController;
