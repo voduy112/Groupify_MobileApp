@@ -22,7 +22,16 @@ const documentSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    imgDocument: {
+        type: String,
+        default: 'default.jpg'
+    },
+    mainFile: {
+        type: String,
+        default: 'file.pdf'
     }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Document', documentSchema);
