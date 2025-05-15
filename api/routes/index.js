@@ -9,6 +9,6 @@ const InitRoutes = (app) => {
   app.use("/api/profile", profileRoutes);
   app.use("/api/document", documentRoutes);
   app.use("/api/group", groupRoutes);
-  app.use("/api/notfication",notificationRoutes);
+  app.use("/api/notification",notificationRoutes);
 };
 module.exports = InitRoutes;

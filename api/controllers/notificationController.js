@@ -1,35 +1,29 @@
+const admin = require('../config/Firebase');
 
 const notificationController = {
     sendNotification: async (req, res) => {
+        const { token, title, body } = req.body;
+        console.log("Received request to send notification:", req.body);
+
+        if (!token || !title || !body) {
+            return res.status(400).send({ success: false, message: "Thiếu dữ liệu cần thiết" });
+        }
+
+        const message = {
+            notification: {
+            title: title,
+            body: body,
+            },
+            token: token,
+        };
+
         try {
-            const { title, body, token } = req.body;
-
-            // Kiểm tra xem token có hợp lệ không
-            if (!token) {
-                return res.status(400).json({ error: "Token không hợp lệ" });
-            }
-
-            // Tạo payload cho thông báo
-            const payload = {
-                notification: {
-                    title: title,
-                    body: body,
-                },
-                data: {
-                    click_action: "FLUTTER_NOTIFICATION_CLICK",
-                    id: "1",
-                    status: "done",
-                },
-                token: token,
-            };
-
-            // Gửi thông báo
-            const response = await admin.messaging().send(payload);
-            console.log("Thông báo đã được gửi:", response);
-            res.status(200).json({ message: "Thông báo đã được gửi thành công" });
+            const response = await admin.messaging().send(message);
+            res.status(200).send({ success: true, response });
         } catch (error) {
-            console.error("Lỗi khi gửi thông báo:", error);
-            res.status(500).json({ error: "Lỗi khi gửi thông báo" });
+            res.status(500).send({ success: false, error: error.message });
         }
     }
 }
+
+module.exports = notificationController;
