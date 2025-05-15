@@ -5,3 +5,4 @@ yarn-error.log
 .env
 .DS_Store
 /config/firebase-service-account.json
+/config/mobile-app-47791-firebase-adminsdk-fbsvc-377edea8b7.json
