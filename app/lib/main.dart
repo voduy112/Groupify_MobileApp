@@ -1,76 +1,30 @@
 import 'package:flutter/material.dart';
-import './service/userService.dart';
-import './models/user.dart';
+import 'features/authentication/services/auth_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'services/notification/firebase_messaging_service.dart';
+import 'features/authentication/views/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'features/authentication/providers/auth_provider.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await FirebaseMessagingService.initFCM();
+  runApp(OverlaySupport.global(
+      child: MultiProvider(providers: [
+    ChangeNotifierProvider(
+        create: (context) => AuthProvider(authService: AuthService())),
+  ], child: MyApp())));
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Danh sách người dùng',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: UserListScreen(), // Màn hình chính của ứng dụng
-    );
-  }
-}
-
-class UserListScreen extends StatefulWidget {
-  @override
-  _UserListScreenState createState() => _UserListScreenState();
-}
-
-class _UserListScreenState extends State<UserListScreen> {
-  late UserService userService;
-  late Future<List<User>> usersFuture; // Cập nhật kiểu dữ liệu
-
-  @override
-  void initState() {
-    super.initState();
-    userService = UserService(
-        baseUrl: 'http://192.168.1.234:5000'); // Dùng IP của máy tính cá nhân
-    usersFuture = userService.fetchUsers();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Danh sách người dùng')),
-      body: FutureBuilder<List<User>>(
-        future: usersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Lỗi: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Không có người dùng nào'));
-          }
-
-          final users = snapshot.data!;
-          return ListView.builder(
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              return ListTile(
-                title: Row(
-                  children: [
-                    Text(user.username ?? 'Tên không xác định'),
-                    SizedBox(width: 10),
-                    Text(user.phoneNumber ?? 'Số điện thoại không xác định'),
-                  ],
-                ), // Đảm bảo `name` là thuộc tính của đối tượng User
-                subtitle: Text(user.email ?? ''), // Kiểm tra giá trị của email
-              );
-            },
-          );
-        },
-      ),
+      title: 'Groupify',
+      home: LoginScreen(), // Màn hình chính của ứng dụng
     );
   }
 }
