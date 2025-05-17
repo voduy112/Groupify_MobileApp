@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../features/home/views/home_screen.dart';
+import '../../../core/widgets/main_scaffold.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -37,19 +39,15 @@ class LoginScreen extends StatelessWidget {
                       passwordController.text,
                     );
                 if (context.read<AuthProvider>().user != null) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomeScreen(
-                              user: context.read<AuthProvider>().user!,
-                            )),
-                  );
+                  context.go('/home');
                 }
               },
               child: Text('Đăng nhập'),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                context.go('/register');
+              },
               child: Text('Đăng ký'),
             ),
           ],
