@@ -1,3 +1,4 @@
+
 const cloudinary = require('../config/Cloudinary')
 const Document = require("../models/Document");
 
@@ -124,7 +125,6 @@ const documentController = {
                 overwrite: false,
             });
 
-
             const newDocument = new Document({
                 groupId,
                 title,
@@ -139,7 +139,6 @@ const documentController = {
             res.status(500).json({error: "Lỗi khi tải tài liệu mới"});
         }
     },
-
 };
 
 module.exports = documentController;

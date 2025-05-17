@@ -2,6 +2,7 @@ const profileController = require('../controllers/profileController.js');
 const express = require("express");
 const authMiddleware = require('../middlewares/authMiddleware.js');
 const router = express.Router();
+
 const {upload} = require("../config/Multer");
 
 router.get('/:id', profileController.getProfileById);
