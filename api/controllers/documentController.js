@@ -1,6 +1,5 @@
 const cloudinary = require('../config/Cloudinary')
 const Document = require("../models/Document");
-const Group = require("../models/Group");
 
 const documentController = {
     getAllDocument : async (req, res) => {
