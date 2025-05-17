@@ -1,47 +1,45 @@
 import 'package:flutter/material.dart';
-import '../../../models/user.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import '../widgets/bottom_navi.dart';
+import 'package:provider/provider.dart';
+import '../widgets/Carousel_view.dart';
+import '../../authentication/providers/auth_provider.dart';
 
 class HomeScreen extends StatelessWidget {
-  final User user;
-
-  HomeScreen({required this.user});
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Text('Welcome ${user.username}'),
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 300.0,
-                autoPlay: true,
+    final user = context.read<AuthProvider>().user;
+    return Center(
+      child: Column(
+        children: [
+          MyCarouselView(),
+          SizedBox(height: 10),
+          Container(
+            padding: EdgeInsets.only(left: 10),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                'Documents',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
               ),
-              items: [1, 2, 3, 4, 5].map((i) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.symmetric(horizontal: 5.0),
-                        decoration: BoxDecoration(color: Colors.amber),
-                        child: Text(
-                          'text $i',
-                          style: TextStyle(fontSize: 16.0),
-                        ));
-                  },
-                );
-              }).toList(),
-            )
-          ],
-        ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.only(left: 10),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                '${user?.username}',
+                style: TextStyle(
+                  fontSize: 50,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      bottomNavigationBar: MyBottomNavBar(),
     );
   }
 }
