@@ -29,6 +29,10 @@ const groupSchema = new mongoose.Schema({
     createDate: {
         type: Date,
         default: Date.now
+    },
+    imgGroup: {
+        type: String,
+        default: 'default.jpg'
     }
 })
 module.exports = mongoose.model('Group', groupSchema);
