@@ -18,6 +18,10 @@ router.put('/:id',
     groupController.updateGroup
 )
 router.post('/leave', groupController.leaveGroup);
+
 router.get('/members/:id', groupController.getGroupMembers); 
+
+router.get('/members/:id', groupController.getGroupMembers); //id la id cua group
+
 
 module.exports = router;
