@@ -90,6 +90,7 @@ const profileController = {
             res.status(500).json({ error: "Lỗi xóa người dùng"});
         }
     },
+    
 };
 
 module.exports = profileController;

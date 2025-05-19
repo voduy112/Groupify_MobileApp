@@ -1,6 +1,6 @@
+
 const cloudinary = require('../config/Cloudinary')
 const Document = require("../models/Document");
-const Group = require("../models/Group");
 
 const documentController = {
     getAllDocument : async (req, res) => {
@@ -125,7 +125,6 @@ const documentController = {
                 overwrite: false,
             });
 
-
             const newDocument = new Document({
                 groupId,
                 title,
@@ -140,7 +139,6 @@ const documentController = {
             res.status(500).json({error: "Lỗi khi tải tài liệu mới"});
         }
     },
-
 };
 
 module.exports = documentController;
