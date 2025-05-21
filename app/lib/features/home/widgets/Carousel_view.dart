@@ -8,7 +8,7 @@ class MyCarouselView extends StatelessWidget {
   Widget build(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 300.0,
+        height: 200.0,
         autoPlay: true,
       ),
       items: [1, 2, 3, 4, 5].map((i) {
