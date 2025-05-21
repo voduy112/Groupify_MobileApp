@@ -8,6 +8,7 @@ import 'features/authentication/services/auth_service.dart';
 import 'features/authentication/providers/auth_provider.dart';
 import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
+import 'core/themes/theme_app.dart';
 import 'features/authentication/providers/user_provider.dart';
 
 void main() async {
@@ -44,6 +45,9 @@ class MyApp extends StatelessWidget {
       routerConfig: appRouter,
       title: 'Groupify',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
     );
   }
 }

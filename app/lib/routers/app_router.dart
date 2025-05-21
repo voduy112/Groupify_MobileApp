@@ -6,6 +6,7 @@ import '../features/group_study/views/group_study_screen.dart';
 import '../features/profile/views/profile_screen.dart';
 import '../features/chat/views/chat_list_screen.dart';
 import '../features/authentication/views/register_screen.dart';
+import '../features/document_share/views/upload_document_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -26,6 +27,12 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/home',
           builder: (context, state) => HomeScreen(),
+          routes: [
+            GoRoute(
+              path: '/home/upload-document',
+              builder: (context, state) => UploadDocumentScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/group',
