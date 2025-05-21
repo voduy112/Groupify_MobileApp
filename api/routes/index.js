@@ -5,6 +5,7 @@ const groupRoutes = require('./group');
 const notificationRoutes = require('./notification');
 const quizRoutes = require('./quiz');
 const chatRoutes = require('./chat');
+const resultRoutes = require('./result');
 const chatgroupRoutes = require('./chatGroup');
 
 
@@ -16,6 +17,7 @@ const InitRoutes = (app) => {
   app.use("/api/notification",notificationRoutes);
   app.use("/api/quiz", quizRoutes);
   app.use("/api/chat", chatRoutes);
+  app.use("/api/result", resultRoutes);
   app.use("/api/chatgroup", chatgroupRoutes);
 };
 module.exports = InitRoutes;
