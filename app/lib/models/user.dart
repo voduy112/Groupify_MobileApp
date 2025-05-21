@@ -6,6 +6,7 @@ class User {
   String? phoneNumber;
   String? profilePicture;
   String? token;
+  String? accessToken;
   String? refreshToken;
   String? fcmToken = '';
 
@@ -17,6 +18,7 @@ class User {
     this.phoneNumber,
     this.profilePicture,
     this.token,
+    this.accessToken,
     this.refreshToken,
     this.fcmToken,
   });
@@ -29,6 +31,7 @@ class User {
     phoneNumber = json['phoneNumber'];
     profilePicture = json['profilePicture'];
     token = json['token'];
+    accessToken = json['accessToken'];
     refreshToken = json['refreshToken'];
     fcmToken = json['fcmToken'] ?? '';
   }
@@ -42,6 +45,7 @@ class User {
       'phoneNumber': phoneNumber,
       'profilePicture': profilePicture,
       'token': token,
+      'accessToken': accessToken,
       'refreshToken': refreshToken,
       'fcmToken': fcmToken ?? '',
     };
