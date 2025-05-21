@@ -33,9 +33,9 @@ class MainScaffold extends StatelessWidget {
     final selectedIndex = getSelectedIndex();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[selectedIndex]),
-      ),
+      // appBar: AppBar(
+      //   title: Text(_titles[selectedIndex]),
+      // ),
       body: child,
       bottomNavigationBar: ConvexAppBar(
         items: List.generate(
