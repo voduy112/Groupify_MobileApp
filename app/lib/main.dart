@@ -7,6 +7,7 @@ import 'features/authentication/views/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'features/authentication/providers/auth_provider.dart';
 import 'routers/app_router.dart';
+import 'core/themes/theme_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
       routerConfig: appRouter,
       title: 'Groupify',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
     );
   }
 }
