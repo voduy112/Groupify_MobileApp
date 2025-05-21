@@ -31,13 +31,10 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = getSelectedIndex();
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[selectedIndex]),
-      ),
       body: child,
       bottomNavigationBar: ConvexAppBar(
+        backgroundColor: Color(0xFF305973),
         items: List.generate(
           _titles.length,
           (i) => TabItem(icon: _icons[i], title: _titles[i]),
