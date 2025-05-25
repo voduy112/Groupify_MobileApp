@@ -1,5 +1,6 @@
 import 'package:app/features/chat/providers/chat_provider.dart';
 import 'package:app/features/chat/services/chat_service.dart';
+import 'package:app/features/home/widgets/list_document_item.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -10,6 +11,8 @@ import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
 import 'core/themes/theme_app.dart';
 import 'features/authentication/providers/user_provider.dart';
+import 'features/group_study/providers/group_provider.dart';
+import 'features/document_share/providers/document_share_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,12 @@ void main() async {
         providers: [
           ChangeNotifierProvider(
             create: (context) => AuthProvider(authService: AuthService()),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => DocumentShareProvider(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => GroupProvider(),
           ),
           ChangeNotifierProvider(
             create: (_) => UserProvider(),
