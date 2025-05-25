@@ -56,7 +56,9 @@ class ProfileScreen extends StatelessWidget {
                                   horizontal: 12, vertical: 4),
                               textStyle: const TextStyle(fontSize: 13),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              context.go('/profile/edit');
+                            },
                             child: const Text('Chỉnh sửa profile'),
                           ),
                           const SizedBox(width: 8),
