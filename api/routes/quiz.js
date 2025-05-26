@@ -11,7 +11,7 @@ router.post('/', quizController.createQuiz);
 router.patch('/:id', quizController.updateQuiz);
 router.patch('/:id/question', quizController.updateQuestion);
 router.post('/:id/checkresult', quizController.checkQuizResult);
-
+router.get('/group/:id', quizController.getQuizsByGroupId);
 router.delete('/:id', quizController.deleteQuiz);
  
 module.exports = router;

@@ -9,10 +9,13 @@ import 'features/authentication/services/auth_service.dart';
 import 'features/authentication/providers/auth_provider.dart';
 import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
-import 'core/themes/theme_app.dart';
 import 'features/authentication/providers/user_provider.dart';
 import 'features/group_study/providers/group_provider.dart';
+import 'features/document/providers/document_provider.dart';
+import 'features/quiz/providers/quiz_provider.dart';
+import 'core/themes/theme_app.dart';
 import 'features/document_share/providers/document_share_provider.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +39,16 @@ void main() async {
             create: (_) => UserProvider(),
           ),
           ChangeNotifierProvider(
+            create: (context) => GroupProvider(),
+          ),
+          ChangeNotifierProvider(
             create: (context) => ChatProvider(chatService: ChatService()),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => DocumentProvider()
+          ),
+          ChangeNotifierProvider(
+            create: (_) => QuizProvider()
           ),
         ],
         child: const MyApp(),

@@ -1,0 +1,2 @@
+C:/Projects/Groupify_MobileApp/app/android/app/.cxx/Debug/3v121696/x86_64/CMakeFiles/edit_cache.dir
+C:/Projects/Groupify_MobileApp/app/android/app/.cxx/Debug/3v121696/x86_64/CMakeFiles/rebuild_cache.dir
