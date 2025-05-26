@@ -1,28 +1,33 @@
 const express = require('express');
 const router = express.Router();
+const isAdmin = require('../middlewares/isAdmin');
+const adminController = require('../controllers/adminController');
 
-const userController = require('../controllers/userController');
-const groupController = require('../controllers/groupController');
-const quizController = require('../controllers/quizController');
-const reportController = require('../controllers/reportController'); 
-const documentController = require('../controllers/documentController');
+// Middleware kiểm tra admin
+router.use(isAdmin);
 
-// Route quản lý người dùng
-router.get('/users', userController.getAllUsers);
-router.post('/users', userController.createUser);
+// Quản lý người dùng
+router.get('/users', adminController.getAllUsers);
+router.post('/users', adminController.createUser);       
+router.put('/users/:id', adminController.updateUser);
+router.delete('/users/:id', adminController.deleteUser);
 
-// Route quản lý nhóm học
-router.get('/groups', groupController.getAllGroups);
+// Quản lý nhóm học
+router.get('/groups', adminController.getAllGroups);
+router.post('/groups', adminController.createGroup);   
+router.delete('/groups/:id', adminController.deleteGroup);
 
-// Route quản lý quiz
-router.get('/quiz', quizController.getAllQuizzes);
+// Quản lý quiz
+router.get('/quizzes', adminController.getAllQuizzes);  
+router.delete('/quizzes/:id', adminController.deleteQuiz);
 
-// Route quản lý báo cáo (nếu có)
-router.get('/reports', reportController.getReports); 
+// Quản lý báo cáo
+router.get('/reports', adminController.getAllReports); 
+router.delete('/reports/:id', adminController.deleteReport);
 
-// Quản lý tài liệu chia sẻ
-router.get('/documents', documentController.getAllDocuments);
-router.delete('/documents/:id', documentController.deleteDocument);
-router.put('/documents/:id/status', documentController.updateDocumentStatus);
+// Quản lý tài liệu
+router.get('/documents', adminController.getAllDocuments);
+router.post('/documents', adminController.createDocument); 
+router.delete('/documents/:id', adminController.deleteDocument);
 
 module.exports = router;
