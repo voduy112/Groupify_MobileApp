@@ -1,3 +1,5 @@
+import 'package:app/features/document_share/providers/document_share_provider.dart';
+import 'package:app/features/home/widgets/list_group_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -5,11 +7,11 @@ import '../widgets/Carousel_view.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../widgets/list_document_item.dart';
 import '../../../core/widgets/title_app.dart';
+import '../widgets/list_group_item.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final user = context.read<AuthProvider>().user;
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
@@ -30,8 +32,8 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           TitleApp(title: 'Groups', context: context),
-          ListDocumentItem(),
           SizedBox(height: 10),
+          ListGroupItem()
         ],
       ),
       floatingActionButton: FloatingActionButton(

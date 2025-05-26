@@ -11,6 +11,12 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 
 // Logout route
-router.post("/logout",authMiddleware.verifyToken, authController.logout);
+router.post("/logout", authMiddleware.verifyToken, authController.logout);
+
+// Verify OTP route
+router.post("/verify-otp", authController.verifyOTP);
+
+// Resend OTP route
+router.post("/resend-otp", authController.resendOTP);
 
 module.exports = router;
