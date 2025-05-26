@@ -10,7 +10,7 @@ router.get('/', groupController.getAllGroup);
 router.delete('/:id', groupController.deleteGroup);
 router.post('/', groupController.createGroup);
 router.post('/join', groupController.joinGroupByCode);
-
+router.get('/user/:id',groupController.getAllGroupByUserId);
 
 
 router.put('/:id',

@@ -43,8 +43,8 @@ const chatController = {
               { toUserId: userId }
             ]
           })
-          .populate('fromUserId', 'username')
-          .populate('toUserId', 'username');
+          .populate('fromUserId', 'username profilePicture')
+          .populate('toUserId', 'username profilePicture');
       
           const usersMap = new Map();
       
@@ -61,7 +61,8 @@ const chatController = {
             if (otherUser && otherUser._id.toString() !== userId) {
               usersMap.set(otherUser._id.toString(), {
                 _id: otherUser._id,
-                username: otherUser.username
+                username: otherUser.username,
+                profilePicture: otherUser.profilePicture || ''
               });
             }
           });

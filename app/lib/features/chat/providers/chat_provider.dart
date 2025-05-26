@@ -52,7 +52,12 @@ class ChatProvider with ChangeNotifier{
         if (msgs.isNotEmpty) {
           final lastMsg = msgs.last;
           final isCurrentUserSender = lastMsg.fromUserId == userId;
-          _lastMsgs[user.id!] =
+
+          final displayUserId = lastMsg.fromUserId == userId
+              ? lastMsg.toUserId
+              : lastMsg.fromUserId;
+
+          _lastMsgs[displayUserId!] =
               isCurrentUserSender ? 'Bạn: ${lastMsg.message}' : lastMsg.message;
         } else {
           _lastMsgs[user.id!] = '';

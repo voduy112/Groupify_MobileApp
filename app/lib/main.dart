@@ -10,6 +10,7 @@ import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
 import 'core/themes/theme_app.dart';
 import 'features/authentication/providers/user_provider.dart';
+import 'features/group_study/providers/group_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,9 @@ void main() async {
           ),
           ChangeNotifierProvider(
             create: (context) => ChatProvider(chatService: ChatService()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => GroupProvider(),
           ),
         ],
         child: const MyApp(),

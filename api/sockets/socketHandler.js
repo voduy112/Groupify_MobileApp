@@ -30,15 +30,18 @@ function socketHandler(io) {
                         {fromUserId, toUserId},
                         {fromUserId: toUserId, toUserId: fromUserId}
                     ]
-                }).sort({timestamp: 1});
-
+                })
+                .sort({timestamp: 1})
+                .populate("fromUserId", "username profilePicture")
+                .populate("toUserId", "username profilePicture");
+        
                 socket.emit("chatHistory", messages);
             } catch (error) {
-                console.error("Lỗi khi lấy lịch trò chuyện");
+                console.error("Lỗi khi lấy lịch trò chuyện", error);
                 socket.emit("chatHistory", []);
             }
         });
-
+        
         //Lay lich su tro chuyen nhom
         socket.on("loadGroupMessages", async ({groupId}) => {
             try {
@@ -57,8 +60,9 @@ function socketHandler(io) {
             try {
                 const room = createRoomId(fromUserId, toUserId);
                 const saved = await Message.create({fromUserId, toUserId, message});
+                const populatedMsg = await saved.populate("fromUserId", "username profilePicture");
 
-                io.to(room).emit("privateMessage", saved);
+                io.to(room).emit("privateMessage", populatedMsg);
             } catch (error) {
                 console.log("Error saving message: ", error);
             }

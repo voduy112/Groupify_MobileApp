@@ -149,8 +149,28 @@ const groupController = {
             console.error(error);
             res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
         }
+    },
+    getAllGroupByUserId: async (req, res) => {
+        const userId = req.params.id || req.query.id;
+    
+        if (!userId) {
+            return res.status(400).json({ error: "Thiếu userId" });
+        }
+    
+        try {
+            const groups = await Group.find({
+                $or: [
+                    { ownerId: userId },
+                    { membersID: userId }
+                ]
+            }).populate("membersID");
+    
+            return res.json(groups);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "Lỗi khi lấy nhóm theo userId" });
+        }
     }
-  
 };
 
 module.exports = groupController;
