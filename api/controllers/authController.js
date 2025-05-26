@@ -79,7 +79,11 @@ const authController = {
         });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error logging in user', error });
+        console.error(error);
+        res.status(500).json({ 
+        message: 'Error logging in user', 
+        error: error.message 
+        });
     }
 },
     logout: async (req, res) => {

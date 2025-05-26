@@ -14,7 +14,7 @@ class GroupItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('Image URL: ${group.imgGroup}');
+    
     return GestureDetector(
       onTap: onTap,
       child: Card(

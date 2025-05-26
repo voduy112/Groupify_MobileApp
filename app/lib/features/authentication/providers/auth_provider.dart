@@ -14,6 +14,11 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  void clearUser() {
+    _user = null;
+    notifyListeners();
+  }
+
   Future<void> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -27,5 +32,18 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-  
+  Future<void> logout(BuildContext context) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await authService.logout(context);
+      _user = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

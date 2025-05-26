@@ -1,3 +1,5 @@
+import 'package:app/features/chat/providers/chat_provider.dart';
+import 'package:app/features/chat/services/chat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -8,6 +10,10 @@ import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
 import 'features/authentication/providers/user_provider.dart';
 import 'features/group_study/providers/group_provider.dart';
+import 'features/document/providers/document_provider.dart';
+import 'features/quiz/providers/quiz_provider.dart';
+import 'core/themes/theme_app.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +33,15 @@ void main() async {
           ChangeNotifierProvider(
             create: (context) => GroupProvider(),
           ),
+          ChangeNotifierProvider(
+            create: (context) => ChatProvider(chatService: ChatService()),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => DocumentProvider()
+          ),
+          ChangeNotifierProvider(
+            create: (_) => QuizProvider()
+          ),
         ],
         child: const MyApp(),
       ),
@@ -43,6 +58,9 @@ class MyApp extends StatelessWidget {
       routerConfig: appRouter,
       title: 'Groupify',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
     );
   }
 }

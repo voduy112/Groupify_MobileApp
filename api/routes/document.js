@@ -4,6 +4,7 @@ const router = express.Router();
 const {upload, uploadImageAndFile} = require('../config/Multer.js');
 
 router.get('/:id', documentController.getDocumentById);
+router.get('/group/:id', documentController.getDocumentsByGroupId);
 router.put('/:id',
     uploadImageAndFile,
     documentController.updateDocument);

@@ -35,32 +35,43 @@ const chatController = {
     },
     getChatList : async (req, res) => {
         try {
-            const {userId} = req.params;
-            const messages = await Message.find({
-                $or: [
-                    {fromUserId: userId},
-                    {toUserId: userId}
-                ]
-            }).populate('fromUserId', 'username')
-              .populate('toUserId', 'username');    
-
-            const usersMap = new Map (); //dung map tranh lay trung tin nhan
-
-            messages.forEach(msg => {
-                const otherUser = msg.fromUserId._id.toString() === userId
-                    ? msg.toUserId
-                    : msg.fromUserId;
-
-                usersMap.set(otherUser._id.toString(), {
-                    _id: otherUser._id,
-                    username: otherUser.username
-                });
-            });
-            res.json(Array.from(usersMap.values()));
+          const { userId } = req.params;
+      
+          const messages = await Message.find({
+            $or: [
+              { fromUserId: userId },
+              { toUserId: userId }
+            ]
+          })
+          .populate('fromUserId', 'username')
+          .populate('toUserId', 'username');
+      
+          const usersMap = new Map();
+      
+          messages.forEach(msg => {
+            const from = msg.fromUserId;
+            const to = msg.toUserId;
+      
+            if (!from || !to || !from._id || !to._id) return;
+      
+            const isSender = from._id.toString() === userId;
+            const otherUser = isSender ? to : from;
+      
+            // Thêm cả người gửi lẫn người nhận nếu khác userId
+            if (otherUser && otherUser._id.toString() !== userId) {
+              usersMap.set(otherUser._id.toString(), {
+                _id: otherUser._id,
+                username: otherUser.username
+              });
+            }
+          });
+      
+          res.json(Array.from(usersMap.values()));
         } catch (error) {
-            res.status(500).json({error: "Lỗi khi lấy danh sách trò chuyện"});
+          console.error("Lỗi getChatList:", error);
+          res.status(500).json({ error: error.message || "Lỗi khi lấy danh sách trò chuyện" });
         }
-    }
+      }      
 }
 
 module.exports = chatController;

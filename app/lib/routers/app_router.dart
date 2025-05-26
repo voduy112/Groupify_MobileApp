@@ -4,8 +4,10 @@ import '../features/authentication/views/login_screen.dart';
 import '../features/home/views/home_screen.dart';
 import '../features/group_study/views/group_study_screen.dart';
 import '../features/profile/views/profile_screen.dart';
-import '../features/chat/views/chat_screen.dart';
+import '../features/chat/views/chat_list_screen.dart';
 import '../features/authentication/views/register_screen.dart';
+import '../features/document_share/views/upload_document_screen.dart';
+import '../features/group_study/views/group_detail_screen_member.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -26,14 +28,30 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/home',
           builder: (context, state) => HomeScreen(),
+          routes: [
+            GoRoute(
+              path: '/upload-document',
+              builder: (context, state) => UploadDocumentScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/group',
           builder: (context, state) => GroupStudyScreen(),
+          routes: [
+            GoRoute(
+              path: 'detail-group/:groupId',
+              builder: (context, state) {
+                final groupId = state.pathParameters['groupId']!;
+                return GroupDetailScreenMember(groupId: groupId);
+              },
+            ),
+
+          ],
         ),
         GoRoute(
           path: '/chat',
-          builder: (context, state) => ChatScreen(),
+          builder: (context, state) => ChatListScreen(),
         ),
         GoRoute(
           path: '/profile',

@@ -45,7 +45,8 @@ class LoginScreen extends StatelessWidget {
 
                 final user = authProvider.user;
                 print(user!.id);
-                if (user.id != null) {
+
+                if (user != null && user.id != null) {
                   context.read<UserProvider>().setUserId(user.id!);
                   context.go('/home');
                 }
