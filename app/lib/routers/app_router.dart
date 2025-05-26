@@ -8,6 +8,9 @@ import '../features/chat/views/chat_list_screen.dart';
 import '../features/authentication/views/register_screen.dart';
 import '../features/document_share/views/upload_document_screen.dart';
 import '../features/group_study/views/group_detail_screen_member.dart';
+import '../features/home/widgets/document_detail.dart';
+import '../features/profile/widgets/edit_profile_screen.dart';
+import '../features/authentication/views/otp_verification_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -33,6 +36,13 @@ final GoRouter appRouter = GoRouter(
               path: '/upload-document',
               builder: (context, state) => UploadDocumentScreen(),
             ),
+            GoRoute(
+              path: 'document/:id',
+              builder: (context, state) {
+                final id = state.pathParameters['id'];
+                return DocumentDetailScreen(documentId: id!);
+              },
+            ),
           ],
         ),
         GoRoute(
@@ -56,6 +66,19 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/profile',
           builder: (context, state) => ProfileScreen(),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              builder: (context, state) => EditProfileScreen(),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/otp-verify',
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return OTPVerificationScreen(email: email, autoResend: true);
+          },
         ),
       ],
     ),

@@ -49,6 +49,15 @@ class AppTheme {
           ),
         ),
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[800]!),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        errorStyle: TextStyle(fontSize: 20, color: Colors.red),
+      ),
     );
   }
 

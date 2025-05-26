@@ -14,7 +14,6 @@ class GroupItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -29,20 +28,13 @@ class GroupItem extends StatelessWidget {
               // Ảnh nhóm
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: group.imgGroup ?? '',
-                  width: 60,
+                child: Image.network(
+                  group.imgGroup!,
                   height: 60,
+                  width: 60,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey[300],
-                    child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) =>
-                      const Icon(Icons.broken_image),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, size: 100),
                 ),
               ),
 
