@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
 import '../../../features/authentication/providers/user_provider.dart';
 import 'group_detail_screen.dart';
+import '../../../routers/app_router.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -46,13 +48,8 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
               return GroupItem(
                 group: provider.groups[index],
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GroupDetailScreen(
-                          groupId: provider.groups[index].id!),
-                    ),
-                  );
+                  context.push(
+                      '/group/detail-group/${provider.groups[index].id!}');
                 },
               );
             },

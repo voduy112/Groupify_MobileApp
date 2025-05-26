@@ -199,7 +199,27 @@ const quizController = {
             console.error('Lỗi khi chấm điểm quiz:', error);
             return res.status(500).json({ error: 'Không thể chấm điểm quiz' });
         }
-    }
+    },
+    getQuizsByGroupId: async (req, res) => {
+            const groupId = req.params.id || req.query.id;
+                
+                    if (!groupId) {
+                        return res.status(400).json({ error: "Thiếu groupId" });
+                    }
+                
+                    try {
+                        const quizes = await Quiz.find({
+                            $or: [
+                                { groupId: groupId },
+                                                    ]
+                        });
+                
+                        return res.json(quizes);
+                    } catch (error) {
+                        console.error(error);
+                        res.status(500).json({ error: "Lỗi khi lấy bộ câu hỏi theo groupId" });
+                    }
+        },
     
     
 }

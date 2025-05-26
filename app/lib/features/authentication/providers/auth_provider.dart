@@ -55,7 +55,6 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
   Future<void> logout(BuildContext context) async {
     _isLoading = true;
     notifyListeners();

@@ -7,6 +7,7 @@ import '../features/profile/views/profile_screen.dart';
 import '../features/chat/views/chat_list_screen.dart';
 import '../features/authentication/views/register_screen.dart';
 import '../features/document_share/views/upload_document_screen.dart';
+import '../features/group_study/views/group_detail_screen_member.dart';
 import '../features/home/widgets/document_detail.dart';
 import '../features/profile/widgets/edit_profile_screen.dart';
 import '../features/authentication/views/otp_verification_screen.dart';
@@ -32,7 +33,7 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => HomeScreen(),
           routes: [
             GoRoute(
-              path: 'upload-document',
+              path: '/upload-document',
               builder: (context, state) => UploadDocumentScreen(),
             ),
             GoRoute(
@@ -47,6 +48,16 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/group',
           builder: (context, state) => GroupStudyScreen(),
+          routes: [
+            GoRoute(
+              path: 'detail-group/:groupId',
+              builder: (context, state) {
+                final groupId = state.pathParameters['groupId']!;
+                return GroupDetailScreenMember(groupId: groupId);
+              },
+            ),
+
+          ],
         ),
         GoRoute(
           path: '/chat',

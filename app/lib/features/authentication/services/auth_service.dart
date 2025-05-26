@@ -30,7 +30,6 @@ class AuthService {
           'Error logging in: ${e.response?.data['message'] ?? e.message}');
     }
   }
-
   Future<User> register(
       String name, String email, String phone, String password) async {
     final response = await _dio.post('/api/auth/register', data: {
@@ -41,6 +40,7 @@ class AuthService {
     });
     return User.fromJson(response.data);
   }
+
 
   Future<void> logout(BuildContext context) async {
     try {
@@ -74,3 +74,4 @@ class AuthService {
     return response.data['message'];
   }
 }
+
