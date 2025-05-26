@@ -17,14 +17,29 @@ class AuthService {
       final response = await _dio.post('/api/auth/login',
           data: {'email': email, 'password': password});
       if (response.statusCode == 200) {
-        print("User: ${response.data}");
         return User.fromJson(response.data);
       } else {
         throw Exception('Failed to login: ${response.statusCode}');
       }
-    } catch (e) {
-      throw Exception('Error logging in: $e');
+    } on DioError catch (e) {
+      if (e.response?.statusCode == 403 &&
+          e.response?.data['message'] == 'Please verify your email') {
+        throw Exception('Please verify your email');
+      }
+      throw Exception(
+          'Error logging in: ${e.response?.data['message'] ?? e.message}');
     }
+  }
+
+  Future<User> register(
+      String name, String email, String phone, String password) async {
+    final response = await _dio.post('/api/auth/register', data: {
+      'username': name,
+      'email': email,
+      'phoneNumber': phone,
+      'password': password,
+    });
+    return User.fromJson(response.data);
   }
 
   Future<void> logout(BuildContext context) async {
@@ -42,5 +57,20 @@ class AuthService {
     } catch (e) {
       throw Exception('Error logging out: $e');
     }
+  }
+
+  Future<String> verifyOTP(String email, String otp) async {
+    print("email đây: $email");
+    print("otp đây: $otp");
+    final response = await _dio
+        .post('/api/auth/verify-otp', data: {'email': email, 'otp': otp});
+    print("response đây: ${response.data}");
+    return response.data['message'];
+  }
+
+  Future<String> resendOTP(String email) async {
+    final response =
+        await _dio.post('/api/auth/resend-otp', data: {'email': email});
+    return response.data['message'];
   }
 }
