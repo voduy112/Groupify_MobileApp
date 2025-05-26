@@ -33,19 +33,23 @@ class MainScaffold extends StatelessWidget {
     final selectedIndex = getSelectedIndex();
     return Scaffold(
       body: child,
-      bottomNavigationBar: ConvexAppBar(
-        backgroundColor: Color(0xFF305973),
-        items: List.generate(
-          _titles.length,
-          (i) => TabItem(icon: _icons[i], title: _titles[i]),
+      bottomNavigationBar: SafeArea(
+        top: false, // tránh padding trên (chỉ cần tránh ở dưới)
+        child: ConvexAppBar(
+          backgroundColor: Color(0xFF305973),
+          items: List.generate(
+            _titles.length,
+            (i) => TabItem(icon: _icons[i], title: _titles[i]),
+          ),
+          initialActiveIndex: selectedIndex,
+          onTap: (int index) {
+            if (index != selectedIndex) {
+              context.go(_routes[index]);
+            }
+          },
         ),
-        initialActiveIndex: selectedIndex,
-        onTap: (int index) {
-          if (index != selectedIndex) {
-            context.go(_routes[index]);
-          }
-        },
       ),
+
     );
   }
 }

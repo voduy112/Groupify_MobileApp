@@ -30,7 +30,7 @@ class Message {
           json['fromUserId'] is Map ? json['fromUserId']['username'] : null,
       toUsername: json['toUserId'] is Map ? json['toUserId']['username'] : null,
       message: json['message'],
-      timestamp: DateTime.parse(json['timestamp']),
+      timestamp: DateTime.parse(json['timestamp']).toLocal(),
     );
   }
 

@@ -160,7 +160,14 @@ const groupController = {
   },
   getAllGroupByUserId: async (req, res) => {
     const userId = req.params.id || req.query.id;
+    if (!userId) {
+      return res.status(400).json({ error: "Thiếu userId" });
+    }
 
+    try {
+      const groups = await Group.find({
+        $or: [{ ownerId: userId }, { membersID: userId }],
+      }).populate("membersID");
 
             const updateGroup = await Group.findByIdAndUpdate(
                 req.params.id,
