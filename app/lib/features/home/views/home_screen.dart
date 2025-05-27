@@ -25,7 +25,9 @@ class HomeScreen extends StatelessWidget {
           Center(
             child: ElevatedButton(
               style: Theme.of(context).elevatedButtonTheme.style,
-              onPressed: () {},
+              onPressed: () {
+                context.go('/home/show-all-document');
+              },
               child: Text(
                 'More',
               ),

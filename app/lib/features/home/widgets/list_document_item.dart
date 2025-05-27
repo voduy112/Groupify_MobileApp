@@ -40,8 +40,8 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 150,
-                  height: 150,
+                  width: 140,
+                  height: 140,
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(8),
@@ -57,7 +57,11 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                 const SizedBox(height: 8),
                 Text(
                   document.title ?? 'No title',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

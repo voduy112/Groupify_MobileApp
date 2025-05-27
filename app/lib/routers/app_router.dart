@@ -11,6 +11,7 @@ import '../features/group_study/views/group_detail_screen_member.dart';
 import '../features/home/widgets/document_detail.dart';
 import '../features/profile/widgets/edit_profile_screen.dart';
 import '../features/authentication/views/otp_verification_screen.dart';
+import '../features/home/views/show_all_document_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -32,6 +33,10 @@ final GoRouter appRouter = GoRouter(
           path: '/home',
           builder: (context, state) => HomeScreen(),
           routes: [
+            GoRoute(
+              path: '/show-all-document',
+              builder: (context, state) => ShowAllDocumentScreen(),
+            ),
             GoRoute(
               path: '/upload-document',
               builder: (context, state) => UploadDocumentScreen(),
@@ -56,7 +61,6 @@ final GoRouter appRouter = GoRouter(
                 return GroupDetailScreenMember(groupId: groupId);
               },
             ),
-
           ],
         ),
         GoRoute(
