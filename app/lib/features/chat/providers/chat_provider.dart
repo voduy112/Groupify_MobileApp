@@ -72,4 +72,9 @@ class ChatProvider with ChangeNotifier{
       notifyListeners();
     }
   }
+  void addMessage(Message message) {
+    _messages.add(message);
+    notifyListeners();
+  }
+
 }

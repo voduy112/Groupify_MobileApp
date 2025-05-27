@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
-import '../../../features/authentication/providers/user_provider.dart';
+import '../../../features/authentication/providers/auth_provider.dart';
 import 'group_detail_screen.dart';
 import '../../../routers/app_router.dart';
 
@@ -20,7 +20,7 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
     super.initState();
     // Đợi đến khi context sẵn sàng
     Future.delayed(Duration.zero, () {
-      final userId = Provider.of<UserProvider>(context, listen: false).userId;
+      final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
       if (userId != null) {
         Provider.of<GroupProvider>(context, listen: false)
             .fetchGroupsByUserId(userId);
