@@ -21,7 +21,7 @@ class Validate {
     if (value == null || value.trim().isEmpty) {
       return 'Số điện thoại không được để trống';
     }
-    final phoneRegex = RegExp(r'^[0-9]{11}$');
+    final phoneRegex = RegExp(r'^[0-9]{10}$');
     if (!phoneRegex.hasMatch(value)) {
       return 'Số điện thoại không hợp lệ';
     }
