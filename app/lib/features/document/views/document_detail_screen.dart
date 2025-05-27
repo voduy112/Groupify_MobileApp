@@ -8,17 +8,18 @@ import 'package:provider/provider.dart';
 import '../../../models/document.dart';
 import '../providers/document_provider.dart';
 
-class DocumentDetailScreen extends StatefulWidget {
+class DocumentDetailScreenView extends StatefulWidget {
   final String documentId;
 
-  const DocumentDetailScreen({Key? key, required this.documentId})
+  const DocumentDetailScreenView({Key? key, required this.documentId})
       : super(key: key);
 
   @override
-  State<DocumentDetailScreen> createState() => _DocumentDetailScreenState();
+  State<DocumentDetailScreenView> createState() =>
+      _DocumentDetailScreenViewState();
 }
 
-class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
+class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
   String? localPath;
   String? loadError;
 
