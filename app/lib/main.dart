@@ -15,12 +15,13 @@ import 'features/document/providers/document_provider.dart';
 import 'features/quiz/providers/quiz_provider.dart';
 import 'core/themes/theme_app.dart';
 import 'features/document_share/providers/document_share_provider.dart';
-
+import 'services/api/dio_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FirebaseMessagingService.initFCM();
+  DioClient.createInterceptors();
 
   runApp(
     OverlaySupport.global(
@@ -44,12 +45,8 @@ void main() async {
           ChangeNotifierProvider(
             create: (context) => ChatProvider(chatService: ChatService()),
           ),
-          ChangeNotifierProvider(
-            create: (_) => DocumentProvider()
-          ),
-          ChangeNotifierProvider(
-            create: (_) => QuizProvider()
-          ),
+          ChangeNotifierProvider(create: (_) => DocumentProvider()),
+          ChangeNotifierProvider(create: (_) => QuizProvider()),
         ],
         child: const MyApp(),
       ),
