@@ -9,10 +9,19 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.read<AuthProvider>().user;
+    final user = context.watch<AuthProvider>().user;
+    print("user watch: ${user?.bio}");
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.go('/profile/edit', extra: user);
+            },
+            icon: Icon(Icons.settings),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -43,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(user?.phoneNumber ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 2),
-                      Text(user?.email ?? '',
+                      Text(user?.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
                       Row(
@@ -57,7 +66,7 @@ class ProfileScreen extends StatelessWidget {
                               textStyle: const TextStyle(fontSize: 13),
                             ),
                             onPressed: () {
-                              context.go('/profile/edit');
+                              context.go('/profile/edit', extra: user);
                             },
                             child: const Text('Chỉnh sửa profile'),
                           ),
