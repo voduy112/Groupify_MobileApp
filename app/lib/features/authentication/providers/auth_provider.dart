@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../models/user.dart';
 import '../services/auth_service.dart';
+import 'dart:io';
+import '../services/user_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
+  final UserService _userService = UserService();
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -13,6 +16,11 @@ class AuthProvider with ChangeNotifier {
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  Future<void> updateUser(String id, User user, {File? avatarImage}) async {
+    _user = await _userService.updateUser(id, user, avatarImage: avatarImage);
+    notifyListeners();
+  }
 
   void clearUser() {
     _user = null;
@@ -40,10 +48,6 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      // print(name);
-      // print(email);
-      // print(phone);
-      // print(password);
       _user = await authService.register(name, email, phone, password);
       _error = null;
       return true;
@@ -55,6 +59,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void> logout(BuildContext context) async {
     _isLoading = true;
     notifyListeners();
