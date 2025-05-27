@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 class DioClient {
+
   static late Dio _dio;
 
   static void createInterceptors() {
@@ -14,6 +15,7 @@ class DioClient {
       error: true,
     ));
   }
+
 
   static Dio get instance => _dio;
 }

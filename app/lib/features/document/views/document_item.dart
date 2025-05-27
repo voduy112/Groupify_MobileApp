@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../../models/document.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import '../../../models/document.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DocumentItem extends StatelessWidget {
   final Document document;
@@ -12,9 +16,64 @@ class DocumentItem extends StatelessWidget {
     this.onTap,
   });
 
+  Future<bool> requestStoragePermission() async {
+    final statuses = await [
+      Permission.storage,
+      Permission.manageExternalStorage,
+    ].request();
+
+    return statuses[Permission.storage]!.isGranted;
+  }
+
+  Future<void> _downloadPdf(BuildContext context) async {
+    final url = document.mainFile;
+    if (url == null || url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không tìm thấy file để tải xuống')),
+      );
+      return;
+    }
+
+    final hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần cấp quyền lưu trữ')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final directory = Directory('/storage/emulated/0/Download');
+
+        // Đảm bảo thư mục tồn tại
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+
+        final fileName = url.split('/').last + '.pdf';
+        final file = File('${directory.path}/$fileName');
+
+        await file.writeAsBytes(response.bodyBytes);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã tải về: $fileName')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tải thất bại (${response.statusCode})')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi tải: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('Image URL: ${document.imgDocument!}');
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -26,56 +85,63 @@ class DocumentItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Ảnh nhóm
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: document.imgDocument ?? '',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey[300],
-                    child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) =>
-                      const Icon(Icons.broken_image),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-              // Thông tin nhóm
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      document.title ?? 'Tên tài liệu',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        imageUrl: document.imgDocument ?? '',
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 60,
+                          height: 60,
+                          color: Colors.grey[300],
+                          child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.broken_image),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Môn: ${document.description ?? 'Không xác định'}',
-                      style: const TextStyle(color: Colors.grey),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      document.uploaderId ?? '',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            document.title ?? 'Tên tài liệu',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Môn: ${document.description ?? 'Không xác định'}',
+                            style: const TextStyle(color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            document.uploaderId ?? '',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.download_rounded, color: Colors.blue),
+                onPressed: () => _downloadPdf(context),
               ),
             ],
           ),

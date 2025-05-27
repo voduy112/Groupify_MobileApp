@@ -21,7 +21,6 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
     // Đợi đến khi context sẵn sàng
     Future.delayed(Duration.zero, () {
       final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
-      print("userId: $userId");
       if (userId != null) {
         Provider.of<GroupProvider>(context, listen: false)
             .fetchGroupsByUserId(userId);

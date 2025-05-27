@@ -31,8 +31,14 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
       final fileUrl = provider.selectedDocument?.mainFile;
       if (fileUrl != null && fileUrl.isNotEmpty) {
+        print(fileUrl);
         try {
-          final response = await http.get(Uri.parse(fileUrl));
+          final response = await http.get(
+            Uri.parse(fileUrl),
+            headers: {
+              'Accept': 'application/pdf',
+            },
+          );
           if (response.statusCode == 200) {
             final dir = await getTemporaryDirectory();
             final file = File('${dir.path}/temp_doc.pdf');
@@ -42,7 +48,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             });
           } else {
             setState(() {
-              loadError = "Tải PDF thất bại (${response.statusCode})";
+              loadError =
+                  "Tải PDF thất bại (${response.statusCode}): ${response.body}";
             });
           }
         } catch (e) {
@@ -81,7 +88,9 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                           pageFling: true,
                           onError: (error) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lỗi khi hiển thị PDF: $error')),
+                              SnackBar(
+                                  content:
+                                      Text('Lỗi khi hiển thị PDF: $error')),
                             );
                           },
                         ),

@@ -14,16 +14,14 @@ class GroupService {
       print("response getAllGroup: ${response.data}");
 
       if (response.statusCode == 200) {
-        var data = response.data;
-        if (data is List) {
-          return data.map((json) => Group.fromJson(json)).toList();
-        } else if (data is Map && data['groups'] is List) {
-          return (data['groups'] as List)
-              .map((json) => Group.fromJson(json))
-              .toList();
-        } else {
-          throw Exception("Dữ liệu trả về không đúng định dạng");
-        }
+
+        print(response.data); // In ra cấu trúc thực tế
+        final List<dynamic> groupList = response.data is List
+            ? response.data
+            : response.data['data']; // Kiểm tra linh hoạt
+
+        return groupList.map((json) => Group.fromJson(json)).toList();
+
       } else {
         throw Exception("Lỗi khi lấy danh sách nhóm: ${response.statusCode}");
       }
@@ -32,6 +30,7 @@ class GroupService {
       rethrow;
     }
   }
+
 
   Future<Group> getGroup(String groupId) async {
     try {
