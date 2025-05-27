@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const documentSchema = new mongoose.Schema({
     groupId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
         ref: 'Group'
     },
     title: {
