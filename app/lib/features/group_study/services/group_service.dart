@@ -8,20 +8,18 @@ class GroupService {
 
   GroupService() : _dio = DioClient.instance;
 
-  Future<List<Group>> getAllGroup(String userId) async {
+  Future<List<Group>> getAllGroupbyUserId(String userId) async {
     try {
       final response = await _dio.get('/api/group/user/$userId');
       print("response getAllGroup: ${response.data}");
 
       if (response.statusCode == 200) {
-
         print(response.data); // In ra cấu trúc thực tế
         final List<dynamic> groupList = response.data is List
             ? response.data
             : response.data['data']; // Kiểm tra linh hoạt
 
         return groupList.map((json) => Group.fromJson(json)).toList();
-
       } else {
         throw Exception("Lỗi khi lấy danh sách nhóm: ${response.statusCode}");
       }
@@ -30,7 +28,6 @@ class GroupService {
       rethrow;
     }
   }
-
 
   Future<Group> getGroup(String groupId) async {
     try {
@@ -42,6 +39,24 @@ class GroupService {
       }
     } catch (e) {
       print("Lỗi getGroup: $e");
+      rethrow;
+    }
+  }
+
+  Future<List<Group>> getAllGroup(String userId) async {
+    try {
+      final response = await _dio.get('/api/group', queryParameters: {
+        'userId': userId,
+      });
+      if (response.statusCode == 200) {
+        return (response.data as List)
+            .map((json) => Group.fromJson(json))
+            .toList();
+      } else {
+        throw Exception("Lỗi khi lấy danh sách nhóm: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi getAllGroup: $e");
       rethrow;
     }
   }
