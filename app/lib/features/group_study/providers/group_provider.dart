@@ -14,13 +14,27 @@ class GroupProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  Future<void> fetchAllGroup(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _groups = await _groupService.getAllGroup(userId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchGroupsByUserId(String userId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _groups = await _groupService.getAllGroup(userId);
+      _groups = await _groupService.getAllGroupbyUserId(userId);
     } catch (e) {
       _error = e.toString();
     } finally {
