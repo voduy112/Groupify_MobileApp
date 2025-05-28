@@ -73,8 +73,8 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
               group: _group,
             ),
             DraggableScrollableSheet(
-              initialChildSize: 0.70,
-              minChildSize: 0.55,
+              initialChildSize: 0.75,
+              minChildSize: 0.75,
               maxChildSize: 0.96,
               builder: (context, scrollController) {
                 return Container(

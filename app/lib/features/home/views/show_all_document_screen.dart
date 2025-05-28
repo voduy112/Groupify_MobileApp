@@ -60,8 +60,15 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                       title: Text(filteredDocuments[index].title ?? ''),
                       subtitle:
                           Text(filteredDocuments[index].description ?? ''),
-                      leading: Image.network(
-                          filteredDocuments[index].imgDocument ?? ''),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          filteredDocuments[index].imgDocument ?? '',
+                          fit: BoxFit.cover,
+                          height: 100,
+                          width: 100,
+                        ),
+                      ),
                       onTap: () {
                         context.go(
                             '/home/document/${filteredDocuments[index].id}',

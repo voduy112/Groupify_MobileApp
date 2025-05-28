@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/document_share_service.dart';
 import '../../../models/document.dart';
+import 'package:file_picker/file_picker.dart';
 
 class DocumentShareProvider extends ChangeNotifier {
   final DocumentShareService _documentShareService;
@@ -29,5 +30,27 @@ class DocumentShareProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> uploadDocument({
+    required String title,
+    required String description,
+    required String uploaderId,
+    required PlatformFile? imageFile,
+    required PlatformFile? mainFile,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    await _documentShareService.uploadDocument(
+      title: title,
+      description: description,
+      uploaderId: uploaderId,
+      imageFile: imageFile,
+      mainFile: mainFile,
+    );
+    _error = null;
+    _isLoading = false;
+    notifyListeners();
+    await fetchDocuments();
   }
 }
