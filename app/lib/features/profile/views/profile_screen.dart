@@ -32,7 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (authUser != null) {
       try {
         final fetchedUser = await context
-            .read<AuthProvider>()
+            .watch<AuthProvider>()
             .authService
             .fetchUserProfileById(authUser.id!);
         setState(() {
@@ -122,7 +122,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(currentUser?.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
-                      if (currentUser!.id ==authUser?.id) // chỉ hiển thị nếu là user đang đăng nhập
+                      if (currentUser!.id ==
+                          authUser
+                              ?.id) // chỉ hiển thị nếu là user đang đăng nhập
                         Row(
                           children: [
                             OutlinedButton(
@@ -134,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 textStyle: const TextStyle(fontSize: 13),
                               ),
                               onPressed: () {
-                                context.go('/profile/edit');
+                                context.go('/profile/edit', extra: currentUser);
                               },
                               child: const Text('Chỉnh sửa profile'),
                             ),
