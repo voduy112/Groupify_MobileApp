@@ -88,4 +88,3 @@ class ChatProvider with ChangeNotifier {
   }
 
 }
-}

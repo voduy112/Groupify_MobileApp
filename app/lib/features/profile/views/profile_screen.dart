@@ -71,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              context.go('/profile/edit', extra: user);
+              context.go('/profile/edit', extra: currentUser);
             },
             icon: Icon(Icons.settings),
           ),
@@ -118,8 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(currentUser?.phoneNumber ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 2),
-                      Text(currentUser?.email ?? '',
-                      Text(user?.bio ?? '',
+                      Text(currentUser?.email ?? ''),
+                      Text(currentUser?.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
                       if (currentUser!.id ==authUser?.id) // chỉ hiển thị nếu là user đang đăng nhập
@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
+                                side: BorderSide(color: Colors.red),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 4),
                                 textStyle: const TextStyle(fontSize: 13),
@@ -142,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             OutlinedButton(
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
+                                side: BorderSide(color: Colors.red),
                               ),
                               onPressed: () async {
                                 await context
@@ -153,16 +153,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 }
                               },
                               child: const Text('Đăng xuất'),
-                            onPressed: () {
-                              context.go('/profile/edit', extra: user);
-                            },
-                            child: const Text('Chỉnh sửa profile'),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: BorderSide(color: Colors.red),
                             ),
                           ],
                         ),

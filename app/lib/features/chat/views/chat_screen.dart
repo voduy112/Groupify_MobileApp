@@ -42,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.215:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.237:5000', <String, dynamic>{
 
       'transports': ['websocket'],
       'autoConnect': false,
@@ -72,8 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
             widget.otherUser.id!,
           );
       _scrollToBottom();
-          ); // Gọi lại để đảm bảo đồng bộ
-    });
+     }); // Gọi lại để đảm bảo đồng bộ
 
     socket.on('privateMessage', (data) {
       final msg = Message.fromJson(data);
