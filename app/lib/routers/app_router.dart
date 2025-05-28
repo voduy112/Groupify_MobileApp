@@ -12,6 +12,8 @@ import '../features/home/widgets/document_detail.dart';
 import '../features/profile/widgets/edit_profile_screen.dart';
 import '../features/authentication/views/otp_verification_screen.dart';
 import '../features/home/views/show_all_document_screen.dart';
+import '../features/home/views/group_detail_screen.dart';
+import '../features/home/views/show_all_group_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -34,8 +36,19 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => HomeScreen(),
           routes: [
             GoRoute(
+              path: 'group/:id',
+              builder: (context, state) {
+                final groupId = state.pathParameters['id'];
+                return GroupDetailScreen(groupId: groupId!);
+              },
+            ),
+            GoRoute(
               path: '/show-all-document',
               builder: (context, state) => ShowAllDocumentScreen(),
+            ),
+            GoRoute(
+              path: '/show-all-group',
+              builder: (context, state) => ShowAllGroupScreen(),
             ),
             GoRoute(
               path: '/upload-document',

@@ -22,14 +22,13 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
   @override
   Widget build(BuildContext context) {
     final documents = context.watch<DocumentShareProvider>().documents;
-    print("documents: $documents");
     return Expanded(
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 16,
         ),
-        itemCount: documents.length,
+        itemCount: 6,
         itemBuilder: (context, index) {
           final document = documents[index];
           return GestureDetector(

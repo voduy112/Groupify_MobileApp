@@ -8,10 +8,12 @@ import '../../authentication/providers/auth_provider.dart';
 import '../widgets/list_document_item.dart';
 import '../../../core/widgets/title_app.dart';
 import '../widgets/list_group_item.dart';
+import '../../group_study/providers/group_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final groupProvider = Provider.of<GroupProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
@@ -35,7 +37,21 @@ class HomeScreen extends StatelessWidget {
           ),
           TitleApp(title: 'Groups', context: context),
           SizedBox(height: 10),
-          ListGroupItem()
+          ListGroupItem(
+            groups: groupProvider.groups.take(5).toList(),
+            from: 'home',
+          ),
+          Center(
+            child: ElevatedButton(
+              style: Theme.of(context).elevatedButtonTheme.style,
+              onPressed: () {
+                context.go('/home/show-all-group');
+              },
+              child: Text(
+                'More',
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

@@ -37,7 +37,16 @@ const groupController = {
   },
   getAllGroup: async (req, res) => {
     try {
-      const groups = await Group.find().populate("membersID");
+      const userId = req.query.userId;
+      let groups;
+      if (userId) {
+        groups = await Group.find({
+          membersID: { $ne: userId },
+          ownerId: { $ne: userId },
+        }).populate("membersID");
+      } else {
+        groups = await Group.find().populate("membersID");
+      }
       return res.json(groups);
     } catch (error) {
       res.status(404).json({ error: "Lỗi khi lấy thông tin nhóm" });
@@ -158,43 +167,37 @@ const groupController = {
       res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
     }
   },
- 
 
   getAllGroupByUserId: async (req, res) => {
     const userId = req.params.id || req.query.id;
-  
+
     if (!userId) {
       return res.status(400).json({ error: "Thiếu userId" });
     }
-  
+
     try {
       const groups = await Group.find({
-        $or: [
-          { ownerId: userId }, 
-          { membersID: userId } 
-        ]
+        $or: [{ ownerId: userId }, { membersID: userId }],
       }).lean();
-  
+
       res.json(groups);
     } catch (error) {
       console.error("Lỗi getAllGroupByUserId:", error);
       res.status(500).json({ error: "Lỗi máy chủ khi lấy danh sách nhóm" });
     }
   },
-    getGroupMembers: async (req, res) => {
-        try {
-            const group = await Group.findById(req.params.id).populate("membersID");
-            if (!group) {
-                return res.status(404).json({ error: "Không tìm thấy nhóm" });
-            }
-            res.json(group.membersID);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
-        }
-    },
-   
-    
+  getGroupMembers: async (req, res) => {
+    try {
+      const group = await Group.findById(req.params.id).populate("membersID");
+      if (!group) {
+        return res.status(404).json({ error: "Không tìm thấy nhóm" });
+      }
+      res.json(group.membersID);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
+    }
+  },
 };
 
 module.exports = groupController;
