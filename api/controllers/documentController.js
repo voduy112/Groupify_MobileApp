@@ -127,22 +127,24 @@ const documentController = {
     uploadDocument : async (req, res) => {
         try {
             const { groupId, title, description, uploaderId } = req.body;
-            if (!groupId || !title || !description || !uploaderId) {
+            if (!title || !description || !uploaderId) {
                 return res.status(400).json({error: "Thiếu thông tin tài liệu"});
             }
             if (!req.files || !req.files.mainFile) {
                 return res.status(400).json({ error: "Chưa upload file tài liệu" });
-            }         
+            }     
+            
+            const times = Date.now();
             
             const imgUploadResult = await cloudinary.uploader.upload(req.files.image[0].path, {
                 folder: "Groupify_MobileApp/img_document",
-                public_id: `${req.params.id}_imgdocument`,
+                public_id: `${uploaderId}_${times}_imgdocument`,
                 overwrite: false,
             });
             
             const fileUploadResult = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
                 folder: "Groupify_MobileApp/file_document",
-                public_id: `${req.params.id}_filedocument`,
+                public_id: `${uploaderId}_${times}_filedocument`,
                 resource_type: "raw",
                 overwrite: false,
             });

@@ -79,7 +79,7 @@ class ChatProvider with ChangeNotifier {
     _messages.add(message);
     notifyListeners();
   }
-
+  
   Future<void> deleteChatWithUser(String currentUserId, String otherUserId) async {
     await chatService.deleteChat(currentUserId, otherUserId);
     _chatUsers.removeWhere((user) => user.id == otherUserId);
@@ -87,4 +87,5 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+}
 }

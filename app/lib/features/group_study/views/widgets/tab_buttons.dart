@@ -38,7 +38,7 @@ class TabButtons extends StatelessWidget {
           foregroundColor: isSelected ? Colors.white : Colors.black87,
           padding: const EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(0),
           ),
           elevation: isSelected ? 6 : 0,
         ),

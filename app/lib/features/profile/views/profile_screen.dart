@@ -65,10 +65,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: Center(child: Text('Không tìm thấy thông tin người dùng')),
       );
     }
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.go('/profile/edit', extra: user);
+            },
+            icon: Icon(Icons.settings),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -112,6 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 2),
                       Text(currentUser?.email ?? '',
+                      Text(user?.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
                       if (currentUser!.id ==authUser?.id) // chỉ hiển thị nếu là user đang đăng nhập
@@ -145,6 +153,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 }
                               },
                               child: const Text('Đăng xuất'),
+                            onPressed: () {
+                              context.go('/profile/edit', extra: user);
+                            },
+                            child: const Text('Chỉnh sửa profile'),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: BorderSide(color: Colors.red),
                             ),
                           ],
                         ),

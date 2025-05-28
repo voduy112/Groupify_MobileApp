@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../quiz/providers/quiz_provider.dart';
 import '../../../quiz/views/quiz_item.dart';
+import '../../../quiz/views/quiz_detail_screen.dart';
+import '../../../quiz/views/result_quiz_screen.dart';
+import '../../../authentication/providers/auth_provider.dart';
 
 class QuizList extends StatelessWidget {
   final ScrollController scrollController;
@@ -32,7 +35,26 @@ class QuizList extends StatelessWidget {
             return QuizItem(
               quiz: quiz,
               onTap: () {
-                // TODO: điều hướng tới chi tiết quiz
+                final authProvider =
+                    Provider.of<AuthProvider>(context, listen: false);
+                final userId = authProvider.user?.id;
+
+                if (userId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Không tìm thấy người dùng')),
+                  );
+                  return;
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ResultQuizScreen(
+                      quizId: quiz.id,
+                      userId: userId,
+                    ),
+                  ),
+                );
               },
             );
           },

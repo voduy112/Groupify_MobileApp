@@ -49,6 +49,8 @@ dependencies:
   convex_bottom_bar: ^3.2.0
   socket_io_client: ^3.1.2
   image_picker: ^1.1.2
+  permission_handler: ^11.0.1
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:

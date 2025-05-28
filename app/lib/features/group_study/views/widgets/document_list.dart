@@ -37,7 +37,7 @@ class DocumentList extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) =>
-                        DocumentDetailScreen(documentId: document.id!),
+                        DocumentDetailScreenView(documentId: document.id!),
                   ),
                 );
               },

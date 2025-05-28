@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import '../../../models/document.dart';
+import '../../../features/document/views/document_detail_screen.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
   final String documentId;
@@ -50,8 +51,25 @@ class DocumentDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Center(
-                child:
-                    ElevatedButton(onPressed: () {}, child: Text("DOWNLOAD")))
+              child: Column(
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DocumentDetailScreenView(
+                                documentId: document.id!),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: Text("READ")),
+                  ElevatedButton(onPressed: () {}, child: Text("DOWNLOAD")),
+                ],
+              ),
+            )
           ],
         ),
       ),

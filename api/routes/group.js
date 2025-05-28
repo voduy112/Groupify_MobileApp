@@ -11,12 +11,10 @@ router.post("/", groupController.createGroup);
 router.post("/join", groupController.joinGroupByCode);
 router.get("/user/:id", groupController.getAllGroupByUserId);
 
-router.put('/:id',
-    upload.single('image'),
-    groupController.updateGroup
-)
+router.put("/:id", upload.single("image"), groupController.updateGroup);
 router.put("/:id", upload.single("image"), groupController.updateGroup);
 router.post("/leave", groupController.leaveGroup);
 router.get("/members/:id", groupController.getGroupMembers); //id la id cua group
+router.get("/user/:id", groupController.getAllGroupByUserId);
 
 module.exports = router;

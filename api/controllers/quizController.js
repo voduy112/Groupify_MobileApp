@@ -1,14 +1,17 @@
 const Quiz = require('../models/Quiz');
-const ResultQuiz = require('../models/resultQuiz');
+const ResultQuiz = require('../models/ResultQuiz');
 
 const quizController = {
 
-    getAllQuiz : async(req, res) => {
+    getQuizById : async(req, res) => {
         try {
-           const quizes = await Quiz.find();
-           res.json(quizes); 
-        }catch (error) {
-            res.status(404).json({error: "Lỗi lấy bộ câu hỏi"});
+            const quiz = await Quiz.findById(req.params.id);
+            if (!quiz) {
+            return res.status(404).json({ error: "Không tìm thấy quiz" });
+            }
+            res.json(quiz);
+        } catch (error) {
+            res.status(500).json({ error: "Lỗi khi lấy thông tin quiz" });
         }
     },
 

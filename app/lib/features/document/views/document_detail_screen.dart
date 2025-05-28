@@ -8,17 +8,18 @@ import 'package:provider/provider.dart';
 import '../../../models/document.dart';
 import '../providers/document_provider.dart';
 
-class DocumentDetailScreen extends StatefulWidget {
+class DocumentDetailScreenView extends StatefulWidget {
   final String documentId;
 
-  const DocumentDetailScreen({Key? key, required this.documentId})
+  const DocumentDetailScreenView({Key? key, required this.documentId})
       : super(key: key);
 
   @override
-  State<DocumentDetailScreen> createState() => _DocumentDetailScreenState();
+  State<DocumentDetailScreenView> createState() =>
+      _DocumentDetailScreenViewState();
 }
 
-class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
+class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
   String? localPath;
   String? loadError;
 
@@ -31,8 +32,14 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
       final fileUrl = provider.selectedDocument?.mainFile;
       if (fileUrl != null && fileUrl.isNotEmpty) {
+        print(fileUrl);
         try {
-          final response = await http.get(Uri.parse(fileUrl));
+          final response = await http.get(
+            Uri.parse(fileUrl),
+            headers: {
+              'Accept': 'application/pdf',
+            },
+          );
           if (response.statusCode == 200) {
             final dir = await getTemporaryDirectory();
             final file = File('${dir.path}/temp_doc.pdf');
@@ -42,7 +49,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             });
           } else {
             setState(() {
-              loadError = "Tải PDF thất bại (${response.statusCode})";
+              loadError =
+                  "Tải PDF thất bại (${response.statusCode}): ${response.body}";
             });
           }
         } catch (e) {
@@ -81,7 +89,9 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                           pageFling: true,
                           onError: (error) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lỗi khi hiển thị PDF: $error')),
+                              SnackBar(
+                                  content:
+                                      Text('Lỗi khi hiển thị PDF: $error')),
                             );
                           },
                         ),
