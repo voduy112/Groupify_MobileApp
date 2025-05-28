@@ -1,14 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/message.dart';
 import '../../../models/user.dart';
 import '../services/chat_service.dart';
 
-class ChatProvider with ChangeNotifier{
+class ChatProvider with ChangeNotifier {
   final ChatService chatService;
 
-  ChatProvider({
-    required this.chatService
-  });
+  ChatProvider({required this.chatService});
 
   List<Message> _messages = [];
   List<User> _chatUsers = [];
@@ -51,11 +53,11 @@ class ChatProvider with ChangeNotifier{
         final msgs = await chatService.getMessages(userId, user.id!);
         if (msgs.isNotEmpty) {
           final lastMsg = msgs.last;
-          final isCurrentUserSender = lastMsg.fromUserId == userId;
+          final isCurrentUserSender = lastMsg.fromUser.id == userId;
 
-          final displayUserId = lastMsg.fromUserId == userId
-              ? lastMsg.toUserId
-              : lastMsg.fromUserId;
+          final displayUserId = lastMsg.fromUser.id == userId
+              ? lastMsg.toUser.id
+              : lastMsg.fromUser.id;
 
           _lastMsgs[displayUserId!] =
               isCurrentUserSender ? 'Bạn: ${lastMsg.message}' : lastMsg.message;
@@ -72,4 +74,17 @@ class ChatProvider with ChangeNotifier{
       notifyListeners();
     }
   }
+
+  void addMessage(Message message) {
+    _messages.add(message);
+    notifyListeners();
+  }
+
+  Future<void> deleteChatWithUser(String currentUserId, String otherUserId) async {
+    await chatService.deleteChat(currentUserId, otherUserId);
+    _chatUsers.removeWhere((user) => user.id == otherUserId);
+    _lastMsgs.remove(otherUserId);
+    notifyListeners();
+  }
+
 }
