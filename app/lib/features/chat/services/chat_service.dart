@@ -2,10 +2,6 @@ import 'package:dio/dio.dart';
 import '../../../models/message.dart';
 import '../../../models/user.dart';
 import '../../../services/api/dio_client.dart';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
   final Dio _dio;
