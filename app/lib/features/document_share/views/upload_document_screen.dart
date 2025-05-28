@@ -1,7 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:provider/provider.dart';
+import '../providers/document_share_provider.dart';
 
-class UploadDocumentScreen extends StatelessWidget {
+class UploadDocumentScreen extends StatefulWidget {
+  @override
+  State<UploadDocumentScreen> createState() => _UploadDocumentScreenState();
+}
+
+class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
+  final _formKey = GlobalKey<FormState>();
+  String? title;
+  String? description;
+  PlatformFile? imageFile;
+  PlatformFile? mainFile;
+
+  Future<void> _pickImage() async {
+    print('Avatar tapped');
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    print('pickedFile: $pickedFile');
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = PlatformFile(
+          name: pickedFile.name,
+          path: pickedFile.path,
+          size: 0,
+        );
+        print("imageFile: ${imageFile?.path}");
+      });
+    }
+  }
+
+  Future<void> pickMainFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result != null) {
+      setState(() {
+        mainFile = result.files.first;
+      });
+    }
+  }
+
+  Future<void> uploadDocument() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      DocumentShareProvider documentShareProvider =
+          Provider.of<DocumentShareProvider>(context, listen: false);
+      await documentShareProvider.uploadDocument(
+        title: title!,
+        description: description!,
+        uploaderId: "68351138d1bf229fbadb9af3",
+        imageFile: imageFile,
+        mainFile: mainFile,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,74 +74,97 @@ class UploadDocumentScreen extends StatelessWidget {
         ),
         title: Text('Upload Document'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Tiêu đề
-            Text('Tiêu đề', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 4),
-            TextFormField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Tiêu đề'),
+                onSaved: (value) => title = value,
+                validator: (value) => value!.isEmpty ? 'Nhập tiêu đề' : null,
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Mô tả
-            Text('Mô tả', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 4),
-            TextFormField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              SizedBox(height: 16),
+              // Description
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Mô tả'),
+                onSaved: (value) => description = value,
+                validator: (value) => value!.isEmpty ? 'Nhập mô tả' : null,
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Tên môn
-            Text('Tên môn', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 4),
-            TextFormField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              SizedBox(height: 16),
+              // Image picker
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text('Chọn ảnh'),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    imageFile?.name ?? 'Chưa chọn ảnh',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 36),
-
-            // Icon + Upload button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.attach_file, size: 40),
-                const SizedBox(width: 16),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 28, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              SizedBox(height: 16),
+              // Main file picker
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: pickMainFile,
+                    child: Text('Chọn file tài liệu'),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      mainFile?.name ?? 'Chưa chọn file',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
-                  onPressed: () {},
-                  child: Text('Upload',
-                      style: TextStyle(fontSize: 16, color: Colors.black)),
+                ],
+              ),
+              SizedBox(height: 32),
+              // Submit button
+              Center(
+                child: Consumer<DocumentShareProvider>(
+                  builder: (context, provider, child) {
+                    return ElevatedButton(
+                      onPressed: provider.isLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                uploadDocument();
+                              }
+                            },
+                      child: provider.isLoading
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Text('Đang upload...'),
+                              ],
+                            )
+                          : Text('Upload'),
+                    );
+                  },
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
