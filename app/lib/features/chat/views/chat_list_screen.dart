@@ -111,6 +111,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   });
                                 }
                               },
+                              onDelete: () async {
+                                final currentUserId = context.read<AuthProvider>().user?.id;
+                                if (currentUserId != null) {
+                                  await context.read<ChatProvider>().deleteChatWithUser(currentUserId, user.id!);
+                                  setState(() {
+                                    _filterUsers();
+                                  });
+                                }
+                              },
+
                             ),
                           );
                         },
@@ -121,3 +131,4 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 }
+

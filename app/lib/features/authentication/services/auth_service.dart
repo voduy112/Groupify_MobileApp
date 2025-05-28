@@ -41,7 +41,6 @@ class AuthService {
     return User.fromJson(response.data);
   }
 
-
   Future<void> logout(BuildContext context) async {
     try {
       final token = context.read<AuthProvider>().user?.accessToken;
@@ -73,5 +72,20 @@ class AuthService {
         await _dio.post('/api/auth/resend-otp', data: {'email': email});
     return response.data['message'];
   }
+
+  //lay profile by userid
+  Future<User> fetchUserProfileById(String userId) async {
+    try {
+      final response = await _dio.get('/api/profile/$userId');
+      if (response.statusCode == 200) {
+        return User.fromJson(response.data);
+      } else {
+        throw Exception('Failed to fetch user profile');
+      }
+    } catch (e) {
+      throw Exception('Error fetching profile: $e');
+    }
+  }
+
 }
 

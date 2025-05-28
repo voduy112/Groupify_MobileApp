@@ -4,6 +4,10 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/user.dart';
 import '../../../models/message.dart';
 import 'package:intl/intl.dart';
+import '../../authentication/providers/auth_provider.dart';
+import '../../profile/views/profile_screen.dart';
+import '../providers/chat_provider.dart';
+import 'dart:convert';
 import '../providers/chat_provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -38,7 +42,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.248.107:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.215:5000', <String, dynamic>{
+
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -65,16 +70,18 @@ class _ChatScreenState extends State<ChatScreen> {
       context.read<ChatProvider>().fetchMessages(
             widget.currentUserId,
             widget.otherUser.id!,
+          );
+      _scrollToBottom();
           ); // Gọi lại để đảm bảo đồng bộ
     });
 
     socket.on('privateMessage', (data) {
       final msg = Message.fromJson(data);
 
-      final isValid = (msg.fromUserId == widget.otherUser.id &&
-              msg.toUserId == widget.currentUserId) ||
-          (msg.fromUserId == widget.currentUserId &&
-              msg.toUserId == widget.otherUser.id);
+      final isValid = (msg.fromUser.id == widget.otherUser.id &&
+              msg.toUser.id == widget.currentUserId) ||
+          (msg.fromUser.id == widget.currentUserId &&
+              msg.toUser.id == widget.otherUser.id);
 
       if (isValid) {
         context.read<ChatProvider>().addMessage(msg);
@@ -94,6 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     _controller.clear();
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -119,21 +127,47 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage: (widget.otherUser.profilePicture != null &&
-                      widget.otherUser.profilePicture!.isNotEmpty)
-                  ? NetworkImage(widget.otherUser.profilePicture!)
-                  : null,
-              child: (widget.otherUser.profilePicture == null ||
-                      widget.otherUser.profilePicture!.isEmpty)
-                  ? Text(widget.otherUser.username![0].toUpperCase())
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            Text(widget.otherUser.username ?? ''),
-          ],
+        title: InkWell(
+          onTap: () async {
+            try {
+              final fullUser = await context
+                  .read<AuthProvider>()
+                  .authService
+                  .fetchUserProfileById(widget.otherUser.id!);
+              if (!mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfileScreen(user: fullUser),
+                ),
+              );
+            } catch (e) {
+              print('Không thể tải thông tin user: $e');
+            }
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: (widget.otherUser.profilePicture != null &&
+                        widget.otherUser.profilePicture!.isNotEmpty)
+                    ? NetworkImage(widget.otherUser.profilePicture!)
+                    : null,
+                backgroundColor: Colors.grey.shade300,
+                child: (widget.otherUser.profilePicture == null ||
+                        widget.otherUser.profilePicture!.isEmpty)
+                    ? Text(
+                        widget.otherUser.username != null
+                            ? widget.otherUser.username![0].toUpperCase()
+                            : '',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Text(widget.otherUser.username ?? ''),
+            ],
+          ),
         ),
       ),
       body: isLoading
@@ -147,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final msg = messages[index];
-                      final isMe = msg.fromUserId == widget.currentUserId;
+                      final isMe = msg.fromUser.id == widget.currentUserId;
 
                       return Align(
                         alignment:
@@ -187,26 +221,47 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const Divider(height: 1),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          decoration: const InputDecoration(
-                            hintText: 'Nhập tin nhắn...',
-                            border: InputBorder.none,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    color: Colors.white,
+                    child: Row(
+                      children: [
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.link),
+                          onSelected: (value) {
+                            /*if (value == 'image') {
+                              _pickAndSendImage();
+                            } else if (value == 'file') {
+                              // TODO: handle send file later
+                            }*/
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'image',
+                              child: Text('Gửi ảnh'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'file',
+                              child: Text('Gửi tài liệu'),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: const InputDecoration(
+                              hintText: 'Nhập tin nhắn...',
+                              border: InputBorder.none,
+                            ),
+                            onSubmitted: (_) => _sendMessage(),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send, color: Colors.blue),
-                        onPressed: _sendMessage,
-                      ),
-                    ],
-                  ),
-                ),
+                        IconButton(
+                          icon: const Icon(Icons.send),
+                          onPressed: _sendMessage,
+                          color: Colors.blue,
+                        ),
+                      ],
+                    )),
               ],
             ),
     );

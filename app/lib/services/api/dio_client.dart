@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 
 class DioClient {
 
-  static late Dio _dio;
-
   static void createInterceptors() {
     _dio = Dio(BaseOptions(
       baseUrl: 'http://10.0.2.2:5000',
@@ -15,7 +13,6 @@ class DioClient {
       error: true,
     ));
   }
-
 
   static Dio get instance => _dio;
 }

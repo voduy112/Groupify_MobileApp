@@ -32,8 +32,9 @@ function socketHandler(io) {
                     ]
                 })
                 .sort({timestamp: 1})
-                .populate("fromUserId", "username profilePicture")
-                .populate("toUserId", "username profilePicture");
+                .populate("fromUserId", "username profilePicture email phoneNumber")
+                .populate("toUserId", "username profilePicture email phoneNumber");
+
         
                 socket.emit("chatHistory", messages);
             } catch (error) {
@@ -56,12 +57,16 @@ function socketHandler(io) {
         });
 
         //Gui tin nhan ca nhan va luu vao MongoDB
-        socket.on("privateMessage", async ({fromUserId, toUserId, message}) => {
+        socket.on("privateMessage", async ({ fromUserId, toUserId, message }) => {
             try {
                 const room = createRoomId(fromUserId, toUserId);
-                const saved = await Message.create({fromUserId, toUserId, message});
-                const populatedMsg = await saved.populate("fromUserId", "username profilePicture");
-
+        
+                const saved = await Message.create({ fromUserId, toUserId, message });
+        
+                const populatedMsg = await saved
+                    .populate("fromUserId", "username profilePicture email phoneNumber")
+                    .populate("toUserId", "username profilePicture email phoneNumber");
+        
                 io.to(room).emit("privateMessage", populatedMsg);
             } catch (error) {
                 console.log("Error saving message: ", error);

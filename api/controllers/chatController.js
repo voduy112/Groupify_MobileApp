@@ -25,8 +25,8 @@ const chatController = {
                 ]
             })
             .sort({timestamp: 1})
-            .populate('fromUserId', 'username')
-            .populate('toUserId', 'username');
+            .populate('fromUserId', 'username profilePicture email phoneNumber')
+            .populate('toUserId', 'username profilePicture email phoneNumber');
 
             res.json(messages);
         } catch (error) {
@@ -43,8 +43,8 @@ const chatController = {
               { toUserId: userId }
             ]
           })
-          .populate('fromUserId', 'username profilePicture')
-          .populate('toUserId', 'username profilePicture');
+          .populate('fromUserId', 'username profilePicture email phoneNumber')
+          .populate('toUserId', 'username profilePicture email phoneNumber');
       
           const usersMap = new Map();
       
@@ -72,7 +72,26 @@ const chatController = {
           console.error("Lỗi getChatList:", error);
           res.status(500).json({ error: error.message || "Lỗi khi lấy danh sách trò chuyện" });
         }
-      }      
+      },  
+
+      deleteChat: async (req, res) => {
+        const { user1, user2 } = req.params;
+        try {
+          const result = await Message.deleteMany({
+            $or: [
+              { fromUserId: user1, toUserId: user2 },
+              { fromUserId: user2, toUserId: user1 }
+            ]
+          });
+      
+          res.status(200).json({
+            message: "Đã xóa tất cả tin nhắn giữa hai người dùng",
+            deletedCount: result.deletedCount
+          });
+        } catch (error) {
+          res.status(500).json({ error: "Lỗi khi xóa tin nhắn" });
+        }
+      },      
 }
 
 module.exports = chatController;

@@ -3,14 +3,68 @@ import 'package:provider/provider.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/title_app.dart';
+import '../../../models/user.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  final User? user;
+  const ProfileScreen({super.key, this.user});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  User? currentUser;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUser();
+  }
+
+  Future<void> loadUser() async {
+    final authUser = context.read<AuthProvider>().user;
+    if (widget.user != null) {
+      currentUser = widget.user;
+      isLoading = false;
+      setState(() {});
+    } else if (authUser != null) {
+      try {
+        final fetchedUser = await context
+            .read<AuthProvider>()
+            .authService
+            .fetchUserProfileById(authUser.id!);
+        setState(() {
+          currentUser = fetchedUser;
+          isLoading = false;
+        });
+      } catch (e) {
+        // Xử lý lỗi nếu cần
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
-    print("user watch: ${user?.bio}");
+    final authUser = context.read<AuthProvider>().user;
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (currentUser == null) {
+      return Scaffold(
+        body: Center(child: Text('Không tìm thấy thông tin người dùng')),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
@@ -35,8 +89,20 @@ class ProfileScreen extends StatelessWidget {
                 // Avatar
                 CircleAvatar(
                   radius: 48,
-                  backgroundImage: NetworkImage(user?.profilePicture ?? ''),
+                  backgroundImage: (currentUser?.profilePicture != null &&
+                          currentUser!.profilePicture!.isNotEmpty)
+                      ? NetworkImage(currentUser!.profilePicture!)
+                      : null,
                   backgroundColor: Colors.grey[200],
+                  child: (currentUser?.profilePicture == null ||
+                          currentUser!.profilePicture!.isEmpty)
+                      ? Text(
+                          currentUser?.username?.isNotEmpty == true
+                              ? currentUser!.username![0].toUpperCase()
+                              : '',
+                          style: const TextStyle(fontSize: 32),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 24),
                 // Info
@@ -45,26 +111,48 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user?.username ?? '',
+                        currentUser?.username ?? '',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
-                      Text(user?.phoneNumber ?? '',
+                      Text(currentUser?.phoneNumber ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 2),
+                      Text(currentUser?.email ?? '',
                       Text(user?.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: BorderSide(color: Colors.red),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              textStyle: const TextStyle(fontSize: 13),
+                      if (currentUser!.id ==authUser?.id) // chỉ hiển thị nếu là user đang đăng nhập
+                        Row(
+                          children: [
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                side: const BorderSide(color: Colors.red),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                textStyle: const TextStyle(fontSize: 13),
+                              ),
+                              onPressed: () {
+                                context.go('/profile/edit');
+                              },
+                              child: const Text('Chỉnh sửa profile'),
                             ),
+                            const SizedBox(width: 8),
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                side: const BorderSide(color: Colors.red),
+                              ),
+                              onPressed: () async {
+                                await context
+                                    .read<AuthProvider>()
+                                    .logout(context);
+                                if (context.read<AuthProvider>().user == null) {
+                                  context.go('/login');
+                                }
+                              },
+                              child: const Text('Đăng xuất'),
                             onPressed: () {
                               context.go('/profile/edit', extra: user);
                             },
@@ -76,18 +164,8 @@ class ProfileScreen extends StatelessWidget {
                               foregroundColor: Colors.red,
                               side: BorderSide(color: Colors.red),
                             ),
-                            onPressed: () async {
-                              await context
-                                  .read<AuthProvider>()
-                                  .logout(context);
-                              if (context.read<AuthProvider>().user == null) {
-                                context.go('/login');
-                              }
-                            },
-                            child: const Text('Đăng xuất'),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
