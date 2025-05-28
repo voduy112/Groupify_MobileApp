@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
-import 'group_detail_screen.dart';
+import '../../home/views/group_detail_screen.dart';
 import '../../../routers/app_router.dart';
 
 class GroupStudyScreen extends StatefulWidget {
