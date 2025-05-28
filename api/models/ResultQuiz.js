@@ -14,8 +14,14 @@ const resultQuizSchema = new mongoose.Schema({
     score: {
         type: String,
         required: true,
+    },
+    testAt: { 
+        type: Date, 
+        default: Date.now 
     }
     
 })
 
-module.exports = mongoose.model('ResultQuiz', resultQuizSchema);
+const ResultQuiz = mongoose.models.ResultQuiz || mongoose.model('ResultQuiz', resultQuizSchema);
+
+module.exports = ResultQuiz;
