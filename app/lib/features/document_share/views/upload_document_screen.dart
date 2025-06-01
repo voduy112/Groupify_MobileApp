@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../providers/document_share_provider.dart';
+import '../../authentication/providers/auth_provider.dart';
+import '../../../core/utils/validate.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
   @override
@@ -48,6 +50,24 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   }
 
   Future<void> uploadDocument() async {
+    final user = context.read<AuthProvider>().user;
+
+    // Kiểm tra ảnh
+    if (imageFile?.path == null || imageFile!.path!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng chọn ảnh')),
+      );
+      return;
+    }
+
+    // Kiểm tra file
+    if (mainFile?.path == null || mainFile!.path!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng chọn file tài liệu PDF')),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       DocumentShareProvider documentShareProvider =
@@ -55,7 +75,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       await documentShareProvider.uploadDocument(
         title: title!,
         description: description!,
-        uploaderId: "68351138d1bf229fbadb9af3",
+        uploaderId: user?.id ?? "",
         imageFile: imageFile,
         mainFile: mainFile,
       );
@@ -76,6 +96,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       ),
       body: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -85,14 +106,14 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
               TextFormField(
                 decoration: InputDecoration(labelText: 'Tiêu đề'),
                 onSaved: (value) => title = value,
-                validator: (value) => value!.isEmpty ? 'Nhập tiêu đề' : null,
+                validator: (value) => Validate.notEmpty(value),
               ),
               SizedBox(height: 16),
               // Description
               TextFormField(
                 decoration: InputDecoration(labelText: 'Mô tả'),
                 onSaved: (value) => description = value,
-                validator: (value) => value!.isEmpty ? 'Nhập mô tả' : null,
+                validator: (value) => Validate.notEmpty(value),
               ),
               SizedBox(height: 16),
               // Image picker
