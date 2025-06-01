@@ -28,7 +28,7 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
         ),
-        itemCount: 6,
+        itemCount: documents.length > 6 ? 6 : documents.length,
         itemBuilder: (context, index) {
           final document = documents[index];
           return GestureDetector(
