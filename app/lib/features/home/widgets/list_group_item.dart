@@ -26,6 +26,9 @@ class _ListGroupItemState extends State<ListGroupItem> {
   @override
   Widget build(BuildContext context) {
     final groups = widget.groups ?? Provider.of<GroupProvider>(context).groups;
+    if (groups.isEmpty) {
+      return Center(child: Text('Không có nhóm nào'));
+    }
     print("groups: $groups");
 
     return Expanded(
