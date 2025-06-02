@@ -90,13 +90,13 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     // Tạo message tạm để hiển thị ngay
-    final tempMessage = Message(
+    /*final tempMessage = Message(
       id: UniqueKey().toString(),
       fromUser: User(id: widget.currentUserId),
       toUser: User(id: widget.otherUser.id),
       message: text,
       timestamp: DateTime.now(),
-    );
+    );*/
 
     // Gửi qua socket
     socket.emit('privateMessage', {
@@ -106,7 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     // Hiển thị message tạm ngay lập tức
-    context.read<ChatProvider>().addMessage(tempMessage);
+    //context.read<ChatProvider>().addMessage(tempMessage);
 
     _controller.clear();
     _scrollToBottom();
