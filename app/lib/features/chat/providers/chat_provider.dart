@@ -1,8 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/message.dart';
 import '../../../models/user.dart';
 import '../services/chat_service.dart';
@@ -87,4 +83,8 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setMessages(List<Message> messages) {
+    _messages = messages;
+    notifyListeners();
+  }
 }
