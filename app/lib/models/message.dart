@@ -6,7 +6,6 @@ class Message {
   final User toUser;
   final String message;
   final DateTime timestamp;
-  final String type;
 
   Message({
     required this.id,
@@ -14,7 +13,6 @@ class Message {
     required this.toUser,
     required this.message,
     required this.timestamp,
-    required this.type,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -24,7 +22,6 @@ class Message {
       toUser: User.fromJson(json['toUserId']),
       message: json['message'],
       timestamp: DateTime.parse(json['timestamp']).toLocal(),
-      type: json['type'] ?? 'text',
     );
   }
 
@@ -33,8 +30,7 @@ class Message {
       'fromUserId': fromUser.toJson(),
       'toUserId': toUser.toJson(),
       'message': message,
-      'timestamp': timestamp.toIso8601String(),
-      'type': type,
+      'timestamp': timestamp.toIso8601String()
     };
   }
 }

@@ -7,8 +7,6 @@ import 'package:intl/intl.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../profile/views/profile_screen.dart';
 import '../providers/chat_provider.dart';
-import 'dart:convert';
-import '../providers/chat_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
@@ -42,8 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.237:5000', <String, dynamic>{
-
+    socket = IO.io('http://192.168.1.223:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -51,7 +48,6 @@ class _ChatScreenState extends State<ChatScreen> {
     socket.connect();
 
     socket.onConnect((_) {
-      print("Socket connected");
       socket.emit('joinRoom', {
         'fromUserId': widget.currentUserId,
         'toUserId': widget.otherUser.id,
@@ -67,12 +63,9 @@ class _ChatScreenState extends State<ChatScreen> {
       final List<Message> msgs = List<Message>.from(
         data.map((json) => Message.fromJson(json)).toList(),
       );
-      context.read<ChatProvider>().fetchMessages(
-            widget.currentUserId,
-            widget.otherUser.id!,
-          );
+      context.read<ChatProvider>().setMessages(msgs);
       _scrollToBottom();
-     }); // Gọi lại để đảm bảo đồng bộ
+    });
 
     socket.on('privateMessage', (data) {
       final msg = Message.fromJson(data);
@@ -84,7 +77,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (isValid) {
         context.read<ChatProvider>().addMessage(msg);
-        _scrollToBottom();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
       }
     });
   }
@@ -93,11 +89,24 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
+    // Tạo message tạm để hiển thị ngay
+    final tempMessage = Message(
+      id: UniqueKey().toString(),
+      fromUser: User(id: widget.currentUserId),
+      toUser: User(id: widget.otherUser.id),
+      message: text,
+      timestamp: DateTime.now(),
+    );
+
+    // Gửi qua socket
     socket.emit('privateMessage', {
       'fromUserId': widget.currentUserId,
       'toUserId': widget.otherUser.id,
       'message': text,
     });
+
+    // Hiển thị message tạm ngay lập tức
+    context.read<ChatProvider>().addMessage(tempMessage);
 
     _controller.clear();
     _scrollToBottom();
@@ -247,6 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Expanded(
                           child: TextField(
                             controller: _controller,
+                            onTap: () => _scrollToBottom(),
                             decoration: const InputDecoration(
                               hintText: 'Nhập tin nhắn...',
                               border: InputBorder.none,

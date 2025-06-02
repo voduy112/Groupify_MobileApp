@@ -1,7 +1,12 @@
+import 'package:app/features/chat_group/services/chatgroup_service.dart';
+import 'package:app/features/chat_group/views/chatgroup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/group.dart';
+import '../../authentication/providers/auth_provider.dart';
+import '../../authentication/providers/user_provider.dart';
+import '../../chat_group/providers/chatgroup_provider.dart';
 import '../services/group_service.dart';
 
 import 'widgets/group_header.dart';
@@ -57,11 +62,13 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) =>
-              DocumentProvider()..fetchDocumentsByGroupId(widget.groupId),
+          create: (_) => DocumentProvider()..fetchDocumentsByGroupId(widget.groupId),
         ),
         ChangeNotifierProvider(
           create: (_) => QuizProvider()..fetchQuizzesByGroupId(widget.groupId),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ChatgroupProvider(chatgroupService: ChatgroupService())..getGroupMessages(widget.groupId),
         ),
       ],
       child: Scaffold(
@@ -80,8 +87,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     boxShadow: [
                       BoxShadow(color: Colors.black12, blurRadius: 10),
                     ],
@@ -111,11 +117,23 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   }
 
   Widget _buildTabContent(ScrollController controller) {
+    final currentUser = Provider.of<AuthProvider>(context).user;
+
     switch (_selectedTab) {
       case 'documents':
         return DocumentList(scrollController: controller);
       case 'quiz':
         return QuizList(scrollController: controller);
+      case 'chat':
+        if (_group == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return ChatgroupScreen(
+          groupId: _group?.id ?? '',
+          groupName: _group?.name ?? '',
+          currentUser: currentUser!,
+          scrollController: controller,
+        );
       default:
         return const Center(child: Text('Tính năng đang phát triển'));
     }

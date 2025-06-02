@@ -7,6 +7,8 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'features/authentication/services/auth_service.dart';
 import 'features/authentication/providers/auth_provider.dart';
+import 'features/chat_group/providers/chatgroup_provider.dart';
+import 'features/chat_group/services/chatgroup_service.dart';
 import 'services/notification/firebase_messaging_service.dart';
 import 'routers/app_router.dart';
 import 'features/authentication/providers/user_provider.dart';
@@ -45,6 +47,7 @@ void main() async {
           ChangeNotifierProvider(
             create: (context) => ChatProvider(chatService: ChatService()),
           ),
+          ChangeNotifierProvider(create: (_) => ChatgroupProvider(chatgroupService: ChatgroupService())),
           ChangeNotifierProvider(create: (_) => DocumentProvider()),
           ChangeNotifierProvider(create: (_) => QuizProvider()),
         ],
