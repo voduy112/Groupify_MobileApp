@@ -14,53 +14,11 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  User? currentUser;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    loadUser();
-  }
-
-  Future<void> loadUser() async {
-    final authUser = context.read<AuthProvider>().user;
-    if (widget.user != null) {
-      currentUser = widget.user;
-      isLoading = false;
-      setState(() {});
-    } else if (authUser != null) {
-      try {
-        final fetchedUser = await context
-            .watch<AuthProvider>()
-            .authService
-            .fetchUserProfileById(authUser.id!);
-        setState(() {
-          currentUser = fetchedUser;
-          isLoading = false;
-        });
-      } catch (e) {
-        // Xử lý lỗi nếu cần
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final authUser = context.read<AuthProvider>().user;
-    if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (currentUser == null) {
+    final authUser = context.watch<AuthProvider>().user;
+    final user = widget.user ?? authUser;
+    if (user == null) {
       return Scaffold(
         body: Center(child: Text('Không tìm thấy thông tin người dùng')),
       );
@@ -71,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              context.go('/profile/edit', extra: currentUser);
+              context.go('/profile/edit', extra: user);
             },
             icon: Icon(Icons.settings),
           ),
@@ -89,16 +47,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Avatar
                 CircleAvatar(
                   radius: 48,
-                  backgroundImage: (currentUser?.profilePicture != null &&
-                          currentUser!.profilePicture!.isNotEmpty)
-                      ? NetworkImage(currentUser!.profilePicture!)
+                  backgroundImage: (user.profilePicture != null &&
+                          user.profilePicture!.isNotEmpty)
+                      ? NetworkImage(user.profilePicture!)
                       : null,
                   backgroundColor: Colors.grey[200],
-                  child: (currentUser?.profilePicture == null ||
-                          currentUser!.profilePicture!.isEmpty)
+                  child: (user.profilePicture == null ||
+                          user.profilePicture!.isEmpty)
                       ? Text(
-                          currentUser?.username?.isNotEmpty == true
-                              ? currentUser!.username![0].toUpperCase()
+                          user.username?.isNotEmpty == true
+                              ? user.username![0].toUpperCase()
                               : '',
                           style: const TextStyle(fontSize: 32),
                         )
@@ -111,18 +69,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        currentUser?.username ?? '',
+                        user.username ?? '',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
-                      Text(currentUser?.phoneNumber ?? '',
+                      Text(user.phoneNumber ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 2),
-                      Text(currentUser?.email ?? ''),
-                      Text(currentUser?.bio ?? '',
+                      Text(user.email ?? ''),
+                      Text(user.bio ?? '',
                           style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
-                      if (currentUser!.id ==
+                      if (user.id ==
                           authUser
                               ?.id) // chỉ hiển thị nếu là user đang đăng nhập
                         Row(
@@ -136,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 textStyle: const TextStyle(fontSize: 13),
                               ),
                               onPressed: () {
-                                context.go('/profile/edit', extra: currentUser);
+                                context.go('/profile/edit', extra: user);
                               },
                               child: const Text('Chỉnh sửa profile'),
                             ),
