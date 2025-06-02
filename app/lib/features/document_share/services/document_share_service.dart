@@ -55,4 +55,16 @@ class DocumentShareService {
     );
     print("response.data: ${response.data}");
   }
+
+  Future<List<Document>> getDocumentsByUserId(String userId) async {
+    final response = await _dio.get('/api/document/user/$userId');
+    return (response.data as List)
+        .map((json) => Document.fromJson(json))
+        .toList();
+  }
+
+  Future<void> deleteDocument(String documentId) async {
+    final response = await _dio.delete('/api/document/$documentId');
+    return response.data;
+  }
 }
