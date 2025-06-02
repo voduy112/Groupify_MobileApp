@@ -38,23 +38,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _phoneController.text = user.phoneNumber ?? '';
         _bioController.text = user.bio ?? '';
         _avatarUrl = user.profilePicture;
-        print("avatarUrl: $_avatarUrl");
-        print("user: $_user");
-        print("user['id']: ${user.id}");
       }
       _isInitialized = true;
     }
   }
 
   Future<void> _pickImage() async {
-    print('Avatar tapped');
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
-    print('pickedFile: $pickedFile');
     if (pickedFile != null) {
       setState(() {
         _avatarImage = File(pickedFile.path);
-        print("avatarImage: $_avatarImage");
       });
     }
   }
@@ -165,10 +159,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: () async {
+                child: ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
                           if (_formKey.currentState!.validate()) {
                             await _updateUser();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -178,8 +172,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             context.go('/profile');
                           }
                         },
-                        child: const Text('Lưu'),
-                      ),
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Lưu'),
+                ),
               ),
             ],
           ),
