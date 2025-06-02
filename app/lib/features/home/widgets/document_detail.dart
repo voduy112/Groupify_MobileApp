@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import '../../../models/document.dart';
 import '../../../features/document/views/document_detail_screen.dart';
+import '../../../features/document/services/document_service.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
   final String documentId;
@@ -66,7 +67,12 @@ class DocumentDetailScreen extends StatelessWidget {
                         backgroundColor: Colors.blue,
                       ),
                       child: Text("READ")),
-                  ElevatedButton(onPressed: () {}, child: Text("DOWNLOAD")),
+                  ElevatedButton(
+                    onPressed: () {
+                      DocumentService().downloadPdf(context, document);
+                    },
+                    child: Text("DOWNLOAD"),
+                  ),
                 ],
               ),
             )
