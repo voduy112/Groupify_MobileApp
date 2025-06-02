@@ -59,19 +59,21 @@ function socketHandler(io) {
         //Gui tin nhan ca nhan va luu vao MongoDB
         socket.on("privateMessage", async ({ fromUserId, toUserId, message }) => {
             try {
-                const room = createRoomId(fromUserId, toUserId);
-        
-                const saved = await Message.create({ fromUserId, toUserId, message });
-        
-                const populatedMsg = await saved
-                    .populate("fromUserId", "username profilePicture email phoneNumber")
-                    .populate("toUserId", "username profilePicture email phoneNumber");
-        
-                io.to(room).emit("privateMessage", populatedMsg);
+              const room = createRoomId(fromUserId, toUserId);
+          
+              const saved = await Message.create({ fromUserId, toUserId, message });
+          
+              // Thay đoạn gây lỗi bằng đoạn bên dưới
+              const populatedMsg = await Message.findById(saved._id)
+                .populate("fromUserId", "username profilePicture email phoneNumber")
+                .populate("toUserId", "username profilePicture email phoneNumber");
+          
+              io.to(room).emit("privateMessage", populatedMsg);
             } catch (error) {
-                console.log("Error saving message: ", error);
+              console.log("Error saving message: ", error);
             }
-        });
+          });
+          
 
         //Gui tin nhan nhom va luu vao MongoDB
         socket.on("groupMessage", async ({groupId, fromUserId, message}) => {
