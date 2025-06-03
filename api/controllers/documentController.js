@@ -116,13 +116,14 @@ const documentController = {
           await cloudinary.uploader.destroy(filepublicId);
         }
       }
+      const times = Date.now();
       let updateData = { ...req.body };
       if (req.files && req.files.image && req.files.image[0]) {
         const uploadResult = await cloudinary.uploader.upload(
           req.files.image[0].path,
           {
             folder: "Groupify_MobileApp/img_document",
-            public_id: `${req.params.id}_imgdocument`,
+            public_id: `${existingDocument.id}_${times}_imgdocument`,
             overwrite: false,
           }
         );
@@ -134,7 +135,7 @@ const documentController = {
           req.files.mainFile[0].path,
           {
             folder: "Groupify_MobileApp/file_document",
-            public_id: `${req.params.id}_filedocument`,
+            public_id: `${existingDocument.id}_${times}_filedocument`,
             resource_type: "raw", // rất quan trọng nếu là PDF
             overwrite: false,
           }
