@@ -32,20 +32,25 @@ class DocumentShareService {
     print("title: $title");
     print("description: $description");
     print("uploaderId: $uploaderId");
-    final formData = FormData.fromMap({
+    final Map<String, dynamic> data = {
       'title': title,
       'description': description,
       'uploaderId': uploaderId,
-      if (imageFile != null && imageFile.path != null)
-        'image': await MultipartFile.fromFile(imageFile.path!,
-            filename: imageFile.name),
-      if (mainFile != null && mainFile.path != null)
-        'mainFile': await MultipartFile.fromFile(
-          mainFile.path!,
-          filename: mainFile.name,
-          contentType: MediaType('application', 'pdf'),
-        ),
-    });
+    };
+
+    if (imageFile != null && imageFile.path != null) {
+      data['image'] = await MultipartFile.fromFile(imageFile.path!,
+          filename: imageFile.name);
+    }
+    if (mainFile != null && mainFile.path != null) {
+      data['mainFile'] = await MultipartFile.fromFile(
+        mainFile.path!,
+        filename: mainFile.name,
+        contentType: MediaType('application', 'pdf'),
+      );
+    }
+
+    final formData = FormData.fromMap(data);
     print("formData: ${formData.fields}");
     print("formData: ${formData.files}");
 
@@ -65,6 +70,44 @@ class DocumentShareService {
 
   Future<void> deleteDocument(String documentId) async {
     final response = await _dio.delete('/api/document/$documentId');
+    return response.data;
+  }
+
+  Future<void> updateDocument(
+    String documentId,
+    String title,
+    String description,
+    dynamic image, // PlatformFile hoặc String
+    dynamic mainFile, // PlatformFile hoặc String
+  ) async {
+    print("updateDocument");
+    print("image: $image");
+    print("mainFile: $mainFile");
+    print("documentId: $documentId");
+    print("title: $title");
+    print("description: $description");
+    final Map<String, dynamic> data = {
+      'title': title,
+      'description': description,
+    };
+
+    if (image != null && image is PlatformFile && image.path != null) {
+      data['image'] =
+          await MultipartFile.fromFile(image.path!, filename: image.name);
+    }
+    if (mainFile != null && mainFile is PlatformFile && mainFile.path != null) {
+      data['mainFile'] = await MultipartFile.fromFile(
+        mainFile.path!,
+        filename: mainFile.name,
+        contentType: MediaType('application', 'pdf'),
+      );
+    }
+
+    final formData = FormData.fromMap(data);
+    print("formData: ${formData.fields}");
+    print("formData: ${formData.files}");
+    final response =
+        await _dio.put('/api/document/$documentId', data: formData);
     return response.data;
   }
 }
