@@ -75,4 +75,22 @@ class DocumentShareProvider extends ChangeNotifier {
       await fetchDocuments();
     }
   }
+
+  Future<void> updateDocument(String documentId, String title,
+      String description, dynamic image, dynamic mainFile,
+      {String? userId}) async {
+    await _documentShareService.updateDocument(
+      documentId,
+      title,
+      description,
+      image,
+      mainFile,
+    );
+    if (userId != null) {
+      await fetchDocumentsByUserId(userId);
+    } else {
+      await fetchDocuments();
+    }
+    notifyListeners();
+  }
 }
