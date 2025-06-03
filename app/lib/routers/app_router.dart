@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/widgets/main_scaffold.dart';
 import '../features/authentication/views/login_screen.dart';
@@ -39,10 +40,14 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: 'group/:id',
               builder: (context, state) {
-                final groupId = state.pathParameters['id'];
-                return GroupDetailScreen(groupId: groupId!);
+                final groupId = state.pathParameters['id']!;
+                return GroupDetailScreen(
+                  key: ValueKey(groupId), 
+                  groupId: groupId,
+                );
               },
             ),
+
             GoRoute(
               path: '/show-all-document',
               builder: (context, state) => ShowAllDocumentScreen(),

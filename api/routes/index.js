@@ -7,7 +7,7 @@ const quizRoutes = require('./quiz');
 const chatRoutes = require('./chat');
 const resultRoutes = require('./result');
 const chatgroupRoutes = require('./chatGroup');
-
+const requestRoutes = require('./grouprequest');
 
 const InitRoutes = (app) => {
   app.use("/api/auth", authRoutes);
@@ -19,5 +19,6 @@ const InitRoutes = (app) => {
   app.use("/api/chat", chatRoutes);
   app.use("/api/result", resultRoutes);
   app.use("/api/chatgroup", chatgroupRoutes);
+  app.use("/api/grouprequest", requestRoutes);
 };
 module.exports = InitRoutes;
