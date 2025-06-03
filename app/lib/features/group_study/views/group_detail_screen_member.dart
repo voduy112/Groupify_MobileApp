@@ -114,7 +114,9 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                   error: _error,
                   group: _group,
                 ),
-                if (_group != null && _group!.ownerId == currentUser?.id)
+                if (_group != null &&
+                    _group!.ownerId != null &&
+                    _group!.ownerId!['_id'] == currentUser?.id)
                   Positioned(
                     top: 16,
                     right: 16,
