@@ -3,7 +3,7 @@ class Group {
   String? name;
   String? description;
   String? subject;
-  String? ownerId;
+  dynamic ownerId;
   List<String>? membersID;
   String? inviteCode;
   String? createDate;

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/group.dart';
 import '../services/group_service.dart';
 import 'package:intl/intl.dart';
+import '../../grouprequest/providers/grouprequest_provider.dart';
+import '../../authentication/providers/auth_provider.dart';
+import '../../group_study/providers/group_provider.dart';
+import './group_detail_screen_member.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final String groupId;
@@ -27,17 +32,106 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   Future<void> _loadGroupDetail() async {
     try {
       final group = await _groupService.getGroup(widget.groupId);
+      if (!mounted) return;
       setState(() {
         _group = group;
+        _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
       });
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _handleJoinGroupByCode(
+      String code, BuildContext dialogContext) async {
+    if (code.isEmpty || !mounted) return;
+
+    Navigator.pop(dialogContext);
+
+    final user = context.read<AuthProvider>().user;
+    final groupProvider = context.read<GroupProvider>();
+
+    if (user == null) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => const AlertDialog(
+          title: Text("Thông báo"),
+          content: Text("Bạn cần đăng nhập để tham gia nhóm"),
+        ),
+      );
+      return;
+    }
+
+    // Hiển thị dialog đang xử lý
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        title: Text("Đang xử lý"),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text("Đang tham gia nhóm..."),
+          ],
+        ),
+      ),
+    );
+
+    bool success = false;
+    String? errorMessage;
+    try {
+      success = await groupProvider.joinGroupByCode(
+        widget.groupId,
+        code,
+        user.id!,
+      );
+    } catch (e) {
+      errorMessage = e.toString();
+    }
+
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true)
+        .pop(); // Đóng dialog "đang xử lý"
+
+    if (success) {
+      // Điều hướng đến màn hình GroupDetailScreenMember
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => GroupDetailScreenMember(groupId: widget.groupId),
+        ),
+      );
+    } else {
+      // Hiển thị thông báo lỗi
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Thất bại"),
+          content: Text(groupProvider.error?.contains("đã tham gia") == true
+              ? "Bạn đã ở trong nhóm này rồi"
+              : groupProvider.error?.replaceFirst('Exception: ', '') ??
+                  "Lỗi khi tham gia nhóm"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+              },
+              child: const Text("Đóng"),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -62,8 +156,19 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       );
     }
 
+    if (_group == null) {
+      return const Scaffold(
+        body: Center(child: Text("Không tìm thấy thông tin nhóm")),
+      );
+    }
+
+    String ownerName = 'Không rõ người dùng';
+    if (_group?.ownerId != null && _group!.ownerId is Map<String, dynamic>) {
+      ownerName = _group!.ownerId['username'] ?? 'Không rõ người dùng';
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(_group?.name ?? "Chi tiết nhóm")),
+      appBar: AppBar(title: Text(_group!.name!)),
       body: Column(
         children: [
           Expanded(
@@ -72,7 +177,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_group?.imgGroup != null)
+                  if (_group!.imgGroup != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
@@ -86,13 +191,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     ),
                   const SizedBox(height: 16),
                   Text(
-                    _group?.name ?? "Không tên",
+                    _group!.name!,
                     style: const TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _group?.description ?? "Không có mô tả",
+                    _group!.description ?? "Không có mô tả",
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
@@ -100,7 +205,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     children: [
                       const Icon(Icons.person),
                       const SizedBox(width: 8),
-                      Text("Chủ nhóm: ${_group?.ownerId ?? 'Không rõ'}"),
+                      Text("Chủ nhóm: $ownerName"),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -108,7 +213,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     children: [
                       const Icon(Icons.group),
                       const SizedBox(width: 8),
-                      Text("Thành viên: ${_group?.membersID?.length ?? 0}"),
+                      Text("Thành viên: ${_group!.membersID?.length ?? 0}"),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -116,7 +221,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     children: [
                       const Icon(Icons.date_range),
                       const SizedBox(width: 8),
-                      Text("Ngày tạo: ${formatDate(_group?.createDate)}"),
+                      Text("Ngày tạo: ${formatDate(_group!.createDate)}"),
                     ],
                   ),
                 ],
@@ -132,11 +237,73 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.person_add_alt_1),
                     label: const Text("Xin vào nhóm"),
-                    onPressed: () {
-                      // TODO: Logic xin vào nhóm
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Đang xử lý xin vào nhóm...")),
+                    onPressed: () async {
+                      final currentUser = context.read<AuthProvider>().user;
+                      final provider = context.read<GroupRequestProvider>();
+
+                      if (currentUser == null) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Thông báo"),
+                            content:
+                                const Text("Bạn cần đăng nhập để xin vào nhóm"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Đóng"),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const AlertDialog(
+                          title: Text("Đang xử lý"),
+                          content: Row(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 16),
+                              Text("Đang gửi yêu cầu vào nhóm..."),
+                            ],
+                          ),
+                        ),
+                      );
+
+                      bool success = false;
+                      String errorMessage = "";
+                      try {
+                        success = await provider.sendRequest(
+                            widget.groupId, currentUser.id!);
+                      } catch (e) {
+                        errorMessage = e.toString();
+                      }
+
+                      if (!mounted) return;
+                      Navigator.of(context, rootNavigator: true).pop();
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: Text(success ? "Thành công" : "Thất bại"),
+                          content: Text(success
+                              ? "Đã gửi yêu cầu vào nhóm thành công"
+                              : (errorMessage.contains("isExist")
+                                  ? "Bạn đã gửi yêu cầu trước đó"
+                                  : "Gửi yêu cầu vào nhóm thất bại")),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop(),
+                              child: const Text("Đóng"),
+                            )
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -147,27 +314,31 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     icon: const Icon(Icons.qr_code),
                     label: const Text("Mã mời"),
                     onPressed: () {
-                      // TODO: Logic xử lý mã mời
                       showDialog(
                         context: context,
-                        builder: (context) {
+                        builder: (contextDialog) {
+                          final TextEditingController controller =
+                              TextEditingController();
                           return AlertDialog(
                             title: const Text("Nhập mã mời"),
                             content: TextField(
-                              decoration:
-                                  const InputDecoration(hintText: "Nhập mã..."),
-                              onSubmitted: (code) {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Đã nhập mã: $code")),
-                                );
-                              },
+                              controller: controller,
+                              decoration: const InputDecoration(
+                                hintText: "Nhập mã...",
+                              ),
+                              onSubmitted: (code) => _handleJoinGroupByCode(
+                                  code.trim(), contextDialog),
                             ),
                             actions: [
                               TextButton(
                                 child: const Text("Đóng"),
-                                onPressed: () => Navigator.pop(context),
-                              )
+                                onPressed: () => Navigator.pop(contextDialog),
+                              ),
+                              ElevatedButton(
+                                child: const Text("Gửi"),
+                                onPressed: () => _handleJoinGroupByCode(
+                                    controller.text.trim(), contextDialog),
+                              ),
                             ],
                           );
                         },

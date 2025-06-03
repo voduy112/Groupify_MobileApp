@@ -4,6 +4,7 @@ import '../../../models/group.dart';
 import '../../group_study/providers/group_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
+import '../../group_study/views/group_detail_screen.dart';
 
 class ListGroupItem extends StatefulWidget {
   final List<Group>? groups;
@@ -38,8 +39,11 @@ class _ListGroupItemState extends State<ListGroupItem> {
           final group = groups[index];
           return GestureDetector(
             onTap: () {
-              context
-                  .go('/home/group/${group.id}', extra: {'from': widget.from});
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => GroupDetailScreen(groupId: group.id!),
+                ),
+              );
             },
             child: Card(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
