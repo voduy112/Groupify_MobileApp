@@ -12,6 +12,21 @@ class DocumentService {
 
   DocumentService() : _dio = DioClient.instance;
 
+  Future<Document> getDocumentById(String documentId) async {
+    try {
+      final response = await _dio.get('/api/document/$documentId');
+      if (response.statusCode == 200) {
+        return Document.fromJson(response.data);
+      } else {
+        throw Exception(
+            "Lỗi khi lấy thông tin tài liệu: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi getDocumentById: $e");
+      rethrow;
+    }
+  }
+
   Future<List<Document>> getAllDocumentsInGroup(String groupId) async {
     try {
       final response = await _dio.get('/api/document/group/$groupId');
