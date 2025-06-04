@@ -3,6 +3,7 @@ import '../../../models/user.dart';
 import '../services/auth_service.dart';
 import 'dart:io';
 import '../services/user_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
@@ -32,6 +33,12 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     try {
       _user = await authService.login(email, password);
+      if (_user != null) {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await authService.updateFcmToken(_user!.id!, fcmToken);
+        }
+      }
       _error = null;
       return null;
     } catch (e) {

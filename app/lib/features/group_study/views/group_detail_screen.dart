@@ -7,6 +7,7 @@ import '../../grouprequest/providers/grouprequest_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../group_study/providers/group_provider.dart';
 import './group_detail_screen_member.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final String groupId;
@@ -279,6 +280,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       try {
                         success = await provider.sendRequest(
                             widget.groupId, currentUser.id!);
+                        MessagingProvider().sendJoinRequestNotification(
+                            _group!.ownerId!['fcmToken']!,
+                            currentUser.username!,
+                            _group!.name!);
                       } catch (e) {
                         errorMessage = e.toString();
                       }

@@ -105,4 +105,10 @@ class AuthService {
       throw Exception('Error changing password: $e');
     }
   }
+
+  Future<void> updateFcmToken(String userId, String fcmToken) async {
+    final response = await _dio.post('/api/auth/update-fcm-token',
+        data: {'userId': userId, 'fcmToken': fcmToken});
+    return response.data;
+  }
 }

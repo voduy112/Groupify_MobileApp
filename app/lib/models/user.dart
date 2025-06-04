@@ -7,7 +7,7 @@ class User {
   String? bio;
   String? accessToken;
   String? refreshToken;
-  String? fcmToken = '';
+  String? fcmToken;
 
   User({
     this.id,
@@ -30,7 +30,7 @@ class User {
     bio = json['bio'];
     accessToken = json['accessToken'];
     refreshToken = json['refreshToken'];
-    fcmToken = json['fcmToken'] ?? '';
+    fcmToken = json['fcmToken'];
   }
 
   Map<String, dynamic> toJson() {
@@ -43,7 +43,7 @@ class User {
       'bio': bio,
       'accessToken': accessToken,
       'refreshToken': refreshToken,
-      'fcmToken': fcmToken ?? '',
+      'fcmToken': fcmToken,
     };
   }
 }

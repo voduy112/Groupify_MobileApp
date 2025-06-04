@@ -237,6 +237,18 @@ const authController = {
       res.status(500).json({ message: "Lỗi khi thay đổi mật khẩu", error });
     }
   },
+  updateFcmToken: async (req, res) => {
+    try {
+      const { userId, fcmToken } = req.body;
+      if (!userId || !fcmToken) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+      await User.findByIdAndUpdate(userId, { fcmToken });
+      res.status(200).json({ message: "FCM token updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating FCM token", error });
+    }
+  },
 };
 
 module.exports = authController;
