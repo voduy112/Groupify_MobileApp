@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../models/group_message.dart';
 import '../services/chatgroup_service.dart';
 
-class ChatgroupProvider with ChangeNotifier{
+class ChatgroupProvider with ChangeNotifier {
   final ChatgroupService chatgroupService;
 
   ChatgroupProvider({required this.chatgroupService});
@@ -30,13 +32,36 @@ class ChatgroupProvider with ChangeNotifier{
   }
 
   void addMessage(GroupMessage message) {
-    _messages.add(message);
-    notifyListeners();
+    final exists = _messages.any((msg) => msg.id == message.id);
+    if (!exists) {
+      _messages.add(message);
+      notifyListeners();
+    }
   }
 
   void setMessages(List<GroupMessage> messages) {
     _messages = messages;
     notifyListeners();
+  }
+
+  //ham gui anh
+  Future<void> sendGroupImage({
+    required File imageFile,
+    required String fromUserId,
+    required String groupId,
+  }) async {
+    try {
+      final newMsg = await chatgroupService.uploadImageAndReturnMessage(
+        imageFile,
+        fromUserId: fromUserId,
+        groupId: groupId,
+      );
+      _messages.add(newMsg);
+      _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Lỗi khi gửi ảnh nhóm: $e');
+    }
   }
 
 }
