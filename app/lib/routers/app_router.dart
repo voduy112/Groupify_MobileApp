@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/widgets/main_scaffold.dart';
 import '../features/authentication/views/login_screen.dart';
@@ -14,6 +15,8 @@ import '../features/authentication/views/otp_verification_screen.dart';
 import '../features/home/views/show_all_document_screen.dart';
 import '../features/home/views/group_detail_screen.dart';
 import '../features/home/views/show_all_group_screen.dart';
+import '../features/profile/views/edit_document_screen.dart';
+import '../features/profile/views/change_password_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -38,10 +41,14 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: 'group/:id',
               builder: (context, state) {
-                final groupId = state.pathParameters['id'];
-                return GroupDetailScreen(groupId: groupId!);
+                final groupId = state.pathParameters['id']!;
+                return GroupDetailScreen(
+                  key: ValueKey(groupId), 
+                  groupId: groupId,
+                );
               },
             ),
+
             GoRoute(
               path: '/show-all-document',
               builder: (context, state) => ShowAllDocumentScreen(),
@@ -85,8 +92,19 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => ProfileScreen(),
           routes: [
             GoRoute(
+              path: 'change-password',
+              builder: (context, state) => ChangePasswordScreen(),
+            ),
+            GoRoute(
               path: 'edit',
               builder: (context, state) => EditProfileScreen(),
+            ),
+            GoRoute(
+              path: 'document/edit/:id',
+              builder: (context, state) {
+                final id = state.pathParameters['id'];
+                return EditDocumentScreen();
+              },
             ),
           ],
         ),

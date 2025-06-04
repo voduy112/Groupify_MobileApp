@@ -4,6 +4,8 @@ import '../../../features/authentication/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/title_app.dart';
 import '../../../models/user.dart';
+import '../../../features/document_share/providers/document_share_provider.dart';
+import '../../../features/profile/widgets/list_document_item.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User? user;
@@ -15,9 +17,24 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
+  void initState() {
+    super.initState();
+    final authUser = context.read<AuthProvider>().user;
+    final user = widget.user ?? authUser;
+    if (user != null) {
+      // Lấy provider và fetch document theo userId
+      Future.microtask(() =>
+          Provider.of<DocumentShareProvider>(context, listen: false)
+              .fetchDocumentsByUserId(user.id!));
+      print('fetch documents by user id ${user.id}');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authUser = context.watch<AuthProvider>().user;
     final user = widget.user ?? authUser;
+    final documentShareProvider = context.watch<DocumentShareProvider>();
     if (user == null) {
       return Scaffold(
         body: Center(child: Text('Không tìm thấy thông tin người dùng')),
@@ -29,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              context.go('/profile/edit', extra: user);
+              context.go('/profile/change-password');
             },
             icon: Icon(Icons.settings),
           ),
@@ -123,21 +140,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 24),
             // Document title
-            TitleApp(title: 'Documents', context: context),
+            TitleApp(title: 'My Documents', context: context),
             const Divider(thickness: 1),
 
             // Document list
-            const SizedBox(height: 8),
-            _DocumentItem(
-              imageUrl:
-                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-              title: 'Cấu Trúc Dữ Liệu',
-            ),
-            const SizedBox(height: 16),
-            _DocumentItem(
-              imageUrl: null,
-              title: 'Mạng Máy Tính',
-            ),
+            ListDocumentItem(
+                documents: documentShareProvider.userDocuments[user.id!] ?? [],
+                userId: user.id!),
           ],
         ),
       ),

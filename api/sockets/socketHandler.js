@@ -74,7 +74,6 @@ function socketHandler(io) {
               console.log("Error saving message: ", error);
             }
           });
-          
         //Gui tin nhan nhom va luu vao MongoDB
         socket.on("groupMessage", async ({groupId, fromUserId, message, imageUrl}) => {
             try {

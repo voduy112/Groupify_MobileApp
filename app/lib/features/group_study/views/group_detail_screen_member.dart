@@ -13,9 +13,11 @@ import 'widgets/group_header.dart';
 import 'widgets/tab_buttons.dart';
 import 'widgets/document_list.dart';
 import 'widgets/quiz_list.dart';
+import 'widgets/request_list.dart';
 
 import '../../document/providers/document_provider.dart';
 import '../../quiz/providers/quiz_provider.dart';
+import '../../grouprequest/providers/grouprequest_provider.dart';
 
 class GroupDetailScreenMember extends StatefulWidget {
   final String groupId;
@@ -59,25 +61,80 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<AuthProvider>(context).user;
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => DocumentProvider()..fetchDocumentsByGroupId(widget.groupId),
+          create: (_) =>
+              DocumentProvider()..fetchDocumentsByGroupId(widget.groupId),
         ),
         ChangeNotifierProvider(
           create: (_) => QuizProvider()..fetchQuizzesByGroupId(widget.groupId),
         ),
         ChangeNotifierProvider(
-          create: (_) => ChatgroupProvider(chatgroupService: ChatgroupService())..getGroupMessages(widget.groupId),
+          create: (_) => ChatgroupProvider(chatgroupService: ChatgroupService())
+            ..getGroupMessages(widget.groupId),
         ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              GroupRequestProvider()..fetchRequestsByGroupId(widget.groupId),
+          child: RequestListWidget(
+            groupId: widget.groupId,
+          ),
+        )
       ],
       child: Scaffold(
+        // appBar: AppBar(
+        //   title: const Text('Chi tiết nhóm'),
+        //   actions: [
+        //     if (_group != null && _group!.ownerId == currentUser?.id)
+        //       IconButton(
+        //         icon: const Icon(Icons.group_add),
+        //         onPressed: () {
+        //           showModalBottomSheet(
+        //             context: context,
+        //             isScrollControlled: true,
+        //             builder: (context) => SizedBox(
+        //               height: MediaQuery.of(context).size.height * 0.7,
+        //               child: RequestListWidget(groupId: _group!.id!),
+        //             ),
+        //           );
+        //         },
+        //       ),
+        //   ],
+        // ),
         body: Stack(
           children: [
-            GroupHeader(
-              isLoading: _isLoading,
-              error: _error,
-              group: _group,
+            // Stack con để hiển thị ảnh và icon add
+            Stack(
+              children: [
+                GroupHeader(
+                  isLoading: _isLoading,
+                  error: _error,
+                  group: _group,
+                ),
+                if (_group != null &&
+                    _group!.ownerId != null &&
+                    _group!.ownerId!['_id'] == currentUser?.id)
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: IconButton(
+                      icon: const Icon(Icons.group_add, color: Colors.white),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: RequestListWidget(groupId: _group!.id!),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
             DraggableScrollableSheet(
               initialChildSize: 0.75,
@@ -87,7 +144,8 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
                     boxShadow: [
                       BoxShadow(color: Colors.black12, blurRadius: 10),
                     ],

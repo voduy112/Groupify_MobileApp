@@ -63,4 +63,25 @@ class GroupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+ Future<bool> joinGroupByCode(
+      String groupId, String inviteCode, String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final group =
+          await _groupService.joinGroupByCode(groupId, inviteCode, userId);
+      _groups.add(group); 
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

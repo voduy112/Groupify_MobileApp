@@ -9,10 +9,12 @@ class DocumentShareProvider extends ChangeNotifier {
   List<Document> _documents = [];
   bool _isLoading = false;
   String? _error;
+  Map<String, List<Document>> _userDocuments = {};
 
   List<Document> get documents => _documents;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  Map<String, List<Document>> get userDocuments => _userDocuments;
 
   DocumentShareProvider() : _documentShareService = DocumentShareService();
 
@@ -52,5 +54,43 @@ class DocumentShareProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     await fetchDocuments();
+  }
+
+  Future<void> fetchDocumentsByUserId(String userId) async {
+    _isLoading = true;
+    notifyListeners();
+    final docs = await _documentShareService.getDocumentsByUserId(userId);
+    _userDocuments[userId] = docs;
+    _error = null;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> deleteDocument(String documentId, {String? userId}) async {
+    await _documentShareService.deleteDocument(documentId);
+    if (userId != null) {
+      _userDocuments[userId]?.removeWhere((doc) => doc.id == documentId);
+      notifyListeners();
+    } else {
+      await fetchDocuments();
+    }
+  }
+
+  Future<void> updateDocument(String documentId, String title,
+      String description, dynamic image, dynamic mainFile,
+      {String? userId}) async {
+    await _documentShareService.updateDocument(
+      documentId,
+      title,
+      description,
+      image,
+      mainFile,
+    );
+    if (userId != null) {
+      await fetchDocumentsByUserId(userId);
+    } else {
+      await fetchDocuments();
+    }
+    notifyListeners();
   }
 }

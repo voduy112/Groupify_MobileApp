@@ -60,4 +60,38 @@ class GroupService {
       rethrow;
     }
   }
+
+  Future<Group> joinGroupByCode(
+      String groupId, String inviteCode, String userId) async {
+    try {
+      final response = await _dio.post(
+        '/api/group/join',
+        data: {
+          'groupId': groupId,
+          'inviteCode': inviteCode,
+          'userId': userId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return Group.fromJson(response.data);
+      } else {
+        throw Exception("Tham gia nhóm thất bại: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      final serverError = e.response?.data?['error'] ?? 'Lỗi không xác định';
+
+      if (serverError == "INVALID_INVITE_CODE") {
+        throw Exception("Mã mời không đúng. Vui lòng kiểm tra lại.");
+      }
+
+      if (serverError.contains("đã tham gia nhóm")) {
+        throw Exception("Bạn đã ở trong nhóm này rồi.");
+      }
+
+      throw Exception(serverError);
+    } catch (e) {
+      throw Exception("Lỗi khi tham gia nhóm: $e");
+    }
+  }
 }

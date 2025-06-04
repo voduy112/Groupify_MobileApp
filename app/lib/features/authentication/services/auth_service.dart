@@ -30,6 +30,7 @@ class AuthService {
           'Error logging in: ${e.response?.data['message'] ?? e.message}');
     }
   }
+
   Future<User> register(
       String name, String email, String phone, String password) async {
     final response = await _dio.post('/api/auth/register', data: {
@@ -87,5 +88,21 @@ class AuthService {
     }
   }
 
+  Future<void> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    try {
+      final response = await _dio.post('/api/auth/change-password', data: {
+        'email': email,
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      });
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to change password');
+      }
+    } catch (e) {
+      throw Exception('Error changing password: $e');
+    }
+  }
 }
-
