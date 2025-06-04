@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../grouprequest/providers/grouprequest_provider.dart';
+import '../../../../services/notification/messaging_provider.dart';
 
 class RequestListWidget extends StatefulWidget {
   final String groupId;
@@ -49,11 +50,13 @@ class _RequestListWidgetState extends State<RequestListWidget> {
             final userRaw = request.userId;
             String username = 'Không rõ người dùng';
             String? avatarUrl;
+            String? userId;
 
             if (userRaw != null && userRaw is Map<String, dynamic>) {
               username =
                   userRaw['username']?.toString() ?? 'Không rõ người dùng';
               avatarUrl = userRaw['profilePicture']?.toString();
+              userId = userRaw['_id']?.toString();
             }
 
             String requestTime = 'Không rõ thời gian';
@@ -84,6 +87,10 @@ class _RequestListWidgetState extends State<RequestListWidget> {
                     onPressed: () async {
                       final success =
                           await provider.approveRequest(request.id!);
+                      print("userId: $userId");
+                      print("groupId: ${widget.groupId}");
+                      MessagingProvider()
+                          .sendAcceptJoinNotification(userId!, widget.groupId);
                       if (success) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Đã duyệt yêu cầu')),
