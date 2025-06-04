@@ -15,6 +15,7 @@ import '../features/home/views/show_all_document_screen.dart';
 import '../features/home/views/group_detail_screen.dart';
 import '../features/home/views/show_all_group_screen.dart';
 import '../features/profile/views/edit_document_screen.dart';
+import '../features/profile/views/change_password_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -85,6 +86,10 @@ final GoRouter appRouter = GoRouter(
           path: '/profile',
           builder: (context, state) => ProfileScreen(),
           routes: [
+            GoRoute(
+              path: 'change-password',
+              builder: (context, state) => ChangePasswordScreen(),
+            ),
             GoRoute(
               path: 'edit',
               builder: (context, state) => EditProfileScreen(),
