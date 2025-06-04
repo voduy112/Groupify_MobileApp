@@ -22,4 +22,12 @@ class MessagingProvider extends ChangeNotifier {
     await MessagingService.sendJoinRequestNotification(
         adminFcmToken, userName, groupName);
   }
+
+  Future<void> sendAcceptJoinNotification(String userId, String groupId) async {
+    if (userId == null || groupId == null) {
+      print("User FCM token is null");
+      return;
+    }
+    await MessagingService.sendAcceptJoinNotification(userId, groupId);
+  }
 }
