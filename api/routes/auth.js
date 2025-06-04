@@ -13,6 +13,9 @@ router.post("/login", authController.login);
 // Logout route
 router.post("/logout", authMiddleware.verifyToken, authController.logout);
 
+// Change password route
+router.post("/change-password", authController.changePassword);
+
 // Verify OTP route
 router.post("/verify-otp", authController.verifyOTP);
 

@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              context.go('/profile/edit', extra: user);
+              context.go('/profile/change-password');
             },
             icon: Icon(Icons.settings),
           ),
