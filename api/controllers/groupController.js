@@ -10,13 +10,28 @@ const groupController = {
       if (!name || !description || !subject || !ownerId || !inviteCode) {
         return res.status(400).json({ error: "Thiếu thông tin nhóm" });
       }
+      if (!req.files || !req.files.image) {
+              return res.status(400).json({ error: "Chưa chọn file ảnh nhóm" });
+            }
+      
+            const times = Date.now();
+      
+            const imgUploadResult = await cloudinary.uploader.upload(
+              req.files.image[0].path,
+              {
+                folder: "Groupify_MobileApp/img_group",
+                public_id: `${ownerId}_${times}_imggroup`,
+                overwrite: false,
+              }
+            );
       const newGroup = new Group({
         name,
         description,
         subject,
         ownerId,
-        membersID,
+        membersID: membersID || [],
         inviteCode,
+        imgGroup: imgUploadResult.secure_url
       });
       const createGroup = await newGroup.save();
       res.json(createGroup);
@@ -114,11 +129,11 @@ const groupController = {
         }
       }
       let updateData = { ...req.body };
-
+      const times=Date.now();
       if (req.file) {
         const uploadResult = await cloudinary.uploader.upload(req.file.path, {
           folder: "Groupify_MobileApp/img_group",
-          public_id: `${req.params.id}_imggroup`,
+          public_id: `${req.params.id}_${times}_imggroup`,
           overwrite: true,
         });
         updateData.imgGroup = uploadResult.secure_url;

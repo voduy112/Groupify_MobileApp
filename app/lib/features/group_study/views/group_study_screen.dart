@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
-import '../../home/views/group_detail_screen.dart';
 import '../../../routers/app_router.dart';
+import 'create_group_screen.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -55,6 +55,16 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => CreateGroupScreen()),
+          );
+        },
+        child: Icon(Icons.add),
+        tooltip: 'Tạo nhóm mới',
       ),
     );
   }

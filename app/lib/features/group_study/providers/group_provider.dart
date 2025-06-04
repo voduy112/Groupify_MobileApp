@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../models/group.dart';
 import '../services/group_service.dart';
@@ -84,4 +86,39 @@ class GroupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+ Future<bool> createGroup({
+    required String name,
+    required String description,
+    required String subject,
+    required String inviteCode,
+    required String ownerId,
+    List<String>? membersID,
+    required File imageFile,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final group = await _groupService.createGroup(
+        name: name,
+        description: description,
+        subject: subject,
+        inviteCode: inviteCode,
+        ownerId: ownerId,
+        membersID: membersID,
+        imageFile: imageFile, 
+      );
+      _groups.add(group);
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
 }
