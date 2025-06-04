@@ -19,8 +19,8 @@ class ChatUserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(user.id), 
-      direction: DismissDirection.endToStart, 
+      key: ValueKey(user.id),
+      direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -111,13 +111,13 @@ class ChatUserCard extends StatelessWidget {
                     Text(
                       user.username!,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 20),
+                          fontWeight: FontWeight.bold, fontSize: 24),
                     ),
                     Text(
                       lastMsg,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.grey, fontSize: 18),
+                      style: const TextStyle(color: Colors.grey, fontSize: 20),
                     ),
                   ],
                 ),
