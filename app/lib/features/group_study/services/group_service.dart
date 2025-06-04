@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../models/group.dart';
 import '../../../services/api/dio_client.dart';
@@ -92,6 +93,44 @@ class GroupService {
       throw Exception(serverError);
     } catch (e) {
       throw Exception("Lỗi khi tham gia nhóm: $e");
+    }
+  }
+
+  Future<Group> createGroup({
+    required String name,
+    required String description,
+    required String subject,
+    required String inviteCode,
+    required String ownerId,
+    List<String>? membersID,
+    required File imageFile,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'name': name,
+        'description': description,
+        'subject': subject,
+        'inviteCode': inviteCode,
+        'ownerId': ownerId,
+        if (membersID != null)
+          for (int i = 0; i < membersID.length; i++)
+            'membersID[$i]': membersID[i],
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'group_img.jpg',
+        ),
+      });
+
+      final response = await _dio.post('/api/group/', data: formData);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Group.fromJson(response.data);
+      } else {
+        throw Exception("Tạo nhóm thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi createGroup: $e");
+      rethrow;
     }
   }
 }
