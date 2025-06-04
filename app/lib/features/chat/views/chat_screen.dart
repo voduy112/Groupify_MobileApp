@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../profile/views/profile_screen.dart';
 import '../providers/chat_provider.dart';
+import '../widget/error_banner.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
@@ -26,6 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late IO.Socket socket;
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  String? _errorMsg;
 
   @override
   void initState() {
@@ -40,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.223:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.220:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -59,12 +61,29 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     });
 
-    socket.on('chatHistory', (data) {
+    /*socket.on('chatHistory', (data) {
       final List<Message> msgs = List<Message>.from(
         data.map((json) => Message.fromJson(json)).toList(),
       );
       context.read<ChatProvider>().setMessages(msgs);
       _scrollToBottom();
+    });*/
+
+    socket.on('chatHistory', (data) {
+      try {
+        final List<Message> msgs = List<Message>.from(
+          data.map((json) => Message.fromJson(json)).toList(),
+        );
+        context.read<ChatProvider>().setMessages(msgs);
+        setState(() {
+          _errorMsg = null;
+        });
+        _scrollToBottom();
+      } catch (e) {
+        setState(() {
+          _errorMsg = 'Không thể hiển thị tin nhắn. Vui lòng thử lại.';
+        });
+      }
     });
 
     socket.on('privateMessage', (data) {
@@ -89,26 +108,27 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    // Tạo message tạm để hiển thị ngay
+    try {
+      socket.emit('privateMessage', {
+        'fromUserId': widget.currentUserId,
+        'toUserId': widget.otherUser.id,
+        'message': text,
+      });
 
-
-    // Gửi qua socket
-    socket.emit('privateMessage', {
-      'fromUserId': widget.currentUserId,
-      'toUserId': widget.otherUser.id,
-      'message': text,
-    });
-
-    // Hiển thị message tạm ngay lập tức
-
-    _controller.clear();
-    _scrollToBottom();
+      _controller.clear();
+      _scrollToBottom();
+    } catch (e) {
+      setState(() {
+        _errorMsg = 'Không gửi được tin nhắn. Vui lòng thử lại.';
+      });
+    }
   }
 
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        final position = _scrollController.position.maxScrollExtent;
+        _scrollController.jumpTo(position + 50);
       }
     });
   }
@@ -175,6 +195,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                //show thong bao loi neu khong gui hoac load duoc tin nhan
+                if (_errorMsg != null)
+                  ErrorBanner(
+                    message: _errorMsg!,
+                    onRetry: () {
+                      Navigator.pop(context);
+                    },
+                  ),
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
@@ -184,37 +212,78 @@ class _ChatScreenState extends State<ChatScreen> {
                       final msg = messages[index];
                       final isMe = msg.fromUser.id == widget.currentUserId;
 
-                      return Align(
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 4, horizontal: 8),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: isMe
-                                ? Colors.blue.shade100
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: isMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                msg.message,
-                                style: const TextStyle(fontSize: 18),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: isMe
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!isMe)
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundImage: msg.fromUser.profilePicture !=
+                                        null
+                                    ? NetworkImage(msg.fromUser.profilePicture!)
+                                    : null,
+                                backgroundColor: Colors.grey.shade400,
+                                child: msg.fromUser.profilePicture == null
+                                    ? Text(
+                                        msg.fromUser.username
+                                                ?.substring(0, 1)
+                                                .toUpperCase() ??
+                                            '',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      )
+                                    : null,
                               ),
-                              const SizedBox(height: 3),
-                              Text(
-                                DateFormat('HH:mm').format(msg.timestamp),
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.50,
                               ),
-                            ],
-                          ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: isMe
+                                      ? Colors.blue.shade100
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: isMe
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      msg.fromUser.username ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      msg.message,
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      DateFormat('HH:mm').format(msg.timestamp),
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -247,14 +316,17 @@ class _ChatScreenState extends State<ChatScreen> {
                           ],
                         ),
                         Expanded(
-                          child: TextField(
+                          child: TextFormField(
                             controller: _controller,
-                            onTap: () => _scrollToBottom(),
+                            keyboardType: TextInputType.multiline,
+                            maxLines: 2,
+                            minLines: 1,
+                            textInputAction: TextInputAction.newline,
                             decoration: const InputDecoration(
                               hintText: 'Nhập tin nhắn...',
                               border: InputBorder.none,
                             ),
-                            onSubmitted: (_) => _sendMessage(),
+                            onFieldSubmitted: (_) => _sendMessage(),
                           ),
                         ),
                         IconButton(

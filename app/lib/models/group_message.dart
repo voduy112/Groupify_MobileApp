@@ -6,6 +6,7 @@ class GroupMessage {
   final String message;
   final DateTime timestamp;
   final User fromUser;
+  final String? imageUrl;
   final String groupId;
 
   GroupMessage({
@@ -13,17 +14,19 @@ class GroupMessage {
     required this.message,
     required this.timestamp,
     required this.fromUser,
+    this.imageUrl,
     required this.groupId,
   });
 
   factory GroupMessage.fromJson(Map<String, dynamic> json) {
     return GroupMessage(
       id: json['_id'],
-      message: json['message'],
+      message: json['message'] as String? ?? '',
       timestamp: DateTime.parse(json['timestamp']).toLocal(),
       fromUser: json['fromUserId'] is Map
           ? User.fromJson(json['fromUserId'])
           : User(id: json['fromUserId'] ?? '', username: ''),
+      imageUrl: json['imageUrl'] as String?,
       groupId:
           json['groupId'] is Map ? json['groupId']['_id'] : json['groupId'],
     );
@@ -36,6 +39,7 @@ class GroupMessage {
       'timestamp': timestamp.toIso8601String(),
       'fromUserId': fromUser.toJson(),
       'groupId': groupId,
+      'imageUrl': imageUrl,
     };
   }
 }

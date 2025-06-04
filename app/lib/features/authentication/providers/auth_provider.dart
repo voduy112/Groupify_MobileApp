@@ -94,4 +94,16 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    try {
+      await authService.changePassword(email, oldPassword, newPassword);
+
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
 }
