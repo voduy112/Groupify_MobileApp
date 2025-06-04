@@ -51,17 +51,19 @@ class ChatgroupProvider with ChangeNotifier {
     required String groupId,
   }) async {
     try {
-      final newMsg = await chatgroupService.uploadImageAndReturnMessage(
+      // Chỉ gửi ảnh, không xử lý kết quả trả về
+      await chatgroupService.uploadImageAndReturnMessage(
         imageFile,
         fromUserId: fromUserId,
         groupId: groupId,
       );
-      _messages.add(newMsg);
-      _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      notifyListeners();
+
+      // Không thêm tin nhắn vào _messages ở đây.
+      // Tin nhắn sẽ đến từ socket: 'groupMessage'
     } catch (e) {
       debugPrint('Lỗi khi gửi ảnh nhóm: $e');
     }
   }
+
 
 }

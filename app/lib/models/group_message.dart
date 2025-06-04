@@ -18,6 +18,9 @@ class GroupMessage {
     required this.groupId,
   });
 
+
+  String get fromUserId => fromUser.id!;
+
   factory GroupMessage.fromJson(Map<String, dynamic> json) {
     return GroupMessage(
       id: json['_id'],
