@@ -39,7 +39,7 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.220:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.229:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -106,11 +106,13 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
 
       File imageFile = File(picked.path);
 
+      // Gửi ảnh qua API
       await context.read<ChatgroupProvider>().sendGroupImage(
             imageFile: imageFile,
             fromUserId: widget.currentUser.id!,
             groupId: widget.groupId,
           );
+
       _scrollToBottom();
     } catch (e) {
       setState(() {
