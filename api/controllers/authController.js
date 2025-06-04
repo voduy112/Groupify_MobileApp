@@ -216,21 +216,25 @@ const authController = {
   },
   changePassword: async (req, res) => {
     try {
-      const { email, newPassword } = req.body;
-      if (!email || !newPassword) {
+      const { email, oldPassword, newPassword } = req.body;
+      if (!email || !oldPassword || !newPassword) {
         return res.status(400).json({ message: "All fields are required" });
       }
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Mật khẩu cũ không đúng" });
+      }
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       user.password = hashedPassword;
       await user.save();
-      res.status(200).json({ message: "Password changed successfully" });
+      res.status(200).json({ message: "Mật khẩu đã được thay đổi thành công" });
     } catch (error) {
-      res.status(500).json({ message: "Error changing password", error });
+      res.status(500).json({ message: "Lỗi khi thay đổi mật khẩu", error });
     }
   },
 };
