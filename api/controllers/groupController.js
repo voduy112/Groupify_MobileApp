@@ -26,8 +26,10 @@ const groupController = {
   },
   getGroupById: async (req, res) => {
     try {
-      const group = await Group.findById(req.params.id)
-      .populate('ownerId', 'username');
+      const group = await Group.findById(req.params.id).populate(
+        "ownerId",
+        "username fcmToken"
+      );
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm" });
       }
@@ -75,17 +77,19 @@ const groupController = {
   joinGroupByCode: async (req, res) => {
     try {
       const { groupId, inviteCode, userId } = req.body;
-  
+
       const group = await Group.findOne({ _id: groupId, inviteCode });
-  
+
       if (!group) {
         return res.status(404).json({ error: "INVALID_INVITE_CODE" });
       }
-  
+
       if (group.membersID.includes(userId)) {
-        return res.status(400).json({ error: "Người dùng đã tham gia nhóm này" });
+        return res
+          .status(400)
+          .json({ error: "Người dùng đã tham gia nhóm này" });
       }
-  
+
       group.membersID.push(userId);
       await group.save();
       return res.json(group);
@@ -93,7 +97,7 @@ const groupController = {
       return res.status(500).json({ error: "Lỗi khi tham gia nhóm" });
     }
   },
-  
+
   updateGroup: async (req, res) => {
     try {
       const existingGroup = await Group.findById(req.params.id);
@@ -201,30 +205,31 @@ const groupController = {
   addUserIntoGroup: async (req, res) => {
     try {
       const { groupId, userId } = req.body;
-  
+
       if (!groupId || !userId) {
         return res.status(400).json({ error: "Thiếu groupId hoặc userId" });
       }
-  
+
       const group = await Group.findById(groupId);
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm" });
       }
-  
+
       if (group.membersID.includes(userId)) {
         return res.status(400).json({ error: "Người dùng đã có trong nhóm" });
       }
-  
+
       group.membersID.push(userId);
       await group.save();
-  
-      res.status(200).json({ message: "Thêm người dùng vào nhóm thành công", group });
+
+      res
+        .status(200)
+        .json({ message: "Thêm người dùng vào nhóm thành công", group });
     } catch (error) {
       console.error("Lỗi khi thêm người dùng vào nhóm:", error);
       res.status(500).json({ error: "Lỗi khi thêm người dùng vào nhóm" });
     }
   },
-  
 };
 
 module.exports = groupController;

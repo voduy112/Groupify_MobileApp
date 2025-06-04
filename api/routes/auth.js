@@ -22,4 +22,7 @@ router.post("/verify-otp", authController.verifyOTP);
 // Resend OTP route
 router.post("/resend-otp", authController.resendOTP);
 
+// Update FCM token route
+router.post("/update-fcm-token", authController.updateFcmToken);
+
 module.exports = router;
