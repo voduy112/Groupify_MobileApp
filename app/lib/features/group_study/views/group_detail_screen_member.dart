@@ -179,7 +179,12 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
 
     switch (_selectedTab) {
       case 'documents':
-        return DocumentList(scrollController: controller);
+        return DocumentList(
+          scrollController: controller,
+          groupId: _group?.id ?? '',
+          currentUserId: currentUser?.id ?? '',
+          groupOwnerId: _group?.ownerId?['_id'] ?? '',
+        );
       case 'quiz':
         return QuizList(scrollController: controller);
       case 'chat':
