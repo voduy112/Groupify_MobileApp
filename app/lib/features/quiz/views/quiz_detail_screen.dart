@@ -55,37 +55,71 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Kết quả'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Điểm: $scoreText'),
-              const SizedBox(height: 8),
-              ...results.map<Widget>((r) {
-                final index = r['questionIndex'] + 1;
-                final correct = r['correct'] == true;
-                return Text(
-                  'Câu $index: ${correct ? 'Đúng' : 'Sai'}',
-                  style: TextStyle(
-                    color: correct ? Colors.green : Colors.red,
-                  ),
-                );
-              }).toList(),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Điểm: $scoreText', style: const TextStyle(fontSize: 18)),
+                const SizedBox(height: 12),
+                ...results.map<Widget>((r) {
+                  final index = r['questionIndex'];
+                  final correct = r['correct'] == true;
+                  final selectedAnswerIndex = r['selectedAnswerIndex'];
+                  final correctAnswerIndex = r['correctAnswerIndex'];
+
+                  final question = quiz.questions[index];
+                  final selectedAnswerText = selectedAnswerIndex != null &&
+                          selectedAnswerIndex < question.answers.length
+                      ? question.answers[selectedAnswerIndex].text
+                      : 'Không chọn';
+                  final correctAnswerText =
+                      question.answers[correctAnswerIndex].text;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: correct ? Colors.green : Colors.red),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Câu ${index + 1}: ${question.text}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('Bạn chọn: $selectedAnswerText',
+                            style: TextStyle(
+                                color: correct ? Colors.green : Colors.red)),
+                        Text('Đáp án đúng: $correctAnswerText',
+                            style: const TextStyle(color: Colors.blue)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Chỉ đóng dialog
+                Navigator.of(dialogContext).pop(); 
               },
               child: const Text('Đóng'),
             ),
           ],
         ),
       ).then((_) {
-        Navigator.of(context).pop(); // Quay lại màn trước sau khi dialog đóng
+        Navigator.of(context).pop();
       });
     } else {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(provider.error ?? 'Lỗi không xác định')),
       );
