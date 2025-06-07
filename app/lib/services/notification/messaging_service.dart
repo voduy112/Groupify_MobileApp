@@ -12,4 +12,12 @@ class MessagingService {
       "groupName": groupName,
     });
   }
+
+  static Future<void> sendAcceptJoinNotification(
+      String userId, String groupId) async {
+    await DioClient.instance.post("/api/notification/send-accept-join", data: {
+      "userId": userId,
+      "groupId": groupId,
+    });
+  }
 }

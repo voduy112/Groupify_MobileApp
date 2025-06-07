@@ -8,6 +8,7 @@ class DioClient {
       
       baseUrl: 'http://192.168.1.9:5000',
 
+
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
     ));
