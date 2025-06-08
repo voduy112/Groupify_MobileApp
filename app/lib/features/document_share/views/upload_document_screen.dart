@@ -79,6 +79,18 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         imageFile: imageFile,
         mainFile: mainFile,
       );
+      // Hiện thông báo thành công
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload thành công!')),
+      );
+      // Reset form và các biến
+      _formKey.currentState!.reset();
+      setState(() {
+        title = null;
+        description = null;
+        imageFile = null;
+        mainFile = null;
+      });
     }
   }
 
@@ -114,6 +126,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                 decoration: InputDecoration(labelText: 'Mô tả'),
                 onSaved: (value) => description = value,
                 validator: (value) => Validate.notEmpty(value),
+                minLines: 3,
+                maxLines: null,
               ),
               SizedBox(height: 16),
               // Image picker
@@ -131,6 +145,16 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                   ),
                 ],
               ),
+              if (imageFile?.path != null && imageFile!.path!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Image.file(
+                    File(imageFile!.path!),
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               SizedBox(height: 16),
               // Main file picker
               Row(
