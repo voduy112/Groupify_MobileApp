@@ -148,6 +148,27 @@ class GroupService {
     print("Lỗi getGroupMembers: $e");
     rethrow;
   }
+  }
+
+  Future<void> leaveGroup(String groupId, String userId) async {
+  try {
+    final response = await _dio.post(
+      '/api/group/leave',
+      data: {
+        'groupId': groupId,
+        'userId': userId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("Rời nhóm thành công");
+    } else {
+      throw Exception("Rời nhóm thất bại: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Lỗi leaveGroup: $e");
+    rethrow;
+  }
 }
 
 Future<void> removeMember({

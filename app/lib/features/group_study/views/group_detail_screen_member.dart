@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../../models/group.dart';
 import '../../authentication/providers/auth_provider.dart';
-import '../../authentication/providers/user_provider.dart';
 import '../../chat_group/providers/chatgroup_provider.dart';
+import '../providers/group_provider.dart';
 import '../services/group_service.dart';
 
 import 'widgets/group_drawer.dart';
@@ -102,11 +102,63 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
             ? const Center(child: CircularProgressIndicator())
             : _errorMembers != null
                 ? Center(child: Text('Lỗi: $_errorMembers'))
-                : MemberListWidget(
-                    members: _members,
-                    group: _group!),
+                : MemberListWidget(members: _members, group: _group!),
       ),
     );
+  }
+
+  Future<void> _leaveGroup() async {
+    Navigator.pop(context); 
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận'),
+        content: const Text('Bạn có chắc muốn rời nhóm này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Huỷ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rời nhóm'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || _group == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userId = Provider.of<AuthProvider>(context, listen: false).user!.id!;
+      final groupId = _group!.id!;
+
+      bool success =
+          await Provider.of<GroupProvider>(context, listen: false).leaveGroup(groupId, userId);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bạn đã rời nhóm thành công')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rời nhóm thất bại')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Rời nhóm thất bại: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -136,6 +188,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
         key: _scaffoldKey,
         endDrawer: GroupDrawer(
           onViewMembers: _viewGroupMembers,
+          onLeaveGroup: _leaveGroup,
         ),
         body: Stack(
           children: [
