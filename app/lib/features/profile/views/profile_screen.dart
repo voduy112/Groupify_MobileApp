@@ -44,12 +44,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text('Profile'),
         actions: [
-          IconButton(
-            onPressed: () {
-              context.go('/profile/change-password');
-            },
-            icon: Icon(Icons.settings),
-          ),
+          if (user.id == authUser?.id)
+            IconButton(
+              onPressed: () {
+                context.go('/profile/change-password');
+              },
+              icon: Icon(Icons.settings),
+            ),
         ],
       ),
       body: SingleChildScrollView(

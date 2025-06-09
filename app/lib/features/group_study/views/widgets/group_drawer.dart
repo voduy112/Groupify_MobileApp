@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class GroupDrawer extends StatelessWidget {
   final VoidCallback onViewMembers;
+  final VoidCallback onLeaveGroup;
 
   const GroupDrawer({
     Key? key,
     required this.onViewMembers,
+    required this.onLeaveGroup,
   }) : super(key: key);
 
   @override
@@ -36,6 +38,11 @@ class GroupDrawer extends StatelessWidget {
                 leading: const Icon(Icons.group),
                 title: const Text('Xem thành viên'),
                 onTap: onViewMembers,
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Rời nhóm'),
+                onTap: onLeaveGroup,
               ),
             ],
           ),
