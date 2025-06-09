@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/group_message.dart';
 import '../../../models/user.dart';
+import '../../authentication/providers/auth_provider.dart';
 import '../../chat/widget/error_banner.dart';
+import '../../profile/views/profile_screen.dart';
 import '../providers/chatgroup_provider.dart';
 
 class ChatgroupScreen extends StatefulWidget {
@@ -39,7 +41,7 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.229:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.219:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -203,22 +205,42 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (!isMe)
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundImage: msg.fromUser.profilePicture !=
-                                      null
-                                  ? NetworkImage(msg.fromUser.profilePicture!)
-                                  : null,
-                              backgroundColor: Colors.grey.shade400,
-                              child: msg.fromUser.profilePicture == null
-                                  ? Text(
-                                      msg.fromUser.username
-                                              ?.substring(0, 1)
-                                              .toUpperCase() ??
-                                          '',
-                                      style:
-                                          const TextStyle(color: Colors.white))
-                                  : null,
+                            GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final fullUser = await context
+                                      .read<AuthProvider>()
+                                      .authService
+                                      .fetchUserProfileById(msg.fromUser.id!);
+                                  if (!mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProfileScreen(user: fullUser),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  print('Không thể tải thông tin user: $e');
+                                }
+                              },
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundImage: msg.fromUser.profilePicture !=
+                                        null
+                                    ? NetworkImage(msg.fromUser.profilePicture!)
+                                    : null,
+                                backgroundColor: Colors.grey.shade400,
+                                child: msg.fromUser.profilePicture == null
+                                    ? Text(
+                                        msg.fromUser.username
+                                                ?.substring(0, 1)
+                                                .toUpperCase() ??
+                                            '',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      )
+                                    : null,
+                              ),
                             ),
                           const SizedBox(width: 8),
                           ConstrainedBox(

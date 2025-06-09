@@ -135,7 +135,6 @@ const chatGroupController = {
 
       const populatedMsg = await newMsg.populate("fromUserId", "username");
 
-      // 🔥 Emit socket group message tại đây
       const io = req.app.get("io");
       if (io) {
         io.to(groupId).emit("groupMessage", populatedMsg);

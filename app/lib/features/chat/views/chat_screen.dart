@@ -42,7 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.229:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.219:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -295,26 +295,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     color: Colors.white,
                     child: Row(
                       children: [
-                        PopupMenuButton<String>(
-                          icon: const Icon(Icons.link),
-                          onSelected: (value) {
-                            /*if (value == 'image') {
-                              _pickAndSendImage();
-                            } else if (value == 'file') {
-                              // TODO: handle send file later
-                            }*/
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'image',
-                              child: Text('Gửi ảnh'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'file',
-                              child: Text('Gửi tài liệu'),
-                            ),
-                          ],
-                        ),
                         Expanded(
                           child: TextFormField(
                             controller: _controller,

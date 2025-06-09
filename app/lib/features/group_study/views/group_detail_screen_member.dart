@@ -9,6 +9,7 @@ import '../../authentication/providers/user_provider.dart';
 import '../../chat_group/providers/chatgroup_provider.dart';
 import '../services/group_service.dart';
 
+import 'widgets/group_drawer.dart';
 import 'widgets/group_header.dart';
 import 'widgets/tab_buttons.dart';
 import 'widgets/document_list.dart';
@@ -18,6 +19,7 @@ import 'widgets/request_list.dart';
 import '../../document/providers/document_provider.dart';
 import '../../quiz/providers/quiz_provider.dart';
 import '../../grouprequest/providers/grouprequest_provider.dart';
+import 'widgets/member_list.dart';
 
 class GroupDetailScreenMember extends StatefulWidget {
   final String groupId;
@@ -31,10 +33,16 @@ class GroupDetailScreenMember extends StatefulWidget {
 
 class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   final GroupService _groupService = GroupService();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Group? _group;
   bool _isLoading = true;
   String? _error;
   String _selectedTab = 'documents';
+
+  List<Map<String, dynamic>> _members = [];
+  bool _loadingMembers = false;
+  String? _errorMembers;
 
   @override
   void initState() {
@@ -59,6 +67,48 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     }
   }
 
+  Future<void> _fetchGroupMembers() async {
+    setState(() {
+      _loadingMembers = true;
+      _errorMembers = null;
+    });
+    try {
+      final members = await _groupService.getGroupMembers(widget.groupId);
+      setState(() {
+        _members = members.map((e) => e.toJson()).toList();
+      });
+    } catch (e) {
+      setState(() {
+        _errorMembers = e.toString();
+      });
+    } finally {
+      setState(() {
+        _loadingMembers = false;
+      });
+    }
+  }
+
+  void _viewGroupMembers() async {
+    Navigator.pop(context);
+
+    await _fetchGroupMembers();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: _loadingMembers
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMembers != null
+                ? Center(child: Text('Lỗi: $_errorMembers'))
+                : MemberListWidget(
+                    members: _members,
+                    group: _group!),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<AuthProvider>(context).user;
@@ -79,34 +129,16 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
         ChangeNotifierProvider(
           create: (_) =>
               GroupRequestProvider()..fetchRequestsByGroupId(widget.groupId),
-          child: RequestListWidget(
-            groupId: widget.groupId,
-          ),
-        )
+          child: RequestListWidget(groupId: widget.groupId),
+        ),
       ],
       child: Scaffold(
-        // appBar: AppBar(
-        //   title: const Text('Chi tiết nhóm'),
-        //   actions: [
-        //     if (_group != null && _group!.ownerId == currentUser?.id)
-        //       IconButton(
-        //         icon: const Icon(Icons.group_add),
-        //         onPressed: () {
-        //           showModalBottomSheet(
-        //             context: context,
-        //             isScrollControlled: true,
-        //             builder: (context) => SizedBox(
-        //               height: MediaQuery.of(context).size.height * 0.7,
-        //               child: RequestListWidget(groupId: _group!.id!),
-        //             ),
-        //           );
-        //         },
-        //       ),
-        //   ],
-        // ),
+        key: _scaffoldKey,
+        endDrawer: GroupDrawer(
+          onViewMembers: _viewGroupMembers,
+        ),
         body: Stack(
           children: [
-            // Stack con để hiển thị ảnh và icon add
             Stack(
               children: [
                 GroupHeader(
@@ -114,26 +146,39 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                   error: _error,
                   group: _group,
                 ),
-                if (_group != null &&
-                    _group!.ownerId != null &&
-                    _group!.ownerId!['_id'] == currentUser?.id)
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: IconButton(
-                      icon: const Icon(Icons.group_add, color: Colors.white),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.7,
-                            child: RequestListWidget(groupId: _group!.id!),
-                          ),
-                        );
-                      },
-                    ),
+                Positioned(
+                  top: 36,
+                  right: 16,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_group != null &&
+                          _group!.ownerId != null &&
+                          _group!.ownerId!['_id'] == currentUser?.id)
+                        IconButton(
+                          icon:
+                              const Icon(Icons.group_add, color: Colors.white),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.7,
+                                child: RequestListWidget(groupId: _group!.id!),
+                              ),
+                            );
+                          },
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.menu, color: Colors.white),
+                        onPressed: () {
+                          _scaffoldKey.currentState?.openEndDrawer();
+                        },
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
             DraggableScrollableSheet(
