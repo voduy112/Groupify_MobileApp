@@ -136,4 +136,28 @@ Future<void> fetchGroupMembers(String groupId) async {
       notifyListeners();
     }
   }
+
+  Future<bool> removeMember(String groupId, String memberId) async {
+  _isLoading = true;
+  _error = null;
+  notifyListeners();
+
+  try {
+    await _groupService.removeMember(groupId: groupId, memberId: memberId);
+
+    // Optional: Nếu bạn có _selectedGroup?.members → bạn có thể remove luôn memberId khỏi đó để cập nhật UI.
+    _selectedGroup?.membersID?.remove(memberId);
+
+    notifyListeners();
+    return true;
+  } catch (e) {
+    _error = e.toString();
+    notifyListeners();
+    return false;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
 }
