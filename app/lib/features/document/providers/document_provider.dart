@@ -18,6 +18,9 @@ class DocumentProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  int _count = 0;
+  int get count => _count;
+
   Future<void> fetchDocumentsByGroupId(String groupId) async {
     _isLoading = true;
     _error = null;
@@ -27,6 +30,24 @@ class DocumentProvider extends ChangeNotifier {
       _documents = await _documentService.getAllDocumentsInGroup(groupId);
     } catch (e) {
       _error = 'Lỗi khi lấy danh sách tài liệu: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchCountByGroupId(String groupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      List<Document> documents =
+          await _documentService.getAllDocumentsInGroup(groupId);
+      _count = documents.length;
+    } catch (e) {
+      _error = 'Lỗi khi lấy số lượng tài liệu: $e';
+      _count = 0;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -238,15 +238,18 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
+
         endDrawer: _group == null
             ? null
             : GroupDrawer(
+              groupId: widget.groupId,
                 onViewMembers: _viewGroupMembers,
                 onLeaveGroup: _leaveGroup,
                 group: _group!,
                 currentUserId: currentUser?.id ?? '',
                 onDeleteGroup: _deleteGroup,
               ),
+
         body: Stack(
           children: [
             Stack(
