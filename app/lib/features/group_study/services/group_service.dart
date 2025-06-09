@@ -193,4 +193,16 @@ Future<void> removeMember({
     }
   }
 
+  Future<void> deleteGroup(String groupId) async {
+    try {
+      final response = await _dio.delete('/api/group/$groupId');
+      if (response.statusCode != 200) {
+        throw Exception("Xoá nhóm thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi deleteGroup: $e");
+      rethrow;
+    }
+  }
+
 }
