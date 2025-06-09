@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../models/group.dart';
+import '../../../models/user.dart';
 import '../../../services/api/dio_client.dart';
 
 class GroupService {
@@ -133,4 +134,20 @@ class GroupService {
       rethrow;
     }
   }
+
+  Future<List<User>> getGroupMembers(String groupId) async {
+  try {
+    final response = await _dio.get('/api/group/members/$groupId/');
+    if (response.statusCode == 200) {
+      final List<dynamic> membersJson = response.data;
+      return membersJson.map((json) => User.fromJson(json)).toList();
+    } else {
+      throw Exception("Lỗi khi lấy danh sách thành viên: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Lỗi getGroupMembers: $e");
+    rethrow;
+  }
+}
+
 }

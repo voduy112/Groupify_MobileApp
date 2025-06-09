@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../../../models/group.dart';
+import '../../../models/user.dart';
 import '../services/group_service.dart';
 
 class GroupProvider with ChangeNotifier {
@@ -11,10 +12,12 @@ class GroupProvider with ChangeNotifier {
   List<Group> _groups = [];
   bool _isLoading = false;
   String? _error;
+  List<User> _members = [];
 
   List<Group> get groups => _groups;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  List<User> get members => _members;
 
   Future<void> fetchAllGroup(String userId) async {
     _isLoading = true;
@@ -120,5 +123,17 @@ class GroupProvider with ChangeNotifier {
     }
   }
 
-
+Future<void> fetchGroupMembers(String groupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _members = await _groupService.getGroupMembers(groupId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

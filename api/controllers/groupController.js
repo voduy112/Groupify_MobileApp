@@ -174,7 +174,7 @@ const groupController = {
       res.status(500).json({ error: "Lỗi khi rời nhóm" });
     }
   },
-  getGroupMembers: async (req, res) => {
+  /*getGroupMembers: async (req, res) => {
     try {
       const group = await Group.findById(req.params.id).populate("membersID");
       if (!group) {
@@ -185,7 +185,39 @@ const groupController = {
       console.error(error);
       res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
     }
-  },
+  },*/
+
+  getGroupMembers: async (req, res) => {
+    try {
+      const group = await Group.findById(req.params.id)
+        .populate("membersID", "username profilePicture")
+        .populate("ownerId", "username profilePicture");
+  
+      if (!group) {
+        return res.status(404).json({ error: "Không tìm thấy nhóm" });
+      }
+  
+      // Convert ownerId (User model) to object with consistent structure
+      const owner = group.ownerId.toObject();
+      owner.role = 'owner'; // Thêm thông tin phân biệt
+  
+      // Convert members, thêm role nếu cần
+      const members = group.membersID.map(member => {
+        const m = member.toObject();
+        m.role = 'member';
+        return m;
+      });
+  
+      // Kiểm tra nếu owner đã nằm trong members thì không thêm lại
+      const isOwnerInMembers = members.some(m => m._id.toString() === owner._id.toString());
+      const allMembers = isOwnerInMembers ? members : [owner, ...members];
+  
+      res.json(allMembers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
+    }
+  },  
 
   getAllGroupByUserId: async (req, res) => {
     const userId = req.params.id || req.query.id;
@@ -205,7 +237,8 @@ const groupController = {
       res.status(500).json({ error: "Lỗi máy chủ khi lấy danh sách nhóm" });
     }
   },
-  getGroupMembers: async (req, res) => {
+
+  /*getGroupMembers: async (req, res) => {
     try {
       const group = await Group.findById(req.params.id).populate("membersID");
       if (!group) {
@@ -216,7 +249,8 @@ const groupController = {
       console.error(error);
       res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
     }
-  },
+  },*/
+  
   addUserIntoGroup: async (req, res) => {
     try {
       const { groupId, userId } = req.body;
