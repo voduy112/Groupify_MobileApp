@@ -112,6 +112,13 @@ class _MemberListWidgetState extends State<MemberListWidget> {
                           : Colors.black,
                     ),
                   ),
+                  subtitle: Text(
+                    memberId == ownerId ? 'Quản trị viên' : 'Thành viên',
+                    style: TextStyle(
+                      color:
+                          memberId == ownerId ? Colors.red : Colors.grey[600],
+                    ),
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

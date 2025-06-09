@@ -180,5 +180,23 @@ Future<void> fetchGroupMembers(String groupId) async {
     }
   }
 
+  Future<bool> deleteGroup(String groupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _groupService.deleteGroup(groupId);
+      _groups.removeWhere((group) => group.id == groupId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
 }
