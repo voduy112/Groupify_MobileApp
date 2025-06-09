@@ -108,7 +108,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   }
 
   Future<void> _leaveGroup() async {
-    Navigator.pop(context); 
+    Navigator.pop(context);
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -133,11 +133,12 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     setState(() => _isLoading = true);
 
     try {
-      final userId = Provider.of<AuthProvider>(context, listen: false).user!.id!;
+      final userId =
+          Provider.of<AuthProvider>(context, listen: false).user!.id!;
       final groupId = _group!.id!;
 
-      bool success =
-          await Provider.of<GroupProvider>(context, listen: false).leaveGroup(groupId, userId);
+      bool success = await Provider.of<GroupProvider>(context, listen: false)
+          .leaveGroup(groupId, userId);
 
       if (!mounted) return;
 
@@ -155,6 +156,57 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Rời nhóm thất bại: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _deleteGroup() async {
+    Navigator.pop(context); // Đóng Drawer
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận xoá nhóm'),
+        content: const Text('Bạn có chắc chắn muốn xoá nhóm này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Huỷ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xoá'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || _group == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await Provider.of<GroupProvider>(context, listen: false)
+          .deleteGroup(_group!.id!);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bạn đã xóa nhóm thành công')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Xóa nhóm thất bại')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi xoá nhóm: $e')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -186,10 +238,15 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        endDrawer: GroupDrawer(
-          onViewMembers: _viewGroupMembers,
-          onLeaveGroup: _leaveGroup,
-        ),
+        endDrawer: _group == null
+            ? null
+            : GroupDrawer(
+                onViewMembers: _viewGroupMembers,
+                onLeaveGroup: _leaveGroup,
+                group: _group!,
+                currentUserId: currentUser?.id ?? '',
+                onDeleteGroup: _deleteGroup,
+              ),
         body: Stack(
           children: [
             Stack(
