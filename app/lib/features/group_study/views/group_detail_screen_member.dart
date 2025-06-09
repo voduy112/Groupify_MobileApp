@@ -108,7 +108,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   }
 
   Future<void> _leaveGroup() async {
-    Navigator.pop(context); 
+    Navigator.pop(context);
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -133,11 +133,12 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     setState(() => _isLoading = true);
 
     try {
-      final userId = Provider.of<AuthProvider>(context, listen: false).user!.id!;
+      final userId =
+          Provider.of<AuthProvider>(context, listen: false).user!.id!;
       final groupId = _group!.id!;
 
-      bool success =
-          await Provider.of<GroupProvider>(context, listen: false).leaveGroup(groupId, userId);
+      bool success = await Provider.of<GroupProvider>(context, listen: false)
+          .leaveGroup(groupId, userId);
 
       if (!mounted) return;
 
@@ -187,6 +188,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
       child: Scaffold(
         key: _scaffoldKey,
         endDrawer: GroupDrawer(
+          groupId: widget.groupId,
           onViewMembers: _viewGroupMembers,
           onLeaveGroup: _leaveGroup,
         ),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import '../group_content_detail.dart';
 
 class GroupDrawer extends StatelessWidget {
   final VoidCallback onViewMembers;
   final VoidCallback onLeaveGroup;
+  final String groupId;
 
   const GroupDrawer({
     Key? key,
+    required this.groupId,
     required this.onViewMembers,
     required this.onLeaveGroup,
   }) : super(key: key);
@@ -38,6 +41,18 @@ class GroupDrawer extends StatelessWidget {
                 leading: const Icon(Icons.group),
                 title: const Text('Xem thành viên'),
                 onTap: onViewMembers,
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Xem chi tiết'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          GroupContentDetail(groupId: groupId ),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.logout),
