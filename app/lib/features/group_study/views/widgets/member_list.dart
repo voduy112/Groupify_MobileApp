@@ -5,6 +5,7 @@ import '../../../../models/group.dart';
 import '../../../../models/user.dart';
 import '../../../authentication/providers/auth_provider.dart';
 import '../../../chat/views/chat_screen.dart';
+import '../../providers/group_provider.dart';
 
 class MemberListWidget extends StatefulWidget {
   final List<Map<String, dynamic>> members;
@@ -36,10 +37,17 @@ class _MemberListWidgetState extends State<MemberListWidget> {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<AuthProvider>(context).user;
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
 
     if (currentUser == null) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final ownerId = widget.group.ownerId is Map
+        ? widget.group.ownerId['_id']
+        : widget.group.ownerId;
+
+    final isOwner = ownerId == currentUser.id;
 
     final members = widget.members.where((member) {
       final username = (member['username'] ?? '').toLowerCase();
@@ -49,6 +57,9 @@ class _MemberListWidgetState extends State<MemberListWidget> {
     if (members.isEmpty) {
       return const Center(child: Text('Không có thành viên nào trong nhóm.'));
     }
+
+    print('Current user: ${currentUser.id}');
+    print('Group owner: $ownerId');
 
     return Column(
       children: [
@@ -101,28 +112,86 @@ class _MemberListWidgetState extends State<MemberListWidget> {
                           : Colors.black,
                     ),
                   ),
-                  trailing: memberId != currentUser.id
-                      ? const Icon(Icons.chat, color: Colors.blueGrey)
-                      : null,
-                  onTap: () {
-                    if (memberId == currentUser.id) return;
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (memberId != currentUser.id)
+                        IconButton(
+                          icon: const Icon(Icons.chat, color: Colors.blueGrey),
+                          onPressed: () {
+                            final otherUser = User(
+                              id: memberId,
+                              username: username,
+                              profilePicture: avatarUrl,
+                            );
 
-                    final otherUser = User(
-                      id: memberId,
-                      username: username,
-                      profilePicture: avatarUrl,
-                    );
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
-                          currentUserId: currentUser.id!,
-                          otherUser: otherUser,
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatScreen(
+                                  currentUserId: currentUser.id!,
+                                  otherUser: otherUser,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    );
-                  },
+
+                      // Nếu là owner và member != owner → hiện xoá member
+                      if (memberId != currentUser.id && isOwner)
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle,
+                              color: Colors.red),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Xoá thành viên'),
+                                content: Text(
+                                    'Bạn có chắc muốn xoá "$username" khỏi nhóm?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Huỷ'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Xoá'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              final success = await groupProvider.removeMember(
+                                widget.group.id!,
+                                memberId,
+                              );
+
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Đã xoá thành viên.')),
+                                );
+
+                                // Cập nhật lại danh sách members trong widget
+                                setState(() {
+                                  widget.members
+                                      .removeWhere((m) => m['id'] == memberId);
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Xoá thất bại: ${groupProvider.error ?? ''}')),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                    ],
+                  ),
+                  onTap: null,
                 ),
               );
             },

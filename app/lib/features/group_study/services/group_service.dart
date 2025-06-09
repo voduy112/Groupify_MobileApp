@@ -171,4 +171,26 @@ class GroupService {
   }
 }
 
+Future<void> removeMember({
+    required String groupId,
+    required String memberId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/group/remove-member',
+        data: {
+          'groupId': groupId,
+          'memberId': memberId,
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("Xoá thành viên thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi removeMember: $e");
+      rethrow;
+    }
+  }
+
 }
