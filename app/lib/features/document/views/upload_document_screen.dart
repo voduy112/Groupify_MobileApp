@@ -4,11 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
-import '../providers/document_share_provider.dart';
+import '../providers/document_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
+import '../../group_study/providers/group_provider.dart';
 import '../../../core/utils/validate.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
+  final String groupId;
+
+  const UploadDocumentScreen({super.key, required this.groupId});
+
   @override
   State<UploadDocumentScreen> createState() => _UploadDocumentScreenState();
 }
@@ -52,46 +57,57 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   Future<void> uploadDocument() async {
     final user = context.read<AuthProvider>().user;
 
-    // Kiểm tra ảnh
     if (imageFile?.path == null || imageFile!.path!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng chọn ảnh')),
-      );
+      _showDialog("Lỗi", "Vui lòng chọn ảnh");
       return;
     }
 
-    // Kiểm tra file
     if (mainFile?.path == null || mainFile!.path!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng chọn file tài liệu PDF')),
-      );
+      _showDialog("Lỗi", "Vui lòng chọn file tài liệu PDF");
       return;
     }
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      DocumentShareProvider documentShareProvider =
-          Provider.of<DocumentShareProvider>(context, listen: false);
-      await documentShareProvider.uploadDocument(
+      DocumentProvider documentProvider =
+          Provider.of<DocumentProvider>(context, listen: false);
+
+      bool success = await documentProvider.uploadDocument(
         title: title!,
         description: description!,
         uploaderId: user?.id ?? "",
         imageFile: imageFile,
         mainFile: mainFile,
+        groupId: widget.groupId,
       );
-      // Hiện thông báo thành công
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload thành công!')),
-      );
-      // Reset form và các biến
-      _formKey.currentState!.reset();
-      setState(() {
-        title = null;
-        description = null;
-        imageFile = null;
-        mainFile = null;
-      });
+
+      if (success) {
+        _showDialog("Thành công", "Tải tài liệu thành công", onClose: () {
+          context.pop(true);
+        });
+      } else {
+        _showDialog("Thất bại", "Tải tài liệu thất bại");
+      }
     }
+  }
+
+  void _showDialog(String title, String content, {VoidCallback? onClose}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Đóng dialog
+              if (onClose != null) onClose(); // Thực thi callback nếu có
+            },
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -126,8 +142,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                 decoration: InputDecoration(labelText: 'Mô tả'),
                 onSaved: (value) => description = value,
                 validator: (value) => Validate.notEmpty(value),
-                minLines: 3,
-                maxLines: null,
               ),
               SizedBox(height: 16),
               // Image picker
@@ -145,16 +159,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                   ),
                 ],
               ),
-              if (imageFile?.path != null && imageFile!.path!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.file(
-                    File(imageFile!.path!),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
               SizedBox(height: 16),
               // Main file picker
               Row(
@@ -176,7 +180,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
               SizedBox(height: 32),
               // Submit button
               Center(
-                child: Consumer<DocumentShareProvider>(
+                child: Consumer<DocumentProvider>(
                   builder: (context, provider, child) {
                     return ElevatedButton(
                       onPressed: provider.isLoading

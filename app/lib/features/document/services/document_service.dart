@@ -1,8 +1,9 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../models/document.dart';
 import '../../../services/api/dio_client.dart';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
@@ -108,6 +109,61 @@ class DocumentService {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi khi tải: $e')),
       );
+    }
+  }
+
+  Future<List<Document>> getDocuments() async {
+    final response = await _dio.get('/api/document');
+    print("response.data: ${response.data}");
+    return (response.data as List)
+        .map((json) => Document.fromJson(json))
+        .toList();
+  }
+
+
+  Future<void> uploadDocument({
+    required String title,
+    required String description,
+    required String uploaderId,
+    required PlatformFile? imageFile,
+    required PlatformFile? mainFile,
+    required String groupId,
+  }) async {
+    try {
+      final Map<String, dynamic> formMap = {
+        'title': title,
+        'description': description,
+        'uploaderId': uploaderId,
+        'groupId': groupId,
+      };
+
+      if (imageFile != null && imageFile.path != null) {
+        formMap['image'] = await MultipartFile.fromFile(
+          imageFile.path!,
+          filename: imageFile.name,
+        );
+      }
+
+      if (mainFile != null && mainFile.path != null) {
+        formMap['mainFile'] = await MultipartFile.fromFile(
+          mainFile.path!,
+          filename: mainFile.name,
+          contentType: MediaType('application', 'pdf'),
+        );
+      }
+
+      final formData = FormData.fromMap(formMap);
+
+      final response = await _dio.post('/api/document/', data: formData);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("Upload thành công: ${response.data}");
+      } else {
+        throw Exception("Upload thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi khi upload tài liệu: $e");
+      rethrow;
     }
   }
 }

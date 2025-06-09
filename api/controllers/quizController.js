@@ -171,10 +171,12 @@ const quizController = {
     
                 const isCorrect = selectedAnswer.isCorrect === true;
                 if (isCorrect) score++;
+                const correctAnswerIndex = question.answers.findIndex(ans => ans.isCorrect === true);
     
                 results.push({
                     questionIndex,
                     selectedAnswerIndex: answerIndex,
+                    correctAnswerIndex, 
                     correct: isCorrect
                 });
             }
