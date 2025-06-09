@@ -136,4 +136,26 @@ Future<void> fetchGroupMembers(String groupId) async {
       notifyListeners();
     }
   }
+
+  Future<bool> leaveGroup(String groupId, String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _groupService.leaveGroup(groupId, userId);
+      await fetchGroupsByUserId(userId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
 }
