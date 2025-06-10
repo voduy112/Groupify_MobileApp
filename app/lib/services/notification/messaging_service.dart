@@ -33,4 +33,17 @@ class MessagingService {
       "message": message,
     });
   }
+
+  static Future<void> sendGroupDocumentNotification(
+      String adminName, String groupId, String documentTitle) async {
+    print("adminName service: $adminName");
+    print("groupId service: $groupId");
+    print("documentTitle service: $documentTitle");
+    await DioClient.instance
+        .post("/api/notification/send-group-document", data: {
+      "groupId": groupId,
+      "adminName": adminName,
+      "documentTitle": documentTitle,
+    });
+  }
 }
