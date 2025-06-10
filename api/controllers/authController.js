@@ -60,7 +60,7 @@ const authController = {
         role: user.role,
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "5s" }
+      { expiresIn: "15m" }
     );
   },
   // GENERATE REFRESH TOKEN
