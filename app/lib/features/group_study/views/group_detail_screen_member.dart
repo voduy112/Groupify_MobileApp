@@ -238,18 +238,16 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-
         endDrawer: _group == null
             ? null
             : GroupDrawer(
-              groupId: widget.groupId,
+                groupId: widget.groupId,
                 onViewMembers: _viewGroupMembers,
                 onLeaveGroup: _leaveGroup,
                 group: _group!,
                 currentUserId: currentUser?.id ?? '',
                 onDeleteGroup: _deleteGroup,
               ),
-
         body: Stack(
           children: [
             Stack(
@@ -344,7 +342,12 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
           groupOwnerId: _group?.ownerId?['_id'] ?? '',
         );
       case 'quiz':
-        return QuizList(scrollController: controller);
+        return QuizList(
+          scrollController: controller,
+          groupId: _group?.id ?? '',
+          currentUserId: currentUser?.id ?? '',
+          groupOwnerId: _group?.ownerId?['_id'] ?? '',
+        );
       case 'chat':
         if (_group == null) {
           return const Center(child: CircularProgressIndicator());
