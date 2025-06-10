@@ -39,7 +39,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (currentUser != null) {
       await Provider.of<ChatProvider>(context, listen: false)
           .fetchChatList(currentUser.id!);
-      _filterUsers(); 
+      _filterUsers();
     }
   }
 
@@ -57,7 +57,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final chatProvider = Provider.of<ChatProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Chat")),
+      appBar: AppBar(title: const Text("Trò chuyện")),
       body: chatProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : chatProvider.error != null
@@ -65,20 +65,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
               : Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), 
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
                           labelText: 'Tìm kiếm',
                           prefixIcon: const Icon(Icons.search),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
                           ),
                         ),
                       ),
@@ -91,12 +93,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           final lastMessages =
                               chatProvider.lastMsgs[user.id] ?? '';
                           return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 6, horizontal: 12),
                             child: ChatUserCard(
                               user: user,
                               lastMsg: lastMessages,
                               onTap: () {
-                                final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+                                final currentUser = Provider.of<AuthProvider>(
+                                        context,
+                                        listen: false)
+                                    .user;
                                 if (currentUser != null) {
                                   Navigator.push(
                                     context,
@@ -112,15 +118,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 }
                               },
                               onDelete: () async {
-                                final currentUserId = context.read<AuthProvider>().user?.id;
+                                final currentUserId =
+                                    context.read<AuthProvider>().user?.id;
                                 if (currentUserId != null) {
-                                  await context.read<ChatProvider>().deleteChatWithUser(currentUserId, user.id!);
+                                  await context
+                                      .read<ChatProvider>()
+                                      .deleteChatWithUser(
+                                          currentUserId, user.id!);
                                   setState(() {
                                     _filterUsers();
                                   });
                                 }
                               },
-
                             ),
                           );
                         },
@@ -131,4 +140,3 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 }
-
