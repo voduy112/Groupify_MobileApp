@@ -117,6 +117,56 @@ const notificationController = {
       res.status(500).send({ success: false, error: error.message });
     }
   },
+
+  sendGroupDocumentNotification: async (req, res) => {
+    const { groupId, adminName, documentTitle } = req.body;
+    if (!groupId || !adminName || !documentTitle) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Thiếu dữ liệu cần thiết" });
+    }
+
+    const group = await Group.findById(groupId).populate("membersID");
+    if (!group) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Không tìm thấy group" });
+    }
+
+    // Lấy FCM token của các thành viên (trừ admin)
+    const memberTokens = group.membersID
+      .filter(
+        (member) =>
+          member.fcmToken && member._id.toString() !== group.ownerId.toString()
+      )
+      .map((member) => member.fcmToken);
+
+    if (memberTokens.length === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Không có thành viên nào nhận được thông báo",
+      });
+    }
+
+    for (const token of memberTokens) {
+      const message = {
+        notification: {
+          title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+          body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+        },
+        token: token,
+      };
+      try {
+        await admin.messaging().send(message);
+      } catch (error) {
+        // handle error nếu cần
+      }
+    }
+    res.status(200).send({
+      success: true,
+      message: "Đã gửi xong thông báo cho các thành viên",
+    });
+  },
 };
 
 module.exports = notificationController;

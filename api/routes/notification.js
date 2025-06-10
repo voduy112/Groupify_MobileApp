@@ -18,4 +18,9 @@ router.post(
   notificationController.sendPersonalChatNotification
 );
 
+router.post(
+  "/send-group-document",
+  notificationController.sendGroupDocumentNotification
+);
+
 module.exports = router;
