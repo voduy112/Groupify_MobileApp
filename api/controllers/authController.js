@@ -60,7 +60,7 @@ const authController = {
         role: user.role,
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "5s" }
     );
   },
   // GENERATE REFRESH TOKEN
@@ -127,6 +127,44 @@ const authController = {
       res.status(200).json({ message: "Logout successful" });
     } catch (error) {
       res.status(500).json({ message: "Error during logout", error });
+    }
+  },
+  refreshToken: async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token required" });
+      }
+      console.log("refreshToken: ", refreshToken);
+
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // So sánh với refresh token đã lưu (nếu có)
+      console.log("storedRefreshToken: ", user.refreshToken);
+      console.log("refreshToken: ", refreshToken);
+      if (user.refreshToken !== refreshToken) {
+        return res.status(403).json({ message: "Invalid refresh token" });
+      }
+
+      const accessToken = authController.generateAccessToken(user);
+      res.status(200).json({ accessToken });
+    } catch (error) {
+      if (
+        error.name === "TokenExpiredError" ||
+        error.name === "JsonWebTokenError"
+      ) {
+        return res
+          .status(401)
+          .json({ message: "Invalid or expired refresh token" });
+      }
+      res.status(500).json({ message: "Error refreshing token" });
     }
   },
   sendOTPEmail: async (req, res) => {
