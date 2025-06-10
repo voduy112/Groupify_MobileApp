@@ -13,4 +13,9 @@ router.post(
   notificationController.sendAcceptJoinNotification
 );
 
+router.post(
+  "/send-personal-chat",
+  notificationController.sendPersonalChatNotification
+);
+
 module.exports = router;
