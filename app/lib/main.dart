@@ -19,6 +19,7 @@ import 'core/themes/theme_app.dart';
 import 'features/document_share/providers/document_share_provider.dart';
 import 'services/api/dio_client.dart';
 import 'features/grouprequest/providers/grouprequest_provider.dart';
+import 'core/widgets/app_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +71,9 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return AppBackground(child: child!);
+      },
     );
   }
 }
