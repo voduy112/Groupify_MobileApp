@@ -6,6 +6,7 @@ import 'group_item.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../routers/app_router.dart';
 import 'create_group_screen.dart';
+import '../../../core/utils/session_expired_handler.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -37,6 +38,7 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (provider.error != null) {
+            handleSessionExpired(context, provider.error);
             return Center(child: Text('Lỗi: ${provider.error}'));
           } else if (provider.groups.isEmpty) {
             return const Center(child: Text('Chưa có nhóm nào.'));
