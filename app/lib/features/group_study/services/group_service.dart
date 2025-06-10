@@ -148,6 +148,61 @@ class GroupService {
     print("Lỗi getGroupMembers: $e");
     rethrow;
   }
+  }
+
+  Future<void> leaveGroup(String groupId, String userId) async {
+  try {
+    final response = await _dio.post(
+      '/api/group/leave',
+      data: {
+        'groupId': groupId,
+        'userId': userId,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("Rời nhóm thành công");
+    } else {
+      throw Exception("Rời nhóm thất bại: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Lỗi leaveGroup: $e");
+    rethrow;
+  }
 }
+
+Future<void> removeMember({
+    required String groupId,
+    required String memberId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/group/remove-member',
+        data: {
+          'groupId': groupId,
+          'memberId': memberId,
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("Xoá thành viên thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi removeMember: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    try {
+      final response = await _dio.delete('/api/group/$groupId');
+      if (response.statusCode != 200) {
+        throw Exception("Xoá nhóm thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi deleteGroup: $e");
+      rethrow;
+    }
+  }
 
 }

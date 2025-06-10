@@ -16,13 +16,13 @@ class HomeScreen extends StatelessWidget {
     final groupProvider = Provider.of<GroupProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: Text('Trang chủ'),
       ),
       body: Column(
         children: [
           MyCarouselView(),
           SizedBox(height: 10),
-          TitleApp(title: 'Documents', context: context),
+          TitleApp(title: 'Tài liệu', context: context),
           ListDocumentItem(),
           Center(
             child: ElevatedButton(
@@ -31,11 +31,11 @@ class HomeScreen extends StatelessWidget {
                 context.go('/home/show-all-document');
               },
               child: Text(
-                'More',
+                'Xem thêm',
               ),
             ),
           ),
-          TitleApp(title: 'Groups', context: context),
+          TitleApp(title: 'Nhóm', context: context),
           SizedBox(height: 10),
           ListGroupItem(
             groups: groupProvider.groups.take(5).toList(),
@@ -48,7 +48,7 @@ class HomeScreen extends StatelessWidget {
                 context.go('/home/show-all-group');
               },
               child: Text(
-                'More',
+                'Xem thêm',
               ),
             ),
           ),

@@ -18,7 +18,6 @@ class QuizProvider extends ChangeNotifier {
 
   Map<String, dynamic>? _result;
   bool _isSubmitting = false;
-  
 
   Map<String, dynamic>? get result => _result;
   bool get isSubmitting => _isSubmitting;
@@ -29,6 +28,8 @@ class QuizProvider extends ChangeNotifier {
   List<ResultQuiz> get userResults => _userResults;
   bool get isFetchingResults => _isFetchingResults;
 
+  int _count = 0;
+  int get count => _count;
 
   Future<void> fetchQuizzesByGroupId(String groupId) async {
     _isLoading = true;
@@ -45,7 +46,25 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
-   Future<void> submitQuiz(String quizId, String userId, List<Map<String, dynamic>> answers) async {
+  Future<void> fetchCountByGroupId(String groupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      List<Quiz> quizzes = await _quizService.getAllQuizzesByGroupId(groupId);
+      _count = quizzes.length;
+    } catch (e) {
+      _error = 'Lỗi khi lấy số lượng bộ câu hỏi: $e';
+      _count = 0;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> submitQuiz(
+      String quizId, String userId, List<Map<String, dynamic>> answers) async {
     _isSubmitting = true;
     _error = null;
     notifyListeners();

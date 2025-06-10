@@ -279,6 +279,32 @@ const groupController = {
       res.status(500).json({ error: "Lỗi khi thêm người dùng vào nhóm" });
     }
   },
+
+  removeMember: async (req, res) => {
+    try {
+      const { groupId, memberId } = req.body;
+  
+      const group = await Group.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ error: "Không tìm thấy nhóm" });
+      }
+  
+      // Kiểm tra member có trong nhóm không
+      if (!group.membersID.includes(memberId)) {
+        return res.status(400).json({ error: "Thành viên không tồn tại trong nhóm" });
+      }
+  
+      // Xoá thành viên
+      group.membersID.pull(memberId);
+      await group.save();
+  
+      res.status(200).json({ message: "Xoá thành viên thành công" });
+    } catch (error) {
+      console.error("Lỗi khi xoá thành viên:", error);
+      res.status(500).json({ error: "Lỗi khi xoá thành viên" });
+    }
+  },
+  
 };
 
 module.exports = groupController;
