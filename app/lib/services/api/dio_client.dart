@@ -10,7 +10,6 @@ class DioClient {
     receiveTimeout: const Duration(seconds: 10),
   ));
 
-
   static final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
 
