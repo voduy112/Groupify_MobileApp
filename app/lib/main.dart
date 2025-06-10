@@ -10,6 +10,7 @@ import 'features/authentication/providers/auth_provider.dart';
 import 'features/chat_group/providers/chatgroup_provider.dart';
 import 'features/chat_group/services/chatgroup_service.dart';
 import 'services/notification/firebase_messaging_service.dart';
+import 'services/notification/messaging_provider.dart';
 import 'routers/app_router.dart';
 import 'features/authentication/providers/user_provider.dart';
 import 'features/group_study/providers/group_provider.dart';
@@ -51,6 +52,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => DocumentProvider()),
           ChangeNotifierProvider(create: (_) => QuizProvider()),
           ChangeNotifierProvider(create: (_) => GroupRequestProvider()),
+          ChangeNotifierProvider(create: (_) => MessagingProvider()),
         ],
         child: const MyApp(),
       ),
