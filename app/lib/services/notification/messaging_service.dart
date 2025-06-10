@@ -20,4 +20,17 @@ class MessagingService {
       "groupId": groupId,
     });
   }
+
+  static Future<void> sendPersonalChatNotification(
+      String receiverId, String senderName, String message) async {
+    print("receiverId service: $receiverId");
+    print("senderName service: $senderName");
+    print("message service: $message");
+    await DioClient.instance
+        .post("/api/notification/send-personal-chat", data: {
+      "receiverId": receiverId,
+      "senderName": senderName,
+      "message": message,
+    });
+  }
 }

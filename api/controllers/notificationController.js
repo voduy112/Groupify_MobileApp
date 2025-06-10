@@ -88,6 +88,35 @@ const notificationController = {
       res.status(500).send({ success: false, error: error.message });
     }
   },
+
+  sendPersonalChatNotification: async (req, res) => {
+    const { receiverId, senderName, message } = req.body;
+    if (!receiverId || !senderName || !message) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Thiếu dữ liệu cần thiết" });
+    }
+    const user = await User.findById(receiverId);
+    if (!user || !user.fcmToken) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Không tìm thấy user hoặc fcmToken" });
+    }
+    const fcmToken = user.fcmToken;
+    const payload = {
+      notification: {
+        title: `Tin nhắn mới từ ${senderName}`,
+        body: message,
+      },
+      token: fcmToken,
+    };
+    try {
+      const response = await admin.messaging().send(payload);
+      res.status(200).send({ success: true, response });
+    } catch (error) {
+      res.status(500).send({ success: false, error: error.message });
+    }
+  },
 };
 
 module.exports = notificationController;
