@@ -39,4 +39,10 @@ class MessagingProvider extends ChangeNotifier {
     await MessagingService.sendPersonalChatNotification(
         receiverId, senderName, message);
   }
+
+  Future<void> sendGroupDocumentNotification(
+      String adminName, String groupId, String documentTitle) async {
+    await MessagingService.sendGroupDocumentNotification(
+        adminName, groupId, documentTitle);
+  }
 }
