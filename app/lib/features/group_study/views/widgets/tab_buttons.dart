@@ -17,7 +17,7 @@ class TabButtons extends StatelessWidget {
       child: Row(
         children: [
           _buildTabButton(Icons.upload_file, 'Tài liệu', 'documents'),
-          _buildTabButton(Icons.chat_bubble_outline, 'Chat nhóm', 'chat'),
+          _buildTabButton(Icons.chat_bubble_outline, 'Trò chuyện', 'chat'),
           _buildTabButton(Icons.quiz_outlined, 'Bộ câu hỏi', 'quiz'),
         ],
       ),
@@ -28,7 +28,13 @@ class TabButtons extends StatelessWidget {
     final isSelected = selectedTab == key;
     return Expanded(
       child: ElevatedButton.icon(
-        icon: Icon(icon, size: 20),
+        icon: Icon(
+          icon,
+          size: 20,
+          color: isSelected
+              ? Colors.white
+              : const Color.fromARGB(204, 22, 94, 166),
+        ),
         label: Text(label),
         onPressed: () => onTabSelected(key),
         style: ElevatedButton.styleFrom(
