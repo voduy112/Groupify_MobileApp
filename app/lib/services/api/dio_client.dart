@@ -5,7 +5,7 @@ class DioClient {
 
   static void createInterceptors() {
     _dio = Dio(BaseOptions(
-      baseUrl: 'http://192.168.137.172:5000',
+      baseUrl: 'http://192.168.1.227:5000',
 
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),

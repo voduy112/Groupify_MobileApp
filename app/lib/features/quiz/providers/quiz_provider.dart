@@ -31,6 +31,36 @@ class QuizProvider extends ChangeNotifier {
   int _count = 0;
   int get count => _count;
 
+  bool _isCreating = false;
+  bool get isCreating => _isCreating;
+
+  Future<void> createQuiz({
+    required String title,
+    required String description,
+    required String groupId,
+    required List<Map<String, dynamic>> questions,
+  }) async {
+    _isCreating = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      Quiz newQuiz = await _quizService.createQuiz(
+        title: title,
+        description: description,
+        groupId: groupId,
+        questions: questions,
+      );
+
+      _quizzes.add(newQuiz);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isCreating = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchQuizzesByGroupId(String groupId) async {
     _isLoading = true;
     _error = null;
@@ -132,5 +162,61 @@ class QuizProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  bool _isUpdatingQuiz = false;
+  bool get isUpdatingQuiz => _isUpdatingQuiz;
+
+  bool _isUpdatingQuestions = false;
+  bool get isUpdatingQuestions => _isUpdatingQuestions;
+
+  Future<void> updateQuiz({
+    required String quizId,
+    String? title,
+    String? description,
+    String? groupId,
+  }) async {
+    _isUpdatingQuiz = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _quizService.updateQuiz(
+        quizId: quizId,
+        title: title,
+        description: description,
+        groupId: groupId,
+      );
+
+      await fetchQuizById(quizId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isUpdatingQuiz = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateQuestions({
+    required String quizId,
+    required List<Map<String, dynamic>> updates,
+  }) async {
+    _isUpdatingQuestions = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _quizService.updateQuestions(
+        quizId: quizId,
+        updates: updates,
+      );
+
+      await fetchQuizById(quizId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isUpdatingQuestions = false;
+      notifyListeners();
+    }
   }
 }

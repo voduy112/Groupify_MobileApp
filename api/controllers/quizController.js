@@ -49,7 +49,7 @@ const quizController = {
             }
             if(title !== undefined) quiz.title = title;
             if(description !== undefined) quiz.description = description;
-            if(groupId !== undefined) quiz.groupId = groupId;
+            if(groupId) quiz.groupId = groupId;
 
             await quiz.save();
             return res.status(200).json({message: "Cập nhật thông tin thành công"});
