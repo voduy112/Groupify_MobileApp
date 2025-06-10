@@ -13,7 +13,6 @@ class GroupDrawer extends StatelessWidget {
   final Group group;
   final String currentUserId;
 
-
   const GroupDrawer({
     Key? key,
     required this.groupId,
@@ -62,17 +61,11 @@ class GroupDrawer extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) =>
-                          GroupContentDetail(groupId: groupId ),
+                          GroupContentDetail(groupId: groupId),
                     ),
                   );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Rời nhóm'),
-                onTap: onLeaveGroup,
-              ),
-
               if (!isAdmin)
                 ListTile(
                   leading: const Icon(Icons.logout),
@@ -85,7 +78,6 @@ class GroupDrawer extends StatelessWidget {
                   title: const Text('Xóa nhóm'),
                   onTap: onDeleteGroup,
                 ),
-
             ],
           ),
         ),

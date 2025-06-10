@@ -94,5 +94,75 @@ class QuizService {
     rethrow;
   }
 }
+  // trong QuizService
 
+  Future<Quiz> createQuiz({
+    required String title,
+    required String description,
+    required String groupId,
+    required List<Map<String, dynamic>> questions,
+  }) async {
+    try {
+      final dataToSend = {
+        'title': title,
+        'description': description,
+        'groupId': groupId,
+        'questions': questions,
+      };
+
+      final response = await _dio.post('/api/quiz/', data: dataToSend);
+
+      if (response.statusCode == 201) {
+        return Quiz.fromJson(response.data['quiz']);
+      } else {
+        throw Exception('Lỗi khi tạo quiz: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi createQuiz: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateQuiz({
+    required String quizId,
+    String? title,
+    String? description,
+    String? groupId,
+  }) async {
+    try {
+      final dataToSend = {
+        'title': title,
+        'description': description,
+        'groupId': groupId,
+      };
+
+      final response = await _dio.patch('/api/quiz/$quizId', data: dataToSend);
+
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi khi cập nhật quiz: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi updateQuiz: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateQuestions({
+    required String quizId,
+    required List<Map<String, dynamic>> updates,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        '/api/quiz/$quizId/question',
+        data: {'updates': updates},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi khi cập nhật câu hỏi: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi updateQuestions: $e');
+      rethrow;
+    }
+  }
 }

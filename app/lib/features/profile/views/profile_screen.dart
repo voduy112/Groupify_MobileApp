@@ -42,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF4FB),
       appBar: AppBar(
         elevation: 0,
         title: const Text('Trang cá nhân'),
@@ -162,9 +161,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 40,),
-            TitleApp(title: 'Tài liệu đã đăng', context: context),
-            const Divider(),
+            const SizedBox(
+              height: 40,
+            ),
+            TitleApp(
+                title: 'Tài liệu của ' '${user.username}', context: context),
+            const Divider(
+              endIndent: 16,
+              indent: 16,
+            ),
             ListDocumentItem(
               documents: documentShareProvider.userDocuments[user.id!] ?? [],
               userId: user.id!,

@@ -13,4 +13,14 @@ router.post(
   notificationController.sendAcceptJoinNotification
 );
 
+router.post(
+  "/send-personal-chat",
+  notificationController.sendPersonalChatNotification
+);
+
+router.post(
+  "/send-group-document",
+  notificationController.sendGroupDocumentNotification
+);
+
 module.exports = router;

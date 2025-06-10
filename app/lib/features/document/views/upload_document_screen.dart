@@ -8,6 +8,7 @@ import '../providers/document_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../group_study/providers/group_provider.dart';
 import '../../../core/utils/validate.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
   final String groupId;
@@ -85,6 +86,11 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         _showDialog("Thành công", "Tải tài liệu thành công", onClose: () {
           context.pop(true);
         });
+        // send notification to all members
+        MessagingProvider messagingProvider =
+            Provider.of<MessagingProvider>(context, listen: false);
+        messagingProvider.sendGroupDocumentNotification(
+            user?.username ?? "", widget.groupId, title ?? "");
       } else {
         _showDialog("Thất bại", "Tải tài liệu thất bại");
       }

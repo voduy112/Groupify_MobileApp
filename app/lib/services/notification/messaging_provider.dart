@@ -30,4 +30,19 @@ class MessagingProvider extends ChangeNotifier {
     }
     await MessagingService.sendAcceptJoinNotification(userId, groupId);
   }
+
+  Future<void> sendPersonalChatNotification(
+      String receiverId, String senderName, String message) async {
+    print("receiverId provider: $receiverId");
+    print("senderName provider: $senderName");
+    print("message provider: $message");
+    await MessagingService.sendPersonalChatNotification(
+        receiverId, senderName, message);
+  }
+
+  Future<void> sendGroupDocumentNotification(
+      String adminName, String groupId, String documentTitle) async {
+    await MessagingService.sendGroupDocumentNotification(
+        adminName, groupId, documentTitle);
+  }
 }
