@@ -8,6 +8,7 @@ import '../../authentication/providers/auth_provider.dart';
 import '../../profile/views/profile_screen.dart';
 import '../providers/chat_provider.dart';
 import '../widget/error_banner.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
@@ -42,7 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.219:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.212:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -104,11 +105,12 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     try {
+      // Gửi message qua socket
       socket.emit('privateMessage', {
         'fromUserId': widget.currentUserId,
         'toUserId': widget.otherUser.id,
@@ -121,6 +123,24 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _errorMsg = 'Không gửi được tin nhắn. Vui lòng thử lại.';
       });
+      return; // Dừng lại nếu gửi message socket lỗi
+    }
+
+    // Gửi notification, lỗi thì chỉ log, không ảnh hưởng UI
+    try {
+      final senderName =
+          context.read<AuthProvider>().user?.username ?? 'Người dùng';
+      print("senderName: $senderName");
+      print("receiverId: ${widget.otherUser.id}");
+      print("message: $text");
+      await context.read<MessagingProvider>().sendPersonalChatNotification(
+            widget.otherUser.id!,
+            senderName,
+            text,
+          );
+    } catch (e) {
+      print('Lỗi gửi notification: $e');
+      // Có thể show SnackBar nhẹ nếu muốn, nhưng không ảnh hưởng tới UI chat
     }
   }
 
