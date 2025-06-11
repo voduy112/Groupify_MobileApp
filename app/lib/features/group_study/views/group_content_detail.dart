@@ -99,7 +99,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
     final quizCount = context.watch<QuizProvider>().count;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_group!.name!)),
+      appBar: AppBar(title: Text('Nhóm ' '${_group!.name!}')),
       body: Column(
         children: [
           Expanded(
@@ -121,37 +121,38 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                       ),
                     ),
                   const SizedBox(height: 16),
-
-                  // Tên nhóm căn giữa + font lớn
-                  Center(
-                    child: Text(
-                      _group!.name!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
                   // Mô tả
-                  Text(
-                    _group!.description ?? "Không có mô tả",
-                    style: const TextStyle(fontSize: 18),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.description_outlined,
+                        color: Colors.blueAccent,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Mô tả: ${_group!.description ?? ''}",
+                          style: const TextStyle(fontSize: 24),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                        ),
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   // Chủ nhóm
                   Row(
                     children: [
-                      const Icon(Icons.person),
+                      const Icon(
+                        Icons.person,
+                        color: Colors.redAccent,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         "Chủ nhóm: $ownerName",
-                        style: const TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 24),
                       ),
                     ],
                   ),
@@ -161,11 +162,14 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                   // Thành viên
                   Row(
                     children: [
-                      const Icon(Icons.group),
+                      const Icon(
+                        Icons.group,
+                        color: Colors.deepOrange,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         "Thành viên: ${1 + (_group!.membersID?.length ?? 0)}",
-                        style: const TextStyle(fontSize: 18),
+                        style: const TextStyle(fontSize: 24),
                       ),
                     ],
                   ),
@@ -175,11 +179,14 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                   // Số tài liệu
                   Row(
                     children: [
-                      const Icon(Icons.description),
+                      const Icon(
+                        Icons.description,
+                        color: Colors.green,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         "Số tài liệu: $docCount",
-                        style: const TextStyle(fontSize: 18),
+                        style: const TextStyle(fontSize: 24),
                       ),
                     ],
                   ),
@@ -189,11 +196,14 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                   // Số bộ câu hỏi
                   Row(
                     children: [
-                      const Icon(Icons.quiz),
+                      const Icon(
+                        Icons.quiz,
+                        color: Colors.lime,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         "Số bộ câu hỏi: $quizCount",
-                        style: const TextStyle(fontSize: 18),
+                        style: const TextStyle(fontSize: 24),
                       ),
                     ],
                   ),
@@ -203,11 +213,14 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                   // Ngày tạo
                   Row(
                     children: [
-                      const Icon(Icons.date_range),
+                      const Icon(
+                        Icons.date_range,
+                        color: Colors.cyan,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         "Ngày tạo: ${formatDate(_group!.createDate)}",
-                        style: const TextStyle(fontSize: 18),
+                        style: const TextStyle(fontSize: 24),
                       ),
                     ],
                   ),

@@ -86,54 +86,58 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ),
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: _filteredUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = _filteredUsers[index];
-                          final lastMessages =
-                              chatProvider.lastMsgs[user.id] ?? '';
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 6, horizontal: 12),
-                            child: ChatUserCard(
-                              user: user,
-                              lastMsg: lastMessages,
-                              onTap: () {
-                                final currentUser = Provider.of<AuthProvider>(
-                                        context,
-                                        listen: false)
-                                    .user;
-                                if (currentUser != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ChatScreen(
-                                        currentUserId: currentUser.id!,
-                                        otherUser: user,
-                                      ),
-                                    ),
-                                  ).then((_) {
-                                    _loadChatList();
-                                  });
-                                }
-                              },
-                              onDelete: () async {
-                                final currentUserId =
-                                    context.read<AuthProvider>().user?.id;
-                                if (currentUserId != null) {
-                                  await context
-                                      .read<ChatProvider>()
-                                      .deleteChatWithUser(
-                                          currentUserId, user.id!);
-                                  setState(() {
-                                    _filterUsers();
-                                  });
-                                }
+                      child: _filteredUsers.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Không tìm thấy người dùng!',
+                                style:
+                                    TextStyle(fontSize: 24, color: Colors.grey),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: _filteredUsers.length,
+                              itemBuilder: (context, index) {
+                                final user = _filteredUsers[index];
+                                final lastMessages =
+                                    chatProvider.lastMsgs[user.id] ?? '';
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 6, horizontal: 12),
+                                  child: ChatUserCard(
+                                    user: user,
+                                    lastMsg: lastMessages,
+                                    onTap: () {
+                                      final currentUser =
+                                          context.read<AuthProvider>().user;
+                                      if (currentUser != null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ChatScreen(
+                                              currentUserId: currentUser.id!,
+                                              otherUser: user,
+                                            ),
+                                          ),
+                                        ).then((_) => _loadChatList());
+                                      }
+                                    },
+                                    onDelete: () async {
+                                      final currentUserId =
+                                          context.read<AuthProvider>().user?.id;
+                                      if (currentUserId != null) {
+                                        await context
+                                            .read<ChatProvider>()
+                                            .deleteChatWithUser(
+                                                currentUserId, user.id!);
+                                        setState(() {
+                                          _filterUsers();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                );
                               },
                             ),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ),
