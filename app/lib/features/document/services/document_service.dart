@@ -166,4 +166,18 @@ class DocumentService {
       rethrow;
     }
   }
+
+  Future<void> deleteDocumentsInGroup(String groupId) async {
+    try {
+      final response = await _dio.delete('/api/document/group/$groupId');
+
+      if (response.statusCode != 200) {
+        throw Exception("Xóa tài liệu thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi deleteDocumentsInGroup: $e");
+      rethrow;
+    }
+  }
+
 }

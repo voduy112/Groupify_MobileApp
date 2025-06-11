@@ -163,7 +163,7 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   }
 
   Future<void> _deleteGroup() async {
-    Navigator.pop(context); // Đóng Drawer
+    Navigator.pop(context);
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -185,31 +185,36 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
 
     if (confirm != true || _group == null) return;
 
-    setState(() => _isLoading = true);
+    final groupId = _group!.id!;
+    final documentProvider =
+        Provider.of<DocumentProvider>(context, listen: false);
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    final quizProvider = Provider.of<QuizProvider>(context, listen: false);
 
     try {
-      final success = await Provider.of<GroupProvider>(context, listen: false)
-          .deleteGroup(_group!.id!);
+      // Xóa tất cả tài liệu thuộc group
+      await documentProvider.deleteDocumentsByGroupId(groupId);
+      // Xóa câu hỏi trong group
+      await quizProvider.deleteQuizzesByGroupId(groupId);
 
-      if (!mounted) return;
+      // Xóa group
+      final success = await groupProvider.deleteGroup(groupId);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bạn đã xóa nhóm thành công')),
+          const SnackBar(content: Text('Đã xoá nhóm thành công')),
         );
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xóa nhóm thất bại')),
+          const SnackBar(content: Text('Xoá nhóm thất bại')),
         );
       }
     } catch (e) {
-      if (!mounted) return;
+      debugPrint('Lỗi khi xoá nhóm và tài nguyên: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi xoá nhóm: $e')),
+        const SnackBar(content: Text('Đã xảy ra lỗi khi xoá nhóm')),
       );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 

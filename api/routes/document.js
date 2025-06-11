@@ -5,6 +5,7 @@ const { upload, uploadImageAndFile } = require("../config/Multer.js");
 
 router.get("/:id", documentController.getDocumentById);
 router.get("/group/:id", documentController.getDocumentsByGroupId);
+router.delete("/group/:id", documentController.deleteDocumentsByGroupId);
 router.get("/user/:id", documentController.getDocumentsByUserId);
 router.put("/:id", uploadImageAndFile, documentController.updateDocument);
 

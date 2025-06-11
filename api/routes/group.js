@@ -17,10 +17,9 @@ router.get(
 );
 
 router.put("/:id", upload.single("image"), groupController.updateGroup);
-router.put("/:id", upload.single("image"), groupController.updateGroup);
 router.post("/leave", groupController.leaveGroup);
 router.post("/remove-member", groupController.removeMember);
-router.get("/members/:id", groupController.getGroupMembers); //id la id cua group
+router.get("/members/:id", groupController.getGroupMembers); 
 router.get("/user/:id", groupController.getAllGroupByUserId);
 router.post("/adduser", groupController.addUserIntoGroup);
 

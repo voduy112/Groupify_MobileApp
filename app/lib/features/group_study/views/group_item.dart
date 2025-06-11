@@ -20,6 +20,7 @@ class GroupItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Row(
