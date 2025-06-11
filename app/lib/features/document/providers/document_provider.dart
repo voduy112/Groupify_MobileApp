@@ -128,4 +128,27 @@ class DocumentProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  Future<bool> deleteDocumentsByGroupId(String groupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _documentService.deleteDocumentsInGroup(groupId);
+
+      _documents.removeWhere((doc) => doc.groupId == groupId);
+      _count = 0;
+
+      return true;
+    } catch (e) {
+      _error = 'Lỗi khi xóa tài liệu theo nhóm: $e';
+      print("Lỗi từ DocumentProvider - deleteDocumentsByGroupId: $_error");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
 }

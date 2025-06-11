@@ -226,6 +226,27 @@ const quizController = {
                     }
         },
     
+        deleteQuizzesByGroupId: async (req, res) => {
+            const { groupId } = req.params;
+        
+            if (!groupId) {
+                return res.status(400).json({ error: "Thiếu groupId" });
+            }
+        
+            try {
+                const result = await Quiz.deleteMany({ groupId });
+        
+                return res.status(200).json({
+                    message: "Đã xoá tất cả quiz thuộc group thành công",
+                    deletedCount: result.deletedCount
+                });
+            } catch (error) {
+                console.error("Lỗi khi xoá quiz theo groupId:", error);
+                return res.status(500).json({ error: "Không thể xoá quiz theo groupId" });
+            }
+        },
+        
+    
     
 }
 
