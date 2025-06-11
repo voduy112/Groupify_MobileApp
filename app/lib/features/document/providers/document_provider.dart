@@ -150,5 +150,39 @@ class DocumentProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<bool> deleteDocumentById(String documentId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
+    try {
+      await _documentService.deleteDocument(documentId);
+
+      _documents.removeWhere((doc) => doc.id == documentId);
+
+      return true;
+    } catch (e) {
+      _error = 'Lỗi khi xóa tài liệu: $e';
+      print("Lỗi từ DocumentProvider - deleteDocumentById: $_error");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<void> updateDocument(String documentId, String title,
+      String description, dynamic image, dynamic mainFile,
+      {String? groupId}) async {
+    await _documentService.updateDocument(
+      documentId,
+      title,
+      description,
+      image,
+      mainFile,
+    );
+    if (groupId != null) {
+      await fetchDocumentsByGroupId(groupId);
+    }
+    notifyListeners();
+  }
 }

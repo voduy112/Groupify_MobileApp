@@ -179,5 +179,46 @@ class DocumentService {
       rethrow;
     }
   }
+  Future<void> deleteDocument(String documentId) async {
+    try {
+      final response = await _dio.delete('/api/document/$documentId');
 
+      if (response.statusCode != 200) {
+        throw Exception("Xóa tài liệu thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi deleteDocument: $e");
+      rethrow;
+    }
+  }
+  Future<void> updateDocument(
+    String documentId,
+    String title,
+    String description,
+    dynamic image, // PlatformFile hoặc String
+    dynamic mainFile, // PlatformFile hoặc String
+  ) async {
+    print("updateDocument");
+    print("image: $image");
+    print("mainFile: $mainFile");
+    print("documentId: $documentId");
+    print("title: $title");
+    print("description: $description");
+    final Map<String, dynamic> data = {
+      'title': title,
+      'description': description,
+    };
+
+    if (image != null && image is PlatformFile && image.path != null) {
+      data['image'] =
+          await MultipartFile.fromFile(image.path!, filename: image.name);
+    }
+    if (mainFile != null && mainFile is PlatformFile && mainFile.path != null) {
+      data['mainFile'] = await MultipartFile.fromFile(
+        mainFile.path!,
+        filename: mainFile.name,
+        contentType: MediaType('application', 'pdf'),
+      );
+    }
+  }
 }

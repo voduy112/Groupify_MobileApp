@@ -9,12 +9,21 @@ import 'package:permission_handler/permission_handler.dart';
 class DocumentItem extends StatelessWidget {
   final Document document;
   final VoidCallback? onTap;
+  final String currentUserId;
+  final String groupOwnerId;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const DocumentItem({
     super.key,
     required this.document,
     this.onTap,
+    required this.currentUserId,
+    required this.groupOwnerId,
+    this.onEdit,
+    this.onDelete,
   });
+  bool get isOwner => currentUserId == groupOwnerId;
 
   Future<bool> requestStoragePermission() async {
     final statuses = await [
@@ -77,8 +86,15 @@ class DocumentItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
+        color: Colors.white,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Colors.blue[200]!,
+            width: 1.5,
+          ),
+        ),
         elevation: 2,
         child: Padding(
           padding: const EdgeInsets.all(10),
@@ -114,9 +130,7 @@ class DocumentItem extends StatelessWidget {
                           Text(
                             document.title ?? 'Tên tài liệu',
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                fontSize: 16, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -127,21 +141,31 @@ class DocumentItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
-                          // const SizedBox(height: 4),
-                          // Text(
-                          //   document.uploaderId ?? '',
-                          //   overflow: TextOverflow.ellipsis,
-                          //   maxLines: 2,
-                          // ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.download_rounded, color: Colors.blue),
-                onPressed: () => _downloadPdf(context),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon:
+                        const Icon(Icons.download_rounded, color: Colors.blue),
+                    onPressed: () => _downloadPdf(context),
+                  ),
+                  if (isOwner) ...[
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.orange),
+                      onPressed: onEdit,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: onDelete,
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
