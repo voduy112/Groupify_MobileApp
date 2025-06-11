@@ -180,5 +180,16 @@ class QuizService {
       rethrow;
     }
   }
-  
+  Future<void> deleteQuizById(String quizId) async {
+    try {
+      final response = await _dio.delete('/api/quiz/$quizId');
+
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi khi xoá quiz: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Lỗi deleteQuizById: $e");
+      rethrow;
+    }
+  }
 }
