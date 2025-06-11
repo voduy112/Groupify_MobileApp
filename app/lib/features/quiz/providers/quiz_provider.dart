@@ -219,4 +219,25 @@ class QuizProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  bool _isDeletingGroupQuizzes = false;
+  bool get isDeletingGroupQuizzes => _isDeletingGroupQuizzes;
+
+  Future<void> deleteQuizzesByGroupId(String groupId) async {
+    _isDeletingGroupQuizzes = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      int deleted = await _quizService.deleteQuizzesByGroupId(groupId);
+      _quizzes.removeWhere((quiz) => quiz.groupId == groupId);
+      print("Đã xoá $deleted quizzes của groupId: $groupId");
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isDeletingGroupQuizzes = false;
+      notifyListeners();
+    }
+  }
+
 }

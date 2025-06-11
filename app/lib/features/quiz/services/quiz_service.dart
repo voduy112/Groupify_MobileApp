@@ -165,4 +165,20 @@ class QuizService {
       rethrow;
     }
   }
+  Future<int> deleteQuizzesByGroupId(String groupId) async {
+    try {
+      final response = await _dio.delete('/api/quiz/group/$groupId');
+
+      if (response.statusCode == 200) {
+        return response.data['deletedCount'] ?? 0;
+      } else {
+        throw Exception(
+            'Lỗi khi xoá quiz theo groupId: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Lỗi deleteQuizzesByGroupId: $e");
+      rethrow;
+    }
+  }
+  
 }

@@ -60,18 +60,19 @@ class GroupDrawer extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          GroupContentDetail(groupId: groupId),
+                      builder: (context) => GroupContentDetail(
+                        groupId: groupId,
+                        currentUserId: currentUserId,
+                      ),
                     ),
                   );
                 },
               ),
-              if (!isAdmin)
-                ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: const Text('Rời nhóm'),
-                  onTap: onLeaveGroup,
-                ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Rời nhóm'),
+                onTap: onLeaveGroup,
+              ),
               if (isAdmin)
                 ListTile(
                   leading: const Icon(Icons.delete_outline),

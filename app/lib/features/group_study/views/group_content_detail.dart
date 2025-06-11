@@ -1,15 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../models/group.dart';
 import '../services/group_service.dart';
-import 'package:intl/intl.dart';
 import '../../../features/document/providers/document_provider.dart';
 import '../../../features/quiz/providers/quiz_provider.dart';
+import '../providers/group_provider.dart';
+import 'package:intl/intl.dart';
 
 class GroupContentDetail extends StatefulWidget {
   final String groupId;
+  final String currentUserId;
 
-  const GroupContentDetail({Key? key, required this.groupId}) : super(key: key);
+  const GroupContentDetail({
+    Key? key,
+    required this.groupId,
+    required this.currentUserId,
+  }) : super(key: key);
 
   @override
   State<GroupContentDetail> createState() => _GroupContentDetailState();
@@ -70,6 +78,193 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  Future<File?> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      return File(pickedFile.path);
+    }
+    return null;
+  }
+
+  void _showEditDialog() {
+    final nameController = TextEditingController(text: _group!.name);
+    final descriptionController =
+        TextEditingController(text: _group!.description);
+    final subjectController = TextEditingController(text: _group!.subject);
+
+    File? selectedImageFile;
+
+    bool isSaving = false; // Đưa ra ngoài builder
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            Future<void> saveGroup() async {
+              setStateDialog(() {
+                isSaving = true;
+              });
+
+              final groupProvider =
+                  Provider.of<GroupProvider>(context, listen: false);
+              final success = await groupProvider.updateGroup(
+                groupId: widget.groupId,
+                name: nameController.text,
+                description: descriptionController.text,
+                subject: subjectController.text,
+                membersID: _group?.membersID ?? [],
+                imageFile: selectedImageFile,
+              );
+
+              setStateDialog(() {
+                isSaving = false;
+              });
+
+              if (success) {
+                Navigator.pop(context);
+                _loadData();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Cập nhật nhóm thành công')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Cập nhật nhóm thất bại')),
+                );
+              }
+            }
+
+            return AlertDialog(
+              backgroundColor: Colors.lightBlue[50],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Center(
+                child: Text(
+                  'Chỉnh sửa nhóm',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+              ),
+              content: Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            File? image = await pickImage();
+                            if (image != null) {
+                              setStateDialog(() {
+                                selectedImageFile = image;
+                              });
+                            }
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 55,
+                                backgroundImage: selectedImageFile != null
+                                    ? FileImage(selectedImageFile!)
+                                    : (_group!.imgGroup != null
+                                        ? NetworkImage(_group!.imgGroup!)
+                                            as ImageProvider
+                                        : const AssetImage(
+                                            'assets/default_group.png')),
+                              ),
+                              Container(
+                                width: 110,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                  color: Colors.black26,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên nhóm',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: subjectController,
+                          decoration: const InputDecoration(
+                            labelText: 'Môn học',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: descriptionController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Mô tả',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSaving)
+                    Positioned.fill(
+                      child: Container(
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.blueAccent),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              actionsPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(context),
+                  child: const Text(
+                    'Hủy',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: isSaving ? null : saveGroup,
+                  child: const Text('Lưu'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -90,16 +285,27 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
       );
     }
 
-    String ownerName = 'Không rõ người dùng';
-    if (_group?.ownerId != null && _group!.ownerId is Map<String, dynamic>) {
-      ownerName = _group!.ownerId['username'] ?? 'Không rõ người dùng';
-    }
+    String ownerId =
+        _group?.ownerId is String ? _group!.ownerId : _group!.ownerId['_id'];
+
+    String ownerName = _group?.ownerId is Map<String, dynamic>
+        ? (_group!.ownerId['username'] ?? 'Không rõ người dùng')
+        : 'Không rõ người dùng';
 
     final docCount = context.watch<DocumentProvider>().count;
     final quizCount = context.watch<QuizProvider>().count;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Nhóm ' '${_group!.name!}')),
+      appBar: AppBar(
+        title: Text('Nhóm ' '${_group!.name!}'),
+        actions: [
+          if (ownerId == widget.currentUserId)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _showEditDialog,
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -156,10 +362,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Thành viên
                   Row(
                     children: [
                       const Icon(
@@ -173,10 +376,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Số tài liệu
                   Row(
                     children: [
                       const Icon(
@@ -190,10 +390,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Số bộ câu hỏi
                   Row(
                     children: [
                       const Icon(
@@ -207,10 +404,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Ngày tạo
                   Row(
                     children: [
                       const Icon(

@@ -205,4 +205,41 @@ Future<void> removeMember({
     }
   }
 
+  Future<Group> updateGroup({
+    required String groupId,
+    required String name,
+    required String description,
+    required String subject,
+    List<String>? membersID,
+    File? imageFile,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'name': name,
+        'description': description,
+        'subject': subject,
+        if (membersID != null)
+          for (int i = 0; i < membersID.length; i++)
+            'membersID[$i]': membersID[i],
+        if (imageFile != null)
+          'image': await MultipartFile.fromFile(
+            imageFile.path,
+            filename: 'group_img.jpg',
+          ),
+      });
+
+      final response = await _dio.put('/api/group/$groupId', data: formData);
+
+      if (response.statusCode == 200) {
+        return Group.fromJson(response.data);
+      } else {
+        throw Exception("Cập nhật nhóm thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi updateGroup: $e");
+      rethrow;
+    }
+  }
+
+
 }

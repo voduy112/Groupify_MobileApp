@@ -199,4 +199,48 @@ Future<void> fetchGroupMembers(String groupId) async {
     }
   }
 
+  Future<bool> updateGroup({
+    required String groupId,
+    required String name,
+    required String description,
+    required String subject,
+    List<String>? membersID,
+    File? imageFile,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedGroup = await _groupService.updateGroup(
+        groupId: groupId,
+        name: name,
+        description: description,
+        subject: subject,
+        membersID: membersID,
+        imageFile: imageFile,
+      );
+
+      final index = _groups.indexWhere((g) => g.id == groupId);
+      if (index != -1) {
+        _groups[index] = updatedGroup;
+      }
+
+      if (_selectedGroup?.id == groupId) {
+        _selectedGroup = updatedGroup;
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
 }
