@@ -8,6 +8,7 @@ import '../../../features/document/providers/document_provider.dart';
 import '../../../features/quiz/providers/quiz_provider.dart';
 import '../providers/group_provider.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 
 class GroupContentDetail extends StatefulWidget {
   final String groupId;
@@ -89,21 +90,25 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
   }
 
   void _showEditDialog() {
-    final nameController = TextEditingController(text: _group!.name);
-    final descriptionController =
-        TextEditingController(text: _group!.description);
-    final subjectController = TextEditingController(text: _group!.subject);
+    final formKey = GlobalKey<FormState>();
+    final name = _group!.name ?? '';
+    final description = _group!.description ?? '';
+    final subject = _group!.subject ?? '';
 
     File? selectedImageFile;
-
-    bool isSaving = false; // Đưa ra ngoài builder
+    bool isSaving = false;
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
+            String? nameVal, descriptionVal, subjectVal;
+
             Future<void> saveGroup() async {
+              if (!formKey.currentState!.validate()) return;
+              formKey.currentState!.save();
+
               setStateDialog(() {
                 isSaving = true;
               });
@@ -112,9 +117,9 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                   Provider.of<GroupProvider>(context, listen: false);
               final success = await groupProvider.updateGroup(
                 groupId: widget.groupId,
-                name: nameController.text,
-                description: descriptionController.text,
-                subject: subjectController.text,
+                name: nameVal!,
+                description: descriptionVal!,
+                subject: subjectVal!,
                 membersID: _group?.membersID ?? [],
                 imageFile: selectedImageFile,
               );
@@ -139,99 +144,97 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
             return AlertDialog(
               backgroundColor: Colors.lightBlue[50],
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+                  borderRadius: BorderRadius.circular(16)),
               title: const Center(
                 child: Text(
                   'Chỉnh sửa nhóm',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                  ),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent),
                 ),
               ),
               content: Stack(
                 children: [
                   SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: () async {
-                            File? image = await pickImage();
-                            if (image != null) {
-                              setStateDialog(() {
-                                selectedImageFile = image;
-                              });
-                            }
-                          },
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CircleAvatar(
-                                radius: 55,
-                                backgroundImage: selectedImageFile != null
-                                    ? FileImage(selectedImageFile!)
-                                    : (_group!.imgGroup != null
-                                        ? NetworkImage(_group!.imgGroup!)
-                                            as ImageProvider
-                                        : const AssetImage(
-                                            'assets/default_group.png')),
-                              ),
-                              Container(
-                                width: 110,
-                                height: 110,
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  shape: BoxShape.circle,
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              File? image = await pickImage();
+                              if (image != null) {
+                                setStateDialog(() {
+                                  selectedImageFile = image;
+                                });
+                              }
+                            },
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 55,
+                                  backgroundImage: selectedImageFile != null
+                                      ? FileImage(selectedImageFile!)
+                                      : (_group!.imgGroup != null
+                                          ? NetworkImage(_group!.imgGroup!)
+                                              as ImageProvider
+                                          : const AssetImage(
+                                              'assets/default_group.png')),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 32,
+                                Container(
+                                  width: 110,
+                                  height: 110,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black26,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt,
+                                      color: Colors.white, size: 32),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        TextField(
-                          controller: nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Tên nhóm',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: 24),
+
+                          // Tên nhóm
+                          CustomTextFormField(
+                            label: 'Tên nhóm',
+                            initialValue: name,
+                            fieldName: 'Tên nhóm',
+                            onSaved: (value) => nameVal = value,
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: subjectController,
-                          decoration: const InputDecoration(
-                            labelText: 'Môn học',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: 16),
+
+                          // Môn học
+                          CustomTextFormField(
+                            label: 'Môn học',
+                            initialValue: subject,
+                            fieldName: 'Môn học',
+                            onSaved: (value) => subjectVal = value,
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: descriptionController,
-                          maxLines: 2,
-                          decoration: const InputDecoration(
-                            labelText: 'Mô tả',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: 16),
+
+                          // Mô tả
+                          CustomTextFormField(
+                            label: 'Mô tả',
+                            initialValue: description,
+                            fieldName: 'Mô tả',
+                            onSaved: (value) => descriptionVal = value,
+                            maxLines: 2,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   if (isSaving)
-                    Positioned.fill(
-                      child: Container(
-                        child: const Center(
-                          child: CircularProgressIndicator(
+                    const Positioned.fill(
+                      child: Center(
+                        child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.blueAccent),
-                          ),
-                        ),
+                                Colors.blueAccent)),
                       ),
                     ),
                 ],
@@ -241,20 +244,16 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
               actions: [
                 TextButton(
                   onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: const Text(
-                    'Hủy',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  child: const Text('Hủy', style: TextStyle(color: Colors.red)),
                 ),
                 ElevatedButton(
+                  onPressed: isSaving ? null : saveGroup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: isSaving ? null : saveGroup,
                   child: const Text('Lưu'),
                 ),
               ],
