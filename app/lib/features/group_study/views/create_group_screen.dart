@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
+import '../../../core/widgets/custom_text_form_field.dart'; // đường dẫn widget tùy chỉnh
 
 class CreateGroupScreen extends StatefulWidget {
   @override
@@ -28,7 +29,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   }
 
   String _generateInviteCode({int length = 8}) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789';
     final now = DateTime.now().millisecondsSinceEpoch;
     return List.generate(length, (index) => chars[(now + index) % chars.length])
         .join();
@@ -44,6 +46,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save(); // Save dữ liệu từ các field
+
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Vui lòng chọn ảnh nhóm')));
@@ -100,20 +104,28 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              Text('Tên nhóm', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextFormField(
-                controller: _nameController,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập tên nhóm' : null,
-                decoration: InputDecoration(isDense: true),
+              CustomTextFormField(
+                label: 'Tên nhóm',
+                fieldName: 'Tên nhóm',
+                initialValue: _nameController.text,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Nhập tên nhóm';
+                  return null;
+                },
+                onSaved: (value) => _nameController.text = value ?? '',
               ),
               SizedBox(height: 12),
-              Text('Môn học', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextFormField(
-                controller: _subjectController,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập môn học' : null,
-                decoration: InputDecoration(isDense: true),
+              CustomTextFormField(
+                label: 'Môn học',
+                fieldName: 'Môn học',
+                initialValue: _subjectController.text,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Nhập môn học';
+                  return null;
+                },
+                onSaved: (value) => _subjectController.text = value ?? '',
               ),
               SizedBox(height: 12),
               Text('Mã mời', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -137,17 +149,17 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ],
               ),
               SizedBox(height: 12),
-              Text('Mô tả', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextFormField(
-                controller: _descriptionController,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập mô tả' : null,
+              CustomTextFormField(
+                label: 'Mô tả',
+                fieldName: 'Mô tả',
+                initialValue: _descriptionController.text,
                 maxLines: 3,
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Nhập mô tả';
+                  return null;
+                },
+                onSaved: (value) => _descriptionController.text = value ?? '',
               ),
               SizedBox(height: 12),
               if (_uploadedImageUrl != null) ...[

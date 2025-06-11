@@ -4,10 +4,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
+
 import '../providers/document_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
-import '../../group_study/providers/group_provider.dart';
-import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 import '../../../services/notification/messaging_provider.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
@@ -27,10 +27,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   PlatformFile? mainFile;
 
   Future<void> _pickImage() async {
-    print('Avatar tapped');
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
-    print('pickedFile: $pickedFile');
     if (pickedFile != null) {
       setState(() {
         imageFile = PlatformFile(
@@ -38,7 +36,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
           path: pickedFile.path,
           size: 0,
         );
-        print("imageFile: ${imageFile?.path}");
       });
     }
   }
@@ -70,7 +67,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      DocumentProvider documentProvider =
+
+      final documentProvider =
           Provider.of<DocumentProvider>(context, listen: false);
 
       bool success = await documentProvider.uploadDocument(
@@ -86,11 +84,12 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         _showDialog("Thành công", "Tải tài liệu thành công", onClose: () {
           context.pop(true);
         });
-        // send notification to all members
-        MessagingProvider messagingProvider =
-            Provider.of<MessagingProvider>(context, listen: false);
-        messagingProvider.sendGroupDocumentNotification(
-            user?.username ?? "", widget.groupId, title ?? "");
+
+        context.read<MessagingProvider>().sendGroupDocumentNotification(
+              user?.username ?? "",
+              widget.groupId,
+              title ?? "",
+            );
       } else {
         _showDialog("Thất bại", "Tải tài liệu thất bại");
       }
@@ -106,8 +105,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Đóng dialog
-              if (onClose != null) onClose(); // Thực thi callback nếu có
+              Navigator.of(context).pop();
+              if (onClose != null) onClose();
             },
             child: Text("OK"),
           ),
@@ -121,9 +120,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            context.pop();
-          },
+          onPressed: () => context.pop(),
           icon: Icon(Icons.arrow_back),
         ),
         title: Text('Upload Document'),
@@ -137,19 +134,22 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Tiêu đề'),
+              CustomTextFormField(
+                label: 'Tiêu đề',
+                fieldName: 'Tiêu đề',
                 onSaved: (value) => title = value,
-                validator: (value) => Validate.notEmpty(value),
               ),
               SizedBox(height: 16),
+
               // Description
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Mô tả'),
+              CustomTextFormField(
+                label: 'Mô tả',
+                fieldName: 'Mô tả',
+                maxLines: 3,
                 onSaved: (value) => description = value,
-                validator: (value) => Validate.notEmpty(value),
               ),
               SizedBox(height: 16),
+
               // Image picker
               Row(
                 children: [
@@ -158,14 +158,31 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                     child: Text('Chọn ảnh'),
                   ),
                   SizedBox(width: 8),
-                  Text(
-                    imageFile?.name ?? 'Chưa chọn ảnh',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                  Expanded(
+                    child: Text(
+                      imageFile?.name ?? 'Chưa chọn ảnh',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
                 ],
               ),
+              SizedBox(height: 8),
+              if (imageFile?.path != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(imageFile!.path!),
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               SizedBox(height: 16),
+
               // Main file picker
               Row(
                 children: [
@@ -184,19 +201,13 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                 ],
               ),
               SizedBox(height: 32),
+
               // Submit button
               Center(
                 child: Consumer<DocumentProvider>(
                   builder: (context, provider, child) {
                     return ElevatedButton(
-                      onPressed: provider.isLoading
-                          ? null
-                          : () {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                uploadDocument();
-                              }
-                            },
+                      onPressed: provider.isLoading ? null : uploadDocument,
                       child: provider.isLoading
                           ? Row(
                               mainAxisSize: MainAxisSize.min,

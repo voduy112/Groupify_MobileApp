@@ -1,7 +1,12 @@
 class Validate {
-  static String? notEmpty(String? value, {String? message}) {
-    if (value == null || value.trim().isEmpty) {
-      return message ?? 'Trường này không được để trống';
+  static String normalizeText(String value) {
+    return value.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  static String? notEmpty(String? value, {String? fieldName}) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isEmpty) {
+      return '${fieldName ?? 'Trường này'} không được để trống';
     }
     return null;
   }
