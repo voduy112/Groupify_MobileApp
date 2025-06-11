@@ -169,12 +169,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(_group!.name!)),
+      appBar: AppBar(title: Text('Nhóm ' '${_group!.name!}')),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -190,39 +190,65 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             const Icon(Icons.broken_image, size: 100),
                       ),
                     ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _group!.name!,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _group!.description ?? "Không có mô tả",
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.person),
+                      const Icon(
+                        Icons.description_outlined,
+                        color: Colors.blueAccent,
+                      ),
                       const SizedBox(width: 8),
-                      Text("Chủ nhóm: $ownerName"),
+                      Expanded(
+                        child: Text(
+                          "Mô tả: ${_group!.description ?? ''}",
+                          style: const TextStyle(fontSize: 24),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.group),
+                      const Icon(
+                        Icons.person,
+                        color: Colors.redAccent,
+                      ),
                       const SizedBox(width: 8),
-                      Text("Thành viên: ${_group!.membersID?.length ?? 0}"),
+                      Text(
+                        "Chủ nhóm: $ownerName",
+                        style: TextStyle(fontSize: 24),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.date_range),
+                      const Icon(
+                        Icons.group,
+                        color: Colors.green,
+                      ),
                       const SizedBox(width: 8),
-                      Text("Ngày tạo: ${formatDate(_group!.createDate)}"),
+                      Text(
+                        "Thành viên: ${_group!.membersID?.length ?? 0}",
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.date_range,
+                        color: Colors.indigo,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Ngày tạo: ${formatDate(_group!.createDate)}",
+                        style: TextStyle(fontSize: 24),
+                      ),
                     ],
                   ),
                 ],
@@ -236,7 +262,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.person_add_alt_1),
+                    icon: const Icon(
+                      Icons.person_add_alt_1,
+                      color: Colors.blue,
+                    ),
                     label: const Text("Xin vào nhóm"),
                     onPressed: () async {
                       final currentUser = context.read<AuthProvider>().user;
@@ -316,7 +345,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.qr_code),
+                    icon: const Icon(
+                      Icons.qr_code,
+                      color: Colors.blue,
+                    ),
                     label: const Text("Mã mời"),
                     onPressed: () {
                       showDialog(

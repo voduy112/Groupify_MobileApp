@@ -36,6 +36,7 @@ const groupController = {
       const createGroup = await newGroup.save();
       res.json(createGroup);
     } catch (error) {
+      console.error("Lỗi createGroup:", error);
       res.status(500).json({ error: "Lỗi khi tạo nhóm mới" });
     }
   },
