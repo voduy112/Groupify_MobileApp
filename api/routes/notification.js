@@ -23,4 +23,8 @@ router.post(
   notificationController.sendGroupDocumentNotification
 );
 
+router.get("/user/:userId", notificationController.getAllNotification);
+
+router.post("/read/:notiId", notificationController.readNotification);
+
 module.exports = router;
