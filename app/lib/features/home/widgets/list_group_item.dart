@@ -28,14 +28,40 @@ class _ListGroupItemState extends State<ListGroupItem> {
   Widget build(BuildContext context) {
     final groups = widget.groups ?? Provider.of<GroupProvider>(context).groups;
     if (groups.isEmpty) {
-      return Center(child: Text('Không có nhóm nào'));
+      return const Center(child: Text('Không có nhóm nào'));
     }
+
     print("groups: $groups");
 
-    return Expanded(
+    return Container(
+      height: 400,
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
       child: ListView.builder(
-        itemCount: groups.length,
+        itemCount: groups.length + 1,
         itemBuilder: (context, index) {
+          if (index == groups.length) {
+            return Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  context.go('/home/show-all-group');
+                },
+                child: const Text('Xem thêm'),
+              ),
+            );
+          }
+
           final group = groups[index];
           return GestureDetector(
             onTap: () {
@@ -46,15 +72,14 @@ class _ListGroupItemState extends State<ListGroupItem> {
               );
             },
             child: Card(
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Ảnh
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
@@ -68,13 +93,12 @@ class _ListGroupItemState extends State<ListGroupItem> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Thông tin
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${group.name ?? 'Title group'}',
+                            group.name ?? 'Tên nhóm',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

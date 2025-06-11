@@ -18,41 +18,25 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Trang chủ'),
       ),
-      body: Column(
-        children: [
-          MyCarouselView(),
-          SizedBox(height: 10),
-          TitleApp(title: 'Tài liệu', context: context),
-          ListDocumentItem(),
-          Center(
-            child: ElevatedButton(
-              style: Theme.of(context).elevatedButtonTheme.style,
-              onPressed: () {
-                context.go('/home/show-all-document');
-              },
-              child: Text(
-                'Xem thêm',
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 80),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MyCarouselView(),
+              SizedBox(height: 15),
+              TitleApp(title: 'Tài liệu', context: context),
+              ListDocumentItem(),
+              TitleApp(title: 'Nhóm', context: context),
+              SizedBox(height: 10),
+              ListGroupItem(
+                groups: groupProvider.groups.take(5).toList(),
+                from: 'home',
               ),
-            ),
+            ],
           ),
-          TitleApp(title: 'Nhóm', context: context),
-          SizedBox(height: 10),
-          ListGroupItem(
-            groups: groupProvider.groups.take(5).toList(),
-            from: 'home',
-          ),
-          Center(
-            child: ElevatedButton(
-              style: Theme.of(context).elevatedButtonTheme.style,
-              onPressed: () {
-                context.go('/home/show-all-group');
-              },
-              child: Text(
-                'Xem thêm',
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
