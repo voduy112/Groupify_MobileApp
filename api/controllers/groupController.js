@@ -11,19 +11,19 @@ const groupController = {
         return res.status(400).json({ error: "Thiếu thông tin nhóm" });
       }
       if (!req.files || !req.files.image) {
-              return res.status(400).json({ error: "Chưa chọn file ảnh nhóm" });
-            }
-      
-            const times = Date.now();
-      
-            const imgUploadResult = await cloudinary.uploader.upload(
-              req.files.image[0].path,
-              {
-                folder: "Groupify_MobileApp/img_group",
-                public_id: `${ownerId}_${times}_imggroup`,
-                overwrite: false,
-              }
-            );
+        return res.status(400).json({ error: "Chưa chọn file ảnh nhóm" });
+      }
+
+      const times = Date.now();
+
+      const imgUploadResult = await cloudinary.uploader.upload(
+        req.files.image[0].path,
+        {
+          folder: "Groupify_MobileApp/img_group",
+          public_id: `${ownerId}_${times}_imggroup`,
+          overwrite: false,
+        }
+      );
       const newGroup = new Group({
         name,
         description,
@@ -31,7 +31,7 @@ const groupController = {
         ownerId,
         membersID: membersID || [],
         inviteCode,
-        imgGroup: imgUploadResult.secure_url
+        imgGroup: imgUploadResult.secure_url,
       });
       const createGroup = await newGroup.save();
       res.json(createGroup);
@@ -57,16 +57,31 @@ const groupController = {
   getAllGroup: async (req, res) => {
     try {
       const userId = req.query.userId;
-      let groups;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      let query = {};
       if (userId) {
-        groups = await Group.find({
+        query = {
           membersID: { $ne: userId },
           ownerId: { $ne: userId },
-        }).populate("membersID");
-      } else {
-        groups = await Group.find().populate("membersID");
+        };
       }
-      return res.json(groups);
+
+      const totalGroups = await Group.countDocuments(query);
+      const groups = await Group.find(query)
+        .populate("membersID")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 });
+
+      return res.json({
+        totalGroups,
+        totalPages: Math.ceil(totalGroups / limit),
+        currentPage: page,
+        groups,
+      });
     } catch (error) {
       res.status(404).json({ error: "Lỗi khi lấy thông tin nhóm" });
     }
@@ -134,7 +149,7 @@ const groupController = {
         }
       }
       let updateData = { ...req.body };
-      const times=Date.now();
+      const times = Date.now();
       if (req.file) {
         const uploadResult = await cloudinary.uploader.upload(req.file.path, {
           folder: "Groupify_MobileApp/img_group",
@@ -193,32 +208,34 @@ const groupController = {
       const group = await Group.findById(req.params.id)
         .populate("membersID", "username profilePicture")
         .populate("ownerId", "username profilePicture");
-  
+
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm" });
       }
-  
+
       // Convert ownerId (User model) to object with consistent structure
       const owner = group.ownerId.toObject();
-      owner.role = 'owner'; // Thêm thông tin phân biệt
-  
+      owner.role = "owner"; // Thêm thông tin phân biệt
+
       // Convert members, thêm role nếu cần
-      const members = group.membersID.map(member => {
+      const members = group.membersID.map((member) => {
         const m = member.toObject();
-        m.role = 'member';
+        m.role = "member";
         return m;
       });
-  
+
       // Kiểm tra nếu owner đã nằm trong members thì không thêm lại
-      const isOwnerInMembers = members.some(m => m._id.toString() === owner._id.toString());
+      const isOwnerInMembers = members.some(
+        (m) => m._id.toString() === owner._id.toString()
+      );
       const allMembers = isOwnerInMembers ? members : [owner, ...members];
-  
+
       res.json(allMembers);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
     }
-  },  
+  },
 
   getAllGroupByUserId: async (req, res) => {
     const userId = req.params.id || req.query.id;
@@ -251,7 +268,7 @@ const groupController = {
       res.status(500).json({ error: "Lỗi khi lấy danh sách thành viên" });
     }
   },*/
-  
+
   addUserIntoGroup: async (req, res) => {
     try {
       const { groupId, userId } = req.body;
@@ -284,28 +301,29 @@ const groupController = {
   removeMember: async (req, res) => {
     try {
       const { groupId, memberId } = req.body;
-  
+
       const group = await Group.findById(groupId);
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm" });
       }
-  
+
       // Kiểm tra member có trong nhóm không
       if (!group.membersID.includes(memberId)) {
-        return res.status(400).json({ error: "Thành viên không tồn tại trong nhóm" });
+        return res
+          .status(400)
+          .json({ error: "Thành viên không tồn tại trong nhóm" });
       }
-  
+
       // Xoá thành viên
       group.membersID.pull(memberId);
       await group.save();
-  
+
       res.status(200).json({ message: "Xoá thành viên thành công" });
     } catch (error) {
       console.error("Lỗi khi xoá thành viên:", error);
       res.status(500).json({ error: "Lỗi khi xoá thành viên" });
     }
   },
-  
 };
 
 module.exports = groupController;
