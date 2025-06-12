@@ -13,24 +13,46 @@ class GroupProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   List<User> _members = [];
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _isFetchingMore = false;
+  bool get isFetchingMore => _isFetchingMore;
 
   List<Group> get groups => _groups;
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<User> get members => _members;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
 
-  Future<void> fetchAllGroup(String userId) async {
+  Future<void> fetchAllGroup(String userId, {int page = 1}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _groups = await _groupService.getAllGroup(userId);
+      final response = await _groupService.getAllGroup(userId, page: page);
+      if (page == 1) {
+        _groups = response.groups;
+      } else {
+        _groups.addAll(response.groups);
+      }
+      _currentPage = response.currentPage;
+      _totalPages = response.totalPages;
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchMoreGroups(String userId) async {
+    if (_currentPage >= _totalPages || _isFetchingMore) return;
+    _isFetchingMore = true;
+    notifyListeners();
+    await fetchAllGroup(userId, page: _currentPage + 1);
+    _isFetchingMore = false;
+    notifyListeners();
   }
 
   Future<void> fetchGroupsByUserId(String userId) async {
@@ -68,7 +90,8 @@ class GroupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
- Future<bool> joinGroupByCode(
+
+  Future<bool> joinGroupByCode(
       String groupId, String inviteCode, String userId) async {
     _isLoading = true;
     _error = null;
@@ -77,7 +100,7 @@ class GroupProvider with ChangeNotifier {
     try {
       final group =
           await _groupService.joinGroupByCode(groupId, inviteCode, userId);
-      _groups.add(group); 
+      _groups.add(group);
       notifyListeners();
       return true;
     } catch (e) {
@@ -89,7 +112,8 @@ class GroupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
- Future<bool> createGroup({
+
+  Future<bool> createGroup({
     required String name,
     required String description,
     required String subject,
@@ -110,7 +134,7 @@ class GroupProvider with ChangeNotifier {
         inviteCode: inviteCode,
         ownerId: ownerId,
         membersID: membersID,
-        imageFile: imageFile, 
+        imageFile: imageFile,
       );
       _groups.add(group);
       return true;
@@ -123,7 +147,7 @@ class GroupProvider with ChangeNotifier {
     }
   }
 
-Future<void> fetchGroupMembers(String groupId) async {
+  Future<void> fetchGroupMembers(String groupId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -138,27 +162,27 @@ Future<void> fetchGroupMembers(String groupId) async {
   }
 
   Future<bool> removeMember(String groupId, String memberId) async {
-  _isLoading = true;
-  _error = null;
-  notifyListeners();
-
-  try {
-    await _groupService.removeMember(groupId: groupId, memberId: memberId);
-
-    // Optional: Nếu bạn có _selectedGroup?.members → bạn có thể remove luôn memberId khỏi đó để cập nhật UI.
-    _selectedGroup?.membersID?.remove(memberId);
-
+    _isLoading = true;
+    _error = null;
     notifyListeners();
-    return true;
-  } catch (e) {
-    _error = e.toString();
-    notifyListeners();
-    return false;
-  } finally {
-    _isLoading = false;
-    notifyListeners();
+
+    try {
+      await _groupService.removeMember(groupId: groupId, memberId: memberId);
+
+      // Optional: Nếu bạn có _selectedGroup?.members → bạn có thể remove luôn memberId khỏi đó để cập nhật UI.
+      _selectedGroup?.membersID?.remove(memberId);
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
-}
 
   Future<bool> leaveGroup(String groupId, String userId) async {
     _isLoading = true;
@@ -241,6 +265,4 @@ Future<void> fetchGroupMembers(String groupId) async {
       notifyListeners();
     }
   }
-
-
 }
