@@ -265,4 +265,36 @@ class GroupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> changeOwnerId(String groupId, String newOwnerId) async {
+  _isLoading = true;
+  _error = null;
+  notifyListeners();
+
+  try {
+    final updatedGroup = await _groupService.changeOwnerId(groupId, newOwnerId);
+
+    // Cập nhật trong danh sách nhóm nếu có
+    final index = _groups.indexWhere((g) => g.id == groupId);
+    if (index != -1) {
+      _groups[index] = updatedGroup;
+    }
+
+    // Cập nhật _selectedGroup nếu nó là nhóm đang chỉnh
+    if (_selectedGroup?.id == groupId) {
+      _selectedGroup = updatedGroup;
+    }
+
+    notifyListeners();
+    return true;
+  } catch (e) {
+    _error = e.toString();
+    notifyListeners();
+    return false;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
 }
