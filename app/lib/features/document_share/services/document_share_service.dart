@@ -5,17 +5,43 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 
+class DocumentPageResponse {
+  final List<Document> documents;
+  final int totalPages;
+  final int currentPage;
+
+  DocumentPageResponse({
+    required this.documents,
+    required this.totalPages,
+    required this.currentPage,
+  });
+
+  factory DocumentPageResponse.fromJson(Map<String, dynamic> json) {
+    return DocumentPageResponse(
+      documents:
+          (json['documents'] as List).map((e) => Document.fromJson(e)).toList(),
+      totalPages: json['totalPages'],
+      currentPage: json['currentPage'],
+    );
+  }
+}
+
 class DocumentShareService {
   final Dio _dio;
 
   DocumentShareService() : _dio = DioClient.instance;
 
-  Future<List<Document>> getDocuments() async {
-    final response = await _dio.get('/api/document');
+  Future<DocumentPageResponse> getDocuments(
+      {int page = 1, int limit = 10}) async {
+    final response = await _dio.get(
+      '/api/document',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
     print("response.data: ${response.data}");
-    return (response.data as List)
-        .map((json) => Document.fromJson(json))
-        .toList();
+    return DocumentPageResponse.fromJson(response.data);
   }
 
   Future<void> uploadDocument({
@@ -110,5 +136,4 @@ class DocumentShareService {
         await _dio.put('/api/document/$documentId', data: formData);
     return response.data;
   }
-  
 }

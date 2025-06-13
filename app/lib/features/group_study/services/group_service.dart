@@ -5,6 +5,29 @@ import '../../../models/group.dart';
 import '../../../models/user.dart';
 import '../../../services/api/dio_client.dart';
 
+class GroupPageResponse {
+  final List<Group> groups;
+  final int totalPages;
+  final int currentPage;
+  final int totalGroups;
+
+  GroupPageResponse({
+    required this.groups,
+    required this.totalPages,
+    required this.currentPage,
+    required this.totalGroups,
+  });
+
+  factory GroupPageResponse.fromJson(Map<String, dynamic> json) {
+    return GroupPageResponse(
+      groups: (json['groups'] as List).map((e) => Group.fromJson(e)).toList(),
+      totalPages: json['totalPages'],
+      currentPage: json['currentPage'],
+      totalGroups: json['totalGroups'],
+    );
+  }
+}
+
 class GroupService {
   final Dio _dio;
 
@@ -45,15 +68,16 @@ class GroupService {
     }
   }
 
-  Future<List<Group>> getAllGroup(String userId) async {
+  Future<GroupPageResponse> getAllGroup(String userId,
+      {int page = 1, int limit = 10}) async {
     try {
       final response = await _dio.get('/api/group', queryParameters: {
         'userId': userId,
+        'page': page,
+        'limit': limit,
       });
       if (response.statusCode == 200) {
-        return (response.data as List)
-            .map((json) => Group.fromJson(json))
-            .toList();
+        return GroupPageResponse.fromJson(response.data);
       } else {
         throw Exception("Lỗi khi lấy danh sách nhóm: ${response.statusCode}");
       }
@@ -136,42 +160,43 @@ class GroupService {
   }
 
   Future<List<User>> getGroupMembers(String groupId) async {
-  try {
-    final response = await _dio.get('/api/group/members/$groupId/');
-    if (response.statusCode == 200) {
-      final List<dynamic> membersJson = response.data;
-      return membersJson.map((json) => User.fromJson(json)).toList();
-    } else {
-      throw Exception("Lỗi khi lấy danh sách thành viên: ${response.statusCode}");
+    try {
+      final response = await _dio.get('/api/group/members/$groupId/');
+      if (response.statusCode == 200) {
+        final List<dynamic> membersJson = response.data;
+        return membersJson.map((json) => User.fromJson(json)).toList();
+      } else {
+        throw Exception(
+            "Lỗi khi lấy danh sách thành viên: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi getGroupMembers: $e");
+      rethrow;
     }
-  } catch (e) {
-    print("Lỗi getGroupMembers: $e");
-    rethrow;
-  }
   }
 
   Future<void> leaveGroup(String groupId, String userId) async {
-  try {
-    final response = await _dio.post(
-      '/api/group/leave',
-      data: {
-        'groupId': groupId,
-        'userId': userId,
-      },
-    );
+    try {
+      final response = await _dio.post(
+        '/api/group/leave',
+        data: {
+          'groupId': groupId,
+          'userId': userId,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      print("Rời nhóm thành công");
-    } else {
-      throw Exception("Rời nhóm thất bại: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        print("Rời nhóm thành công");
+      } else {
+        throw Exception("Rời nhóm thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi leaveGroup: $e");
+      rethrow;
     }
-  } catch (e) {
-    print("Lỗi leaveGroup: $e");
-    rethrow;
   }
-}
 
-Future<void> removeMember({
+  Future<void> removeMember({
     required String groupId,
     required String memberId,
   }) async {
@@ -240,6 +265,7 @@ Future<void> removeMember({
       rethrow;
     }
   }
+
   Future<Group> changeOwnerId(String groupId, String newOwnerId) async {
     try {
       final response = await _dio.post(
@@ -260,7 +286,5 @@ Future<void> removeMember({
       rethrow;
     }
   }
-
-
 
 }

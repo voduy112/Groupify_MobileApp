@@ -10,26 +10,55 @@ class DocumentShareProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   Map<String, List<Document>> _userDocuments = {};
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _isFetchingMore = false;
 
   List<Document> get documents => _documents;
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, List<Document>> get userDocuments => _userDocuments;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+  bool get isFetchingMore => _isFetchingMore;
 
   DocumentShareProvider() : _documentShareService = DocumentShareService();
 
-  Future<void> fetchDocuments() async {
+  Future<void> fetchDocuments({int page = 1}) async {
     _isLoading = true;
     notifyListeners();
-
     try {
-      _documents = await _documentShareService.getDocuments();
-      print("documents: ${_documents}");
+      final response = await _documentShareService.getDocuments(page: page);
+      if (page == 1) {
+        _documents = response.documents;
+      } else {
+        _documents.addAll(response.documents);
+      }
+      _currentPage = page;
+      _totalPages = response.totalPages;
       _error = null;
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchMoreDocuments() async {
+    if (_isFetchingMore || _currentPage >= _totalPages) return;
+    _isFetchingMore = true;
+    notifyListeners();
+    try {
+      final nextPage = _currentPage + 1;
+      final response = await _documentShareService.getDocuments(page: nextPage);
+      _documents.addAll(response.documents);
+      _currentPage = nextPage;
+      _totalPages = response.totalPages;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isFetchingMore = false;
       notifyListeners();
     }
   }
