@@ -240,6 +240,27 @@ Future<void> removeMember({
       rethrow;
     }
   }
+  Future<Group> changeOwnerId(String groupId, String newOwnerId) async {
+    try {
+      final response = await _dio.post(
+        '/api/group/change-owner',
+        data: {
+          'groupId': groupId,
+          'newOwnerId': newOwnerId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return Group.fromJson(response.data);
+      } else {
+        throw Exception("Chuyển quyền sở hữu thất bại: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Lỗi changeOwnerId: $e");
+      rethrow;
+    }
+  }
+
 
 
 }

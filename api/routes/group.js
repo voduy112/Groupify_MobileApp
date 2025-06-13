@@ -22,5 +22,6 @@ router.post("/remove-member", groupController.removeMember);
 router.get("/members/:id", groupController.getGroupMembers); 
 router.get("/user/:id", groupController.getAllGroupByUserId);
 router.post("/adduser", groupController.addUserIntoGroup);
+router.post("/change-owner", groupController.changeOwnerId);
 
 module.exports = router;

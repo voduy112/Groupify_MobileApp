@@ -305,6 +305,47 @@ const groupController = {
       res.status(500).json({ error: "Lỗi khi xoá thành viên" });
     }
   },
+  changeOwnerId: async (req, res) => {
+    try {
+      const { groupId, newOwnerId } = req.body;
+  
+      if (!groupId || !newOwnerId) {
+        return res.status(400).json({ error: "Thiếu groupId hoặc newOwnerId" });
+      }
+  
+      const group = await Group.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ error: "Không tìm thấy nhóm" });
+      }
+  
+      if (!group.membersID.includes(newOwnerId)) {
+        return res.status(400).json({ error: "Người dùng không phải là thành viên nhóm" });
+      }
+  
+      const oldOwnerId = group.ownerId.toString();
+  
+      // Đổi chủ nhóm
+      group.ownerId = newOwnerId;
+  
+      // Gỡ newOwnerId khỏi members
+      group.membersID = group.membersID.filter(
+        (memberId) => memberId.toString() !== newOwnerId
+      );
+  
+      // Thêm oldOwnerId vào members nếu chưa có
+      if (!group.membersID.includes(oldOwnerId)) {
+        group.membersID.push(oldOwnerId);
+      }
+  
+      await group.save();
+  
+      return res.status(200).json({ message: "Chuyển quyền chủ nhóm thành công", group });
+    } catch (error) {
+      console.error("Lỗi khi đổi ownerId:", error);
+      return res.status(500).json({ error: "Lỗi khi đổi quyền chủ nhóm" });
+    }
+  },
+  
   
 };
 
