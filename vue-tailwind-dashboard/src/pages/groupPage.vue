@@ -2,6 +2,7 @@
   <div class="p-6">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">📁 Group List</h1>
 
+    <!-- Tìm kiếm -->
     <div class="mb-6 max-w-md relative">
       <input
         v-model="searchQuery"
@@ -24,6 +25,7 @@
       </svg>
     </div>
 
+    <!-- Danh sách nhóm -->
     <div
       v-if="filteredGroups.length"
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -66,7 +68,6 @@
         <p class="text-left text-gray-700 font-medium mb-2">
           {{ group.description || "—" }}
         </p>
-
         <p class="text-left text-sm text-gray-600 mb-1">
           Tổng thành viên: {{ group.membersID?.length ?? 0 }}
         </p>
@@ -84,6 +85,7 @@
 
     <div v-else class="text-gray-500 mt-4">Không tìm thấy nhóm nào.</div>
 
+    <!-- Modal sửa nhóm -->
     <div
       v-if="selectedGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
@@ -121,6 +123,7 @@
       </div>
     </div>
 
+    <!-- Modal xem thành viên -->
     <div
       v-if="viewingGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
@@ -138,12 +141,8 @@
           >
             Không có thành viên.
           </li>
-          <li
-            v-for="(member, index) in viewingGroup.membersID"
-            :key="index"
-            class="break-words hover:bg-gray-100 rounded px-1"
-          >
-            {{ member.username || member }}
+          <li v-for="member in viewingGroup.membersID" :key="member._id">
+            {{ member.username }}
           </li>
         </ul>
         <div class="text-right">
@@ -201,6 +200,18 @@ export default {
         this.groups = [];
       }
     },
+    async viewGroupMembers(group) {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/group/${group._id}`,
+        );
+        this.viewingGroup = res.data;
+      } catch (err) {
+        console.error("Không thể tải thành viên nhóm", err);
+        this.viewingGroup = null;
+      }
+    },
+
     formatDate(dateStr) {
       if (!dateStr) return "Không rõ";
       const d = new Date(dateStr);
@@ -245,9 +256,6 @@ export default {
         return "https://via.placeholder.com/400x200?text=No+Image";
       }
       return imgGroup;
-    },
-    viewGroupMembers(group) {
-      this.viewingGroup = group;
     },
   },
 };

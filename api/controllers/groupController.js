@@ -81,27 +81,30 @@ const groupController = {
   joinGroupByCode: async (req, res) => {
     try {
       const { groupId, inviteCode, userId } = req.body;
-
+  
       const group = await Group.findOne({ _id: groupId, inviteCode });
-
+  
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm với mã này" });
       }
-
+  
       if (group.membersID.includes(userId)) {
         return res.status(400).json({ error: "Người dùng đã tham gia nhóm này" });
       }
-
-
+  
       group.membersID.push(userId);
       await group.save();
-      return res.json(group);
+  
+      const updatedGroup = await Group.findById(group._id)
+        .populate("membersID", "username")
+        .populate("ownerId", "username");
+  
+      return res.json(updatedGroup);
     } catch (error) {
       return res.status(500).json({ error: "Lỗi khi tham gia nhóm" });
     }
   },
-
-
+  
   updateGroup: async (req, res) => {
     try {
       const existingGroup = await Group.findById(req.params.id);

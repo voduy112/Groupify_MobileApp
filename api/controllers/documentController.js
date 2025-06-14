@@ -2,7 +2,7 @@ const cloudinary = require('../config/Cloudinary');
 const Document = require("../models/Document");
 const User = require("../models/User");
 const Report = require("../models/Report");
-const User = require('../models/User');
+
 
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
@@ -202,36 +202,7 @@ const documentController = {
       res.status(500).json({ error: "Lỗi cập nhật thông tin tài liệu" });
     }
   },
-  uploadDocument: async (req, res) => {
-    try {
-      const { groupId, title, description, uploaderId } = req.body;
-      if (!title || !description || !uploaderId) {
-        return res.status(400).json({ error: "Thiếu thông tin tài liệu" });
-      }
-      if (!req.files || !req.files.mainFile) {
-        return res.status(400).json({ error: "Chưa upload file tài liệu" });
-      }
 
-      const times = Date.now();
-
-      const imgUploadResult = await cloudinary.uploader.upload(
-        req.files.image[0].path,
-        {
-          folder: "Groupify_MobileApp/img_document",
-          public_id: `${uploaderId}_${times}_imgdocument`,
-          overwrite: false,
-        }
-      );
-
-      const fileUploadResult = await cloudinary.uploader.upload(
-        req.files.mainFile[0].path,
-        {
-          folder: "Groupify_MobileApp/file_document",
-          public_id: `${uploaderId}_${times}_filedocument`,
-          resource_type: "raw",
-          overwrite: false,
-        }
-      );
   getDocumentsByGroupId: async (req, res) => {
     const groupId = req.params.id || req.query.id;
     if (!groupId) return res.status(400).json({ error: "Thiếu groupId" });
@@ -674,37 +645,7 @@ const documentController = {
         res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
       }
     },
-      const newDoc = new Document({
-        groupId,
-        title,
-        description,
-        uploaderId,
-        imgDocument: imgUpload.secure_url,
-        mainFile: fileUpload.secure_url,
-      });
-
-      const saved = await newDoc.save();
-      res.json(saved);
-    } catch (error) {
-      res.status(500).json({ error: "Lỗi khi tải tài liệu mới", detail: error });
-    }
-  },
-};
-
-=======
-const cloudinary = require('../config/Cloudinary');
-const Document = require("../models/Document");
-const Report = require("../models/Report");
-const User = require('../models/User');
-
-const getPublicIdFromUrl = (url) => {
-  if (!url) return null;
-  const parts = url.split('/');
-  const lastThree = parts.slice(-3).join('/');
-  return lastThree.replace(/\.(jpg|jpeg|png|webp|pdf)$/i, '');
-};
-
-const documentController = {
+      
 
   getAllDocument: async (req, res) => {
     try {
@@ -947,6 +888,6 @@ const documentController = {
   },
 };
 
->>>>>>> 82043c5 (BE admin)
+
 module.exports = documentController;
 
