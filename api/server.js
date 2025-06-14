@@ -21,6 +21,7 @@ dotenv.config();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
@@ -32,6 +33,6 @@ InitRoutes(app);
 //Sockets
 socketHandler(io);
 
-Server.listen(PORT, () => {
+Server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });

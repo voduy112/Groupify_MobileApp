@@ -21,6 +21,28 @@ const documentController = {
             res.status(500).json({error: "Lỗi khi lấy thông tin tài liệu"});
         }
     },
+
+    getDocumentsByGroupId: async (req, res) => {
+        const groupId = req.params.id || req.query.id;
+            
+                if (!groupId) {
+                    return res.status(400).json({ error: "Thiếu groupId" });
+                }
+            
+                try {
+                    const groups = await Document.find({
+                        $or: [
+                            { groupId: groupId },
+                                                ]
+                    });
+            
+                    return res.json(groups);
+                } catch (error) {
+                    console.error(error);
+                    res.status(500).json({ error: "Lỗi khi lấy nhóm theo userId" });
+                }
+    },
+    
     deleteDocument : async (req, res) => {
         try {
             const deleteDocument = await Document.findById(req.params.id);

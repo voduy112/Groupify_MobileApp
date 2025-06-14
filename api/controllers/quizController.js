@@ -1,4 +1,5 @@
 const Quiz = require('../models/Quiz');
+const ResultQuiz = require('../models/resultQuiz');
 
 const quizController = {
 
@@ -131,7 +132,95 @@ const quizController = {
         } catch (error) {
             res.status(500).json({message: error.message});
         }
-    }
+    },
+
+    checkQuizResult: async (req, res) => {
+        try {
+            const { id: quizId } = req.params;
+            const { userId, answers } = req.body;
+    
+            if (!userId || !Array.isArray(answers)) {
+                return res.status(400).json({ error: 'Thiếu userId hoặc danh sách câu trả lời' });
+            }
+    
+            const quiz = await Quiz.findById(quizId);
+            if (!quiz) {
+                return res.status(404).json({ error: 'Không tìm thấy quiz' });
+            }
+    
+            let score = 0;
+            const results = [];
+    
+            for (const userAnswer of answers) {
+                const { questionIndex, answerIndex } = userAnswer;
+    
+                const question = quiz.questions[questionIndex];
+                if (!question) {
+                    results.push({ questionIndex, correct: false, reason: 'Câu hỏi không tồn tại' });
+                    continue;
+                }
+    
+                const selectedAnswer = question.answers[answerIndex];
+                if (!selectedAnswer) {
+                    results.push({ questionIndex, correct: false, reason: 'Đáp án không tồn tại' });
+                    continue;
+                }
+    
+                const isCorrect = selectedAnswer.isCorrect === true;
+                if (isCorrect) score++;
+    
+                results.push({
+                    questionIndex,
+                    selectedAnswerIndex: answerIndex,
+                    correct: isCorrect
+                });
+            }
+    
+            const scoreText = `${score}/${quiz.questions.length}`;
+    
+            // Lưu kết quả vào MongoDB (không có times)
+            const result = new ResultQuiz({
+                userId,
+                quizId,
+                score: scoreText
+            });
+    
+            await result.save();
+    
+            return res.status(200).json({
+                message: 'Chấm điểm và lưu kết quả thành công',
+                score,
+                total: quiz.questions.length,
+                scoreText,
+                results
+            });
+    
+        } catch (error) {
+            console.error('Lỗi khi chấm điểm quiz:', error);
+            return res.status(500).json({ error: 'Không thể chấm điểm quiz' });
+        }
+    },
+    getQuizsByGroupId: async (req, res) => {
+            const groupId = req.params.id || req.query.id;
+                
+                    if (!groupId) {
+                        return res.status(400).json({ error: "Thiếu groupId" });
+                    }
+                
+                    try {
+                        const quizes = await Quiz.find({
+                            $or: [
+                                { groupId: groupId },
+                                                    ]
+                        });
+                
+                        return res.json(quizes);
+                    } catch (error) {
+                        console.error(error);
+                        res.status(500).json({ error: "Lỗi khi lấy bộ câu hỏi theo groupId" });
+                    }
+        },
+    
     
 }
 
