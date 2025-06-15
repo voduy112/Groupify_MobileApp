@@ -95,8 +95,8 @@
 
         <div class="relative">
           <button
-            @click="toggleUserMenu"
             class="flex items-center gap-3 px-2 py-1 rounded-md hover:bg-gray-100 transition focus:outline-none"
+            @click="toggleUserMenu"
           >
             <div
               class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-semibold shadow"
@@ -110,13 +110,14 @@
               <div class="text-xs text-gray-500">Administrator</div>
             </div>
           </button>
+
           <div
             v-if="showUserMenu"
             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 overflow-hidden border border-gray-100"
           >
             <button
-              @click="signOut"
               class="block w-full px-4 py-2 text-sm text-center text-red-600 hover:bg-red-50 transition-colors"
+              @click="signOut"
             >
               Signout
             </button>

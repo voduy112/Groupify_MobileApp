@@ -35,15 +35,29 @@ const documentController = {
     }
   },
   getDocumentById: async (req, res) => {
+    const { id } = req.params;
+  
     try {
-      const document = await Document.findById(req.params.id);
-      if (!document)
-        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
-      res.json(document);
-    } catch (error) {
-      res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu" });
+      const document = await Document.findById(id)
+        .populate('uploaderId', 'username');
+  
+      if (!document) return res.status(404).json({ error: 'Not found' });
+  
+      // Ép kiểu đúng ObjectId
+      const objectId = new mongoose.Types.ObjectId(id);
+      const reports = await Report.find({ documentId: objectId });
+      const reportReasons = reports.map(r => r.reason);
+  
+      res.json({
+        ...document.toObject(),
+        reportCount: reports.length,
+        reportReasons
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
     }
-  },
+  },  
 
   getDocumentsByUserId: async (req, res) => {
     const userId = req.params.id || req.query.id;
@@ -75,19 +89,6 @@ const documentController = {
       res.status(500).json({ error: "Lỗi khi lấy danh sách tài liệu", detail: error });
     }
   },
-
-  getDocumentById: async (req, res) => {
-    try {
-      const document = await Document.findById(req.params.id)
-        .populate('uploaderId', 'username')
-        .lean();
-      if (!document) return res.status(404).json({ error: "Không tìm thấy tài liệu" });
-      res.json(document);
-    } catch (error) {
-      res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu", detail: error });
-    }
-  },
-
 
   getDocumentsByGroupId: async (req, res) => {
     const groupId = req.params.id || req.query.id;
@@ -203,22 +204,10 @@ const documentController = {
     }
   },
 
-  getDocumentsByGroupId: async (req, res) => {
-    const groupId = req.params.id || req.query.id;
-    if (!groupId) return res.status(400).json({ error: "Thiếu groupId" });
 
-    try {
-      const documents = await Document.find({ groupId })
-        .populate('uploaderId', 'username')
-        .lean();
-      res.json(documents);
-    } catch (error) {
-      res.status(500).json({ error: "Lỗi khi lấy tài liệu theo groupId", detail: error });
-    }
-  },
 
   getReportedDocuments: async (req, res) => {
-    try {
+  try {
       const reports = await Report.find()
         .populate('reporterId', 'username')
         .populate({
@@ -266,33 +255,48 @@ const documentController = {
       res.status(500).json({ message: "Lỗi server", error: err.message });
     }
   },
-
-
+  
   reportDocument: async (req, res) => {
     const { id } = req.params;
     const reporterId = req.user?._id || req.body.reporterId;
     const reason = req.body.reason?.trim();
-
+  
     if (!reporterId || !reason) {
-      return res.status(400).json({ message: 'Thiếu người báo cáo hoặc lý do báo cáo' });
+      return res.status(400).json({
+        message: 'Thiếu người báo cáo hoặc lý do báo cáo',
+      });
     }
-
+  
     try {
       const document = await Document.findById(id);
-      if (!document) return res.status(404).json({ message: 'Không tìm thấy tài liệu' });
-
-      const existed = await Report.findOne({ documentId: id, reporterId, reason });
-      if (existed) {
-        return res.status(400).json({ message: 'Bạn đã báo cáo tài liệu này với lý do này rồi.' });
+      if (!document) {
+        return res.status(404).json({ message: 'Không tìm thấy tài liệu' });
       }
-
-      const newReport = await Report.create({ documentId: id, reporterId, reason });
-
+  
+      // Kiểm tra đã báo cáo chưa
+      const existed = await Report.findOne({
+        documentId: id,
+        reporterId,
+        reason,
+      });
+  
+      if (existed) {
+        return res.status(400).json({
+          message: 'Bạn đã báo cáo tài liệu này với lý do này rồi.',
+        });
+      }
+  
+      const newReport = await Report.create({
+        documentId: id,
+        reporterId,
+        reason,
+      });
+  
       const reportCount = await Report.countDocuments({ documentId: id });
-
+  
       const reporterUser = await User.findById(reporterId).select('username');
       const reporterUsername = reporterUser?.username || 'Không rõ';
-
+  
       res.status(200).json({
         message: 'Báo cáo thành công',
         reportCount,
@@ -303,10 +307,14 @@ const documentController = {
         },
       });
     } catch (error) {
-      console.error('Lỗi khi báo cáo:', error);
-      res.status(500).json({ message: 'Lỗi khi báo cáo tài liệu', detail: error.message });
+      console.error('❌ Lỗi khi báo cáo tài liệu:', error);
+      res.status(500).json({
+        message: 'Lỗi khi báo cáo tài liệu',
+        detail: error.message,
+      });
     }
   },
+  
 
   clearDocumentReports: async (req, res) => {
     try {
@@ -646,7 +654,6 @@ const documentController = {
       }
     },
       
-
   getAllDocument: async (req, res) => {
     try {
       const documents = await Document.find()
@@ -669,7 +676,6 @@ const documentController = {
       res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu", detail: error });
     }
   },
-
 
   getDocumentsByGroupId: async (req, res) => {
     const groupId = req.params.id || req.query.id;
@@ -727,14 +733,12 @@ const documentController = {
 
         grouped[docId].reportCount += 1;
       }
-
       res.status(200).json(Object.values(grouped));
     } catch (err) {
       console.error("Lỗi khi lấy báo cáo:", err);
       res.status(500).json({ message: "Lỗi server", error: err.message });
     }
   },
-
 
   reportDocument: async (req, res) => {
     const { id } = req.params;
@@ -792,25 +796,30 @@ const documentController = {
     }
   },
 
-
   deleteDocument: async (req, res) => {
     try {
       const document = await Document.findById(req.params.id);
       if (!document) return res.status(404).json({ error: "Tài liệu không tồn tại" });
-
+  
       const imgPublicId = getPublicIdFromUrl(document.imgDocument);
       const filePublicId = getPublicIdFromUrl(document.mainFile);
-      if (imgPublicId) await cloudinary.uploader.destroy(imgPublicId);
-      if (filePublicId) await cloudinary.uploader.destroy(filePublicId, { resource_type: "raw" });
-
+  
+      try {
+        if (imgPublicId) await cloudinary.uploader.destroy(imgPublicId, { resource_type: "image" });
+        if (filePublicId) await cloudinary.uploader.destroy(filePublicId, { resource_type: "raw" });
+      } catch (err) {
+        console.warn("Không thể xoá file từ Cloudinary:", err.message);
+      }
+  
       await Report.deleteMany({ documentId: document._id });
       await document.deleteOne();
-
+  
       res.json({ message: "Xóa tài liệu thành công" });
     } catch (error) {
-      res.status(500).json({ error: "Lỗi khi xóa tài liệu", detail: error });
+      console.error("Lỗi khi xoá tài liệu:", error);
+      res.status(500).json({ error: "Lỗi khi xóa tài liệu", detail: error.message });
     }
-  },
+  },  
 
   updateDocument: async (req, res) => {
     try {
@@ -849,7 +858,6 @@ const documentController = {
     }
   },
 
-
   uploadDocument: async (req, res) => {
     try {
       const { groupId, title, description, uploaderId } = req.body;
@@ -879,7 +887,6 @@ const documentController = {
         imgDocument: imgUpload.secure_url,
         mainFile: fileUpload.secure_url,
       });
-
       const saved = await newDoc.save();
       res.json(saved);
     } catch (error) {
@@ -887,7 +894,5 @@ const documentController = {
     }
   },
 };
-
-
 module.exports = documentController;
 

@@ -37,14 +37,14 @@
           <h2 class="text-xl font-semibold text-gray-800">{{ doc.title }}</h2>
           <div class="flex gap-3 items-center">
             <button
-              @click="viewDocument(doc)"
               class="text-sm text-blue-500 hover:underline"
+              @click="viewDocument(doc)"
             >
               Xem
             </button>
             <button
-              @click="confirmDelete(doc._id)"
               class="text-sm text-red-500 hover:underline"
+              @click="confirmDelete(doc._id)"
             >
               Xóa
             </button>

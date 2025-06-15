@@ -1,8 +1,6 @@
 <template>
-  <div class="space-y-6 p-4 max-w-7xl mx-auto">
-    <h1 class="text-2xl font-semibold text-gray-800 text-center">
-      ⚠️ Reported Documents
-    </h1>
+  <div class="p-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">⚠️ Reported Documents</h1>
 
     <div class="mb-6 max-w-md relative">
       <input
@@ -75,8 +73,8 @@
 
           <div class="mt-4 flex gap-2">
             <button
-              @click="toggleReportDetails(doc)"
               class="text-blue-600 hover:underline text-sm"
+              @click="toggleReportDetails(doc)"
             >
               👁️
               {{
@@ -84,15 +82,15 @@
               }}
             </button>
             <button
-              @click="confirmDelete(doc._id)"
               class="text-red-600 hover:underline text-sm"
+              @click="confirmDelete(doc._id)"
             >
               🗑️ Delete
             </button>
             <button
               v-if="reportDetailsVisible[doc._id]"
-              @click="cancelReport(doc._id)"
               class="text-yellow-700 hover:underline text-sm"
+              @click="cancelReport(doc._id)"
             >
               ❌ Cancel Report
             </button>
@@ -152,9 +150,6 @@ export default {
       searchQuery: "",
     };
   },
-  created() {
-    this.fetchReportedDocuments();
-  },
   computed: {
     filteredDocuments() {
       const query = this.searchQuery.trim().toLowerCase();
@@ -163,6 +158,9 @@ export default {
         doc.title?.toLowerCase().includes(query),
       );
     },
+  },
+  created() {
+    this.fetchReportedDocuments();
   },
   methods: {
     async fetchReportedDocuments() {

@@ -2,7 +2,6 @@
   <div class="p-6">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">📁 Group List</h1>
 
-    <!-- Tìm kiếm -->
     <div class="mb-6 max-w-md relative">
       <input
         v-model="searchQuery"
@@ -25,7 +24,6 @@
       </svg>
     </div>
 
-    <!-- Danh sách nhóm -->
     <div
       v-if="filteredGroups.length"
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -45,20 +43,20 @@
           <h2 class="text-xl font-bold text-gray-800">{{ group.name }}</h2>
           <div class="space-x-2 text-sm">
             <button
-              @click="viewGroupMembers(group)"
               class="text-blue-600 hover:underline"
+              @click="viewGroupMembers(group)"
             >
               👁 Xem
             </button>
             <button
-              @click="openEditModal(group)"
               class="text-yellow-600 hover:underline"
+              @click="openEditModal(group)"
             >
               Sửa
             </button>
             <button
-              @click="confirmDelete(group._id)"
               class="text-red-600 hover:underline"
+              @click="confirmDelete(group._id)"
             >
               Xóa
             </button>
@@ -85,7 +83,6 @@
 
     <div v-else class="text-gray-500 mt-4">Không tìm thấy nhóm nào.</div>
 
-    <!-- Modal sửa nhóm -->
     <div
       v-if="selectedGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
@@ -108,14 +105,14 @@
         </label>
         <div class="flex justify-end mt-4 space-x-2">
           <button
-            @click="selectedGroup = null"
             class="px-4 py-2 bg-gray-300 rounded"
+            @click="selectedGroup = null"
           >
             Hủy
           </button>
           <button
-            @click="saveGroup"
             class="px-4 py-2 bg-blue-600 text-white rounded"
+            @click="saveGroup"
           >
             Lưu
           </button>
@@ -123,7 +120,6 @@
       </div>
     </div>
 
-    <!-- Modal xem thành viên -->
     <div
       v-if="viewingGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
@@ -147,8 +143,8 @@
         </ul>
         <div class="text-right">
           <button
-            @click="viewingGroup = null"
             class="px-4 py-2 bg-gray-300 rounded"
+            @click="viewingGroup = null"
           >
             Đóng
           </button>

@@ -17,10 +17,31 @@ module.exports = {
   },
 
   updateUser: async (req, res) => {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(user);
+    const { id } = req.params;
+    const { username, email, phoneNumber, bio } = req.body;
+  
+    if (!username || !email) {
+      return res.status(400).json({ error: "Username and email are required" });
+    }
+  
+    try {
+      const user = await User.findById(id);
+      if (!user) return res.status(404).json({ error: "User not found" });
+  
+      user.username = username;
+      user.email = email;
+      user.phoneNumber = phoneNumber || '';
+      user.bio = bio || '';
+  
+      await user.save();
+  
+      res.json({ message: "User updated successfully", user });
+    } catch (error) {
+      console.error("Update error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
-
+  
   deleteUser: async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User deleted' });

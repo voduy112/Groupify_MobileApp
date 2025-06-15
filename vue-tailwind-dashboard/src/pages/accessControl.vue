@@ -19,8 +19,8 @@
           <p class="text-sm text-gray-500">Quản lý quyền truy cập cho Admin</p>
         </div>
         <button
-          @click="logout"
           class="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
+          @click="logout"
         >
           Đăng xuất
         </button>
@@ -28,7 +28,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
         <div class="p-4 bg-gray-50 rounded-lg border">
-          👤 Xin chào: <span class="font-semibold">{{ user.name }}</span>
+          👤 Xin chào: <span class="font-semibold">{{ user.username }}</span>
         </div>
         <div class="p-4 bg-gray-50 rounded-lg border">
           🛡️ Vai trò:
