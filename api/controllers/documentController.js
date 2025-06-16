@@ -1,5 +1,6 @@
 const cloudinary = require("../config/Cloudinary");
 const Document = require("../models/Document");
+const User = require("../models/User");
 
 const documentController = {
   getAllDocument: async (req, res) => {
@@ -245,6 +246,181 @@ const documentController = {
       return res.status(500).json({ error: "Lỗi khi xóa tài liệu theo groupId" });
     }
   },
+
+  rateDocument: async (req, res) => {
+    const { userId, ratingValue } = req.body;
+    const documentId = req.params.id;
+
+    if (!userId || !ratingValue) {
+      return res.status(400).json({ error: 'Thiếu thông tin đánh giá' });
+    }
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+      }
+
+      const existingRatingIndex = document.ratings.findIndex(
+        (r) => r.userId.toString() === userId
+      );
+
+      if (existingRatingIndex !== -1) {
+        document.ratings[existingRatingIndex].value = ratingValue;
+      } else {
+        document.ratings.push({ userId, value: ratingValue });
+      }
+
+      await document.save();
+      res.json({ message: 'Đánh giá thành công', document });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Lỗi khi đánh giá tài liệu' });
+    }
+  },
+
+  getDocumentRating: async (req, res) => {
+    const documentId = req.params.id;
+
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+      }
+
+      const ratings = document.ratings || [];
+
+      const totalRating = ratings.reduce((sum, r) => sum + r.value, 0);
+      const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
+
+      res.json({
+        averageRating: averageRating.toFixed(1),
+        totalRatings: ratings.length,
+        ratings,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Lỗi khi lấy thông tin đánh giá' });
+    }
+  },
+
+  addComment: async (req, res) => {
+    const documentId = req.params.id;
+    const { userId, content } = req.body;
+  
+    if (!userId || !content) {
+      return res.status(400).json({ error: 'Thiếu thông tin bình luận' });
+    }
+  
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+      }
+  
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+      }
+  
+      const comment = {
+        userId,
+        username: user.username || 'Ẩn danh',
+        avatar: user.profilePicture || '',
+        content,
+        createdAt: new Date(),
+      };
+  
+      document.comments.push(comment);
+      await document.save();
+  
+      res.status(201).json({ message: 'Bình luận thành công', comment });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Lỗi khi gửi bình luận' });
+    }
+  },  
+
+  /*getComments: async (req, res) => {
+    const documentId = req.params.id;
+  
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+      }
+  
+      const comments = await Promise.all(
+        (document.comments || []).map(async (cmt) => {
+          if (cmt.username && cmt.avatar) return cmt;
+  
+          const user = await User.findById(cmt.userId);
+          return {
+            ...cmt._doc, 
+            username: user?.username || 'Ẩn danh',
+            avatar: user?.profilePicture || '',
+          };
+        })
+      );
+  
+      res.json({ comments });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
+    }
+  } */
+
+    getComments: async (req, res) => {
+      const documentId = req.params.id;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = parseInt(req.query.skip) || 0;
+    
+      try {
+        const document = await Document.findById(documentId).select("comments");
+        if (!document) {
+          return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+        }
+    
+        const totalComments = document.comments.length;
+    
+        // Lấy bình luận mới nhất trước
+        const paginatedComments = document.comments
+          .slice()
+          .reverse()
+          .slice(skip, skip + limit);
+    
+        // Bổ sung avatar và username nếu thiếu
+        const enrichedComments = await Promise.all(
+          paginatedComments.map(async (cmt) => {
+            if (cmt.username && cmt.avatar) return cmt;
+    
+            try {
+              const user = await User.findById(cmt.userId);
+              return {
+                ...cmt._doc, // nếu cmt là một document
+                username: user?.username || 'Ẩn danh',
+                avatar: user?.profilePicture || '',
+              };
+            } catch {
+              return {
+                ...cmt._doc,
+                username: 'Ẩn danh',
+                avatar: '',
+              };
+            }
+          })
+        );
+    
+        res.json({
+          comments: enrichedComments,
+          total: totalComments,
+          hasMore: skip + limit < totalComments,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
+      }
+    },
+    
   
 };
 

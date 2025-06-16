@@ -50,7 +50,13 @@ void main() async {
           ChangeNotifierProvider(
               create: (_) =>
                   ChatgroupProvider(chatgroupService: ChatgroupService())),
-          ChangeNotifierProvider(create: (_) => DocumentProvider()),
+          ChangeNotifierProvider(
+            create: (context) {
+              final authProvider =
+                  Provider.of<AuthProvider>(context, listen: false);
+              return DocumentProvider(authProvider: authProvider);
+            },
+          ),
           ChangeNotifierProvider(create: (_) => QuizProvider()),
           ChangeNotifierProvider(create: (_) => GroupRequestProvider()),
           ChangeNotifierProvider(create: (_) => MessagingProvider()),

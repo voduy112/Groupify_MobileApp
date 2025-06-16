@@ -68,11 +68,12 @@ class GroupDrawer extends StatelessWidget {
                   );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Rời nhóm'),
-                onTap: onLeaveGroup,
-              ),
+              if (!isAdmin)
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Rời nhóm'),
+                  onTap: onLeaveGroup,
+                ),
               if (isAdmin)
                 ListTile(
                   leading: const Icon(Icons.delete_outline),
