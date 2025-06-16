@@ -165,7 +165,10 @@ const notificationController = {
         .send({ success: false, message: "Thiếu dữ liệu cần thiết" });
     }
 
-    const group = await Group.findById(groupId).populate("membersID");
+    const group = await Group.findById(groupId).populate(
+      "membersID",
+      "fcmToken mutedGroups"
+    );
     if (!group) {
       return res
         .status(404)
@@ -175,7 +178,13 @@ const notificationController = {
     for (const member of group.membersID) {
       if (
         member.fcmToken &&
-        member._id.toString() !== group.ownerId.toString()
+        member._id.toString() !== group.ownerId.toString() &&
+        !(
+          member.mutedGroups &&
+          member.mutedGroups
+            .map((id) => id.toString())
+            .includes(group._id.toString())
+        )
       ) {
         const message = {
           notification: {
@@ -203,6 +212,57 @@ const notificationController = {
       success: true,
       message: "Đã gửi xong thông báo cho các thành viên",
     });
+  },
+  getMutedGroups: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res
+          .status(404)
+          .send({ success: false, message: "User not found" });
+      }
+      const mutedGroups = user.mutedGroups;
+      const groups = await Group.find({ _id: { $in: mutedGroups } });
+      res.status(200).send({ success: true, groups });
+    } catch (err) {
+      res.status(500).send({ success: false, message: "Server error" });
+    }
+  },
+  muteGroup: async (req, res) => {
+    try {
+      const { groupId, userId } = req.body;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "Không tìm thấy user" });
+      }
+      if (user.mutedGroups.includes(groupId)) {
+        return res.status(400).json({ error: "Đã mute nhóm" });
+      }
+      user.mutedGroups.push(groupId);
+      await user.save();
+      res.status(200).json({ message: "Đã mute nhóm" });
+    } catch (error) {
+      console.error("Lỗi khi mute nhóm:", error);
+      res.status(500).json({ error: "Lỗi khi mute nhóm" });
+    }
+  },
+  unmuteGroup: async (req, res) => {
+    try {
+      const { groupId, userId } = req.body;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "Không tìm thấy user" });
+      }
+      user.mutedGroups = user.mutedGroups.filter(
+        (id) => id.toString() !== groupId
+      );
+      await user.save();
+      res.status(200).json({ message: "Đã unmute nhóm" });
+    } catch (error) {
+      console.error("Lỗi khi unmute nhóm:", error);
+      res.status(500).json({ error: "Lỗi khi unmute nhóm" });
+    }
   },
 };
 
