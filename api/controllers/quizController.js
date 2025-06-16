@@ -1,17 +1,14 @@
 const Quiz = require('../models/Quiz');
-const ResultQuiz = require('../models/ResultQuiz');
+const ResultQuiz = require('../models/resultQuiz');
 
 const quizController = {
 
-    getQuizById : async(req, res) => {
+    getAllQuiz : async(req, res) => {
         try {
-            const quiz = await Quiz.findById(req.params.id);
-            if (!quiz) {
-            return res.status(404).json({ error: "Không tìm thấy quiz" });
-            }
-            res.json(quiz);
-        } catch (error) {
-            res.status(500).json({ error: "Lỗi khi lấy thông tin quiz" });
+           const quizes = await Quiz.find();
+           res.json(quizes); 
+        }catch (error) {
+            res.status(404).json({error: "Lỗi lấy bộ câu hỏi"});
         }
     },
 
@@ -49,7 +46,7 @@ const quizController = {
             }
             if(title !== undefined) quiz.title = title;
             if(description !== undefined) quiz.description = description;
-            if(groupId) quiz.groupId = groupId;
+            if(groupId !== undefined) quiz.groupId = groupId;
 
             await quiz.save();
             return res.status(200).json({message: "Cập nhật thông tin thành công"});
@@ -171,12 +168,10 @@ const quizController = {
     
                 const isCorrect = selectedAnswer.isCorrect === true;
                 if (isCorrect) score++;
-                const correctAnswerIndex = question.answers.findIndex(ans => ans.isCorrect === true);
     
                 results.push({
                     questionIndex,
                     selectedAnswerIndex: answerIndex,
-                    correctAnswerIndex, 
                     correct: isCorrect
                 });
             }
@@ -225,27 +220,6 @@ const quizController = {
                         res.status(500).json({ error: "Lỗi khi lấy bộ câu hỏi theo groupId" });
                     }
         },
-    
-        deleteQuizzesByGroupId: async (req, res) => {
-            const { groupId } = req.params;
-        
-            if (!groupId) {
-                return res.status(400).json({ error: "Thiếu groupId" });
-            }
-        
-            try {
-                const result = await Quiz.deleteMany({ groupId });
-        
-                return res.status(200).json({
-                    message: "Đã xoá tất cả quiz thuộc group thành công",
-                    deletedCount: result.deletedCount
-                });
-            } catch (error) {
-                console.error("Lỗi khi xoá quiz theo groupId:", error);
-                return res.status(500).json({ error: "Không thể xoá quiz theo groupId" });
-            }
-        },
-        
     
     
 }

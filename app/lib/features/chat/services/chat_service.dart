@@ -37,12 +37,4 @@ class ChatService {
       throw Exception('Lỗi API lấy danh sach chat: $e');
     }
   }
-
-  Future<void> deleteChat(String userId1, String userId2) async {
-    final response =
-        await _dio.delete('/api/chat/$userId1/$userId2');
-    if (response.statusCode != 200) {
-      throw Exception('Xóa cuộc trò chuyện thất bại');
-    }
-  }
 }

@@ -32,7 +32,6 @@ InitRoutes(app);
 
 //Sockets
 socketHandler(io);
-app.set('io', io);
 
 Server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

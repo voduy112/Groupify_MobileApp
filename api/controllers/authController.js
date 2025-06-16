@@ -130,44 +130,6 @@ const authController = {
       res.status(500).json({ message: "Error during logout", error });
     }
   },
-  refreshToken: async (req, res) => {
-    try {
-      const { refreshToken } = req.body;
-      if (!refreshToken) {
-        return res.status(400).json({ message: "Refresh token required" });
-      }
-      console.log("refreshToken: ", refreshToken);
-
-      const decoded = jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET
-      );
-      const user = await User.findById(decoded.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // So sánh với refresh token đã lưu (nếu có)
-      console.log("storedRefreshToken: ", user.refreshToken);
-      console.log("refreshToken: ", refreshToken);
-      if (user.refreshToken !== refreshToken) {
-        return res.status(403).json({ message: "Invalid refresh token" });
-      }
-
-      const accessToken = authController.generateAccessToken(user);
-      res.status(200).json({ accessToken });
-    } catch (error) {
-      if (
-        error.name === "TokenExpiredError" ||
-        error.name === "JsonWebTokenError"
-      ) {
-        return res
-          .status(401)
-          .json({ message: "Invalid or expired refresh token" });
-      }
-      res.status(500).json({ message: "Error refreshing token" });
-    }
-  },
   sendOTPEmail: async (req, res) => {
     try {
       const { email } = req.body;
@@ -251,41 +213,6 @@ const authController = {
       res.status(200).json({ message: "OTP sent successfully" });
     } catch (error) {
       res.status(500).json({ message: "Error sending OTP", error });
-    }
-  },
-  changePassword: async (req, res) => {
-    try {
-      const { email, oldPassword, newPassword } = req.body;
-      if (!email || !oldPassword || !newPassword) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Mật khẩu cũ không đúng" });
-      }
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-      user.password = hashedPassword;
-      await user.save();
-      res.status(200).json({ message: "Mật khẩu đã được thay đổi thành công" });
-    } catch (error) {
-      res.status(500).json({ message: "Lỗi khi thay đổi mật khẩu", error });
-    }
-  },
-  updateFcmToken: async (req, res) => {
-    try {
-      const { userId, fcmToken } = req.body;
-      if (!userId || !fcmToken) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-      await User.findByIdAndUpdate(userId, { fcmToken });
-      res.status(200).json({ message: "FCM token updated successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Error updating FCM token", error });
     }
   },
 };

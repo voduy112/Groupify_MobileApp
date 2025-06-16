@@ -30,7 +30,6 @@ class AuthService {
           'Error logging in: ${e.response?.data['message'] ?? e.message}');
     }
   }
-
   Future<User> register(
       String name, String email, String phone, String password) async {
     final response = await _dio.post('/api/auth/register', data: {
@@ -41,6 +40,7 @@ class AuthService {
     });
     return User.fromJson(response.data);
   }
+
 
   Future<void> logout(BuildContext context) async {
     try {
@@ -73,42 +73,5 @@ class AuthService {
         await _dio.post('/api/auth/resend-otp', data: {'email': email});
     return response.data['message'];
   }
-
-  //lay profile by userid
-  Future<User> fetchUserProfileById(String userId) async {
-    try {
-      final response = await _dio.get('/api/profile/$userId');
-      if (response.statusCode == 200) {
-        return User.fromJson(response.data);
-      } else {
-        throw Exception('Failed to fetch user profile');
-      }
-    } catch (e) {
-      throw Exception('Error fetching profile: $e');
-    }
-  }
-
-  Future<void> changePassword(
-      String email, String oldPassword, String newPassword) async {
-    try {
-      final response = await _dio.post('/api/auth/change-password', data: {
-        'email': email,
-        'oldPassword': oldPassword,
-        'newPassword': newPassword,
-      });
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('Failed to change password');
-      }
-    } catch (e) {
-      throw Exception('Error changing password: $e');
-    }
-  }
-
-  Future<void> updateFcmToken(String userId, String fcmToken) async {
-    final response = await _dio.post('/api/auth/update-fcm-token',
-        data: {'userId': userId, 'fcmToken': fcmToken});
-    return response.data;
-  }
 }
+

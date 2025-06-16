@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../models/user.dart';
-import '../services/user_service.dart';
-import 'dart:io';
 
 class UserProvider with ChangeNotifier {
-  final UserService _userService = UserService();
+  String? _userId;
 
-  User? _user;
-  User? get user => _user;
+  String? get userId => _userId;
+
+  void setUserId(String id) {
+    _userId = id;
+    notifyListeners();
+  }
+
+  void clearUser() {
+    _userId = null;
+    notifyListeners();
+  }
 }

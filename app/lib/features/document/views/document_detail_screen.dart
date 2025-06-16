@@ -8,25 +8,19 @@ import 'package:provider/provider.dart';
 import '../../../models/document.dart';
 import '../providers/document_provider.dart';
 
-class DocumentDetailScreenView extends StatefulWidget {
+class DocumentDetailScreen extends StatefulWidget {
   final String documentId;
 
-  const DocumentDetailScreenView({Key? key, required this.documentId})
+  const DocumentDetailScreen({Key? key, required this.documentId})
       : super(key: key);
 
   @override
-  State<DocumentDetailScreenView> createState() =>
-      _DocumentDetailScreenViewState();
+  State<DocumentDetailScreen> createState() => _DocumentDetailScreenState();
 }
 
-class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
+class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   String? localPath;
   String? loadError;
-
-  int? totalPages;
-  int currentPage = 0;
-  PDFViewController? pdfViewController;
-  final pageController = TextEditingController();
 
   @override
   void initState() {
@@ -38,12 +32,7 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
       final fileUrl = provider.selectedDocument?.mainFile;
       if (fileUrl != null && fileUrl.isNotEmpty) {
         try {
-          final response = await http.get(
-            Uri.parse(fileUrl),
-            headers: {
-              'Accept': 'application/pdf',
-            },
-          );
+          final response = await http.get(Uri.parse(fileUrl));
           if (response.statusCode == 200) {
             final dir = await getTemporaryDirectory();
             final file = File('${dir.path}/temp_doc.pdf');
@@ -53,8 +42,7 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
             });
           } else {
             setState(() {
-              loadError =
-                  "Tải PDF thất bại (${response.statusCode}): ${response.body}";
+              loadError = "Tải PDF thất bại (${response.statusCode})";
             });
           }
         } catch (e) {
@@ -70,42 +58,13 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
     });
   }
 
-  void goToPage() {
-    final input = int.tryParse(pageController.text);
-    if (input != null &&
-        input > 0 &&
-        totalPages != null &&
-        input <= totalPages!) {
-      pdfViewController?.setPage(input - 1);
-      FocusScope.of(context).unfocus();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Số trang không hợp lệ')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DocumentProvider>(context);
     final document = provider.selectedDocument;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(document?.title ?? 'Chi tiết tài liệu'),
-        actions: [
-          if (totalPages != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Center(
-                child: Text(
-                  '$currentPage/$totalPages',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ),
-        ],
-      ),
+      appBar: AppBar(title: Text(document?.title ?? 'Chi tiết tài liệu')),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : document == null
@@ -114,71 +73,18 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
                   ? Center(child: Text(loadError!))
                   : localPath == null
                       ? const Center(child: Text('Đang tải PDF...'))
-                      : Column(
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  PDFView(
-                                    filePath: localPath!,
-                                    enableSwipe: true,
-                                    swipeHorizontal: true,
-                                    autoSpacing: true,
-                                    pageFling: true,
-                                    onRender: (pages) {
-                                      setState(() {
-                                        totalPages = pages;
-                                      });
-                                    },
-                                    onViewCreated: (controller) {
-                                      pdfViewController = controller;
-                                    },
-                                    onPageChanged: (page, total) {
-                                      setState(() {
-                                        currentPage = (page ?? 0) + 1;
-                                        totalPages = total;
-                                      });
-                                    },
-                                    onError: (error) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(
-                                              content: Text(
-                                                  'Lỗi khi hiển thị PDF: $error')));
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: pageController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: 'Tới trang',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  ElevatedButton(
-                                    onPressed: goToPage,
-                                    child: Text('Đi'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                      : PDFView(
+                          filePath: localPath!,
+                          enableSwipe: true,
+                          swipeHorizontal: true,
+                          autoSpacing: true,
+                          pageFling: true,
+                          onError: (error) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi khi hiển thị PDF: $error')),
+                            );
+                          },
                         ),
     );
-  }
-
-  @override
-  void dispose() {
-    pageController.dispose();
-    super.dispose();
   }
 }
