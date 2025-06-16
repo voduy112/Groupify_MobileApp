@@ -67,6 +67,15 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     }
   }
 
+  void _reloadScreen() {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _group = null;
+    });
+    _loadGroup();
+  }
+
   Future<void> _fetchGroupMembers() async {
     setState(() {
       _loadingMembers = true;
@@ -256,6 +265,17 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                 group: _group!,
                 currentUserId: currentUser?.id ?? '',
                 onDeleteGroup: _deleteGroup,
+                onChangeOwner: (groupId, newOwnerId) async {
+                  try {
+                    await Provider.of<GroupProvider>(context, listen: false)
+                        .changeOwnerId(groupId, newOwnerId);
+                    _reloadScreen();
+                    return true;
+                  } catch (e) {
+                    debugPrint('Lỗi chuyển quyền: $e');
+                    return false;
+                  }
+                },
               ),
         body: Stack(
           children: [

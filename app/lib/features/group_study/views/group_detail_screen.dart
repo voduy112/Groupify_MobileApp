@@ -312,7 +312,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         MessagingProvider().sendJoinRequestNotification(
                             _group!.ownerId!['fcmToken']!,
                             currentUser.username!,
-                            _group!.name!);
+                            _group!.name!,
+                            _group!.id!,
+                            currentUser.id!);
                       } catch (e) {
                         errorMessage = e.toString();
                       }

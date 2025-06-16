@@ -34,6 +34,10 @@ class QuizProvider extends ChangeNotifier {
   bool _isCreating = false;
   bool get isCreating => _isCreating;
 
+  bool _isDeletingQuiz = false;
+  bool get isDeletingQuiz => _isDeletingQuiz;
+
+
   Future<void> createQuiz({
     required String title,
     required String description,
@@ -239,5 +243,24 @@ class QuizProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> deleteQuizById(String quizId) async {
+    _isDeletingQuiz = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _quizService.deleteQuizById(quizId);
+      _quizzes.removeWhere((quiz) => quiz.id == quizId);
+      if (_selectedQuiz?.id == quizId) {
+        _selectedQuiz = null;
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isDeletingQuiz = false;
+      notifyListeners();
+    }
+  }
+
 
 }

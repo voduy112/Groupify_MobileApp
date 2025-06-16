@@ -4,12 +4,28 @@ import '../../services/api/dio_client.dart';
 class MessagingService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  static Future<void> sendJoinRequestNotification(
-      String adminFcmToken, String userName, String groupName) async {
+  static Future<List<dynamic>> getAllNotification(String userId) async {
+    final response =
+        await DioClient.instance.get('/api/notification/user/$userId');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return response.data['notifications'];
+    } else {
+      throw Exception('Không thể lấy danh sách thông báo');
+    }
+  }
+
+  static Future<void> readNotification(String notiId) async {
+    await DioClient.instance.post('/api/notification/read/$notiId');
+  }
+
+  static Future<void> sendJoinRequestNotification(String adminFcmToken,
+      String userName, String groupName, String groupId, String userId) async {
     await DioClient.instance.post("/api/notification/send-join-request", data: {
       "adminFcmToken": adminFcmToken,
       "userName": userName,
       "groupName": groupName,
+      "groupId": groupId,
+      "userId": userId,
     });
   }
 

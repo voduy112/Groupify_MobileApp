@@ -4,6 +4,7 @@ import '../../../document/providers/document_provider.dart';
 import '../../../document/views/document_item.dart';
 import '../../../document/views/document_detail_screen.dart';
 import '../../../document/views/upload_document_screen.dart';
+import '../../../document/views/edit_document_screen.dart';
 
 class DocumentList extends StatelessWidget {
   final ScrollController scrollController;
@@ -47,14 +48,53 @@ class DocumentList extends StatelessWidget {
                             final document = provider.documents[index];
                             return DocumentItem(
                               document: document,
+                              currentUserId: currentUserId,
+                              groupOwnerId: groupOwnerId,
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => DocumentDetailScreenView(
-                                      documentId: document.id!,
-                                    ),
+                                        documentId: document.id!),
                                   ),
                                 );
+                              },
+                              onEdit: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        EditDocumentScreen(document: document),
+                                  ),
+                                );
+                              },
+                              onDelete: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Xác nhận xoá'),
+                                    content: const Text(
+                                        'Bạn có chắc chắn muốn xoá tài liệu này?'),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text('Huỷ')),
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, true),
+                                          child: const Text('Xoá')),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirm == true) {
+                                  await context
+                                      .read<DocumentProvider>()
+                                      .deleteDocumentById(document.id!);
+                                  context
+                                      .read<DocumentProvider>()
+                                      .fetchDocumentsByGroupId(groupId);
+                                }
                               },
                             );
                           },

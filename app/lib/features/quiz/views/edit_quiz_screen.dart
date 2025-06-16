@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 
-// MODEL
 class EditableAnswer {
   String text;
   bool isCorrect;
@@ -29,11 +29,9 @@ class EditQuizScreen extends StatefulWidget {
 class _EditQuizScreenState extends State<EditQuizScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   List<EditableQuestion> _questions = [];
-  List<TextEditingController> _questionControllers = [];
-  List<List<TextEditingController>> _answerControllers = [];
-
   bool _showQuestions = false;
   bool _isQuizLoaded = false;
   int _originalQuestionCount = 0;
@@ -47,7 +45,6 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
   Future<void> _loadQuiz() async {
     final provider = Provider.of<QuizProvider>(context, listen: false);
     await provider.fetchQuizById(widget.quizId);
-
     final quiz = provider.selectedQuiz;
 
     if (quiz != null) {
@@ -63,15 +60,6 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                         EditableAnswer(text: a.text, isCorrect: a.isCorrect))
                     .toList(),
               ))
-          .toList();
-
-      _questionControllers =
-          _questions.map((q) => TextEditingController(text: q.text)).toList();
-
-      _answerControllers = _questions
-          .map((q) => q.answers
-              .map((a) => TextEditingController(text: a.text))
-              .toList())
           .toList();
 
       _isQuizLoaded = true;
@@ -91,8 +79,6 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Cập nhật thông tin quiz thành công!')),
       );
-
-      // Chuyển về trang trước sau khi lưu thành công
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,16 +88,52 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
   }
 
   Future<void> _saveQuestions() async {
-    final provider = Provider.of<QuizProvider>(context, listen: false);
+    _formKey.currentState?.save();
 
+    final provider = Provider.of<QuizProvider>(context, listen: false);
     List<Map<String, dynamic>> updates = [];
 
     for (int i = 0; i < _questions.length; i++) {
-      EditableQuestion q = _questions[i];
+      EditableQuestion question = _questions[i];
+
+      if (question.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Câu hỏi ${i + 1} không được để trống.')),
+        );
+        return;
+      }
+
+      if (question.answers.length < 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Câu hỏi ${i + 1} phải có ít nhất 2 đáp án.')),
+        );
+        return;
+      }
+
+      for (int j = 0; j < question.answers.length; j++) {
+        if (question.answers[j].text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Đáp án ${j + 1} trong câu hỏi ${i + 1} không được để trống.')),
+          );
+          return;
+        }
+      }
+
+      bool hasCorrect = question.answers.any((a) => a.isCorrect);
+      if (!hasCorrect) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Câu hỏi ${i + 1} phải có ít nhất một đáp án đúng.')),
+        );
+        return;
+      }
 
       List<Map<String, dynamic>> answers = [];
-      for (int j = 0; j < q.answers.length; j++) {
-        EditableAnswer a = q.answers[j];
+      for (int j = 0; j < question.answers.length; j++) {
+        EditableAnswer a = question.answers[j];
         answers.add({
           'answerIndex': j,
           'text': a.text,
@@ -120,21 +142,19 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
       }
 
       if (i < _originalQuestionCount) {
-        // Câu hỏi cũ → update
         updates.add({
           'action': 'update',
           'questionIndex': i,
           'newData': {
-            'text': q.text,
+            'text': question.text,
             'answers': answers,
           },
         });
       } else {
-        // Câu hỏi mới → add
         updates.add({
           'action': 'add',
           'newData': {
-            'text': q.text,
+            'text': question.text,
             'answers': answers,
           },
         });
@@ -167,28 +187,21 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
     if (!_isQuizLoaded) return;
 
     setState(() {
-      EditableQuestion newQuestion = EditableQuestion(
-        text: '',
-        answers: [
-          EditableAnswer(text: '', isCorrect: false),
-          EditableAnswer(text: '', isCorrect: false),
-        ],
+      _questions.add(
+        EditableQuestion(
+          text: '',
+          answers: [
+            EditableAnswer(text: '', isCorrect: false),
+            EditableAnswer(text: '', isCorrect: false),
+          ],
+        ),
       );
-
-      _questions.add(newQuestion);
-      _questionControllers.add(TextEditingController());
-      _answerControllers.add([
-        TextEditingController(),
-        TextEditingController(),
-      ]);
     });
   }
 
   void _deleteQuestion(int index) {
     setState(() {
       _questions.removeAt(index);
-      _questionControllers.removeAt(index);
-      _answerControllers.removeAt(index);
     });
   }
 
@@ -197,14 +210,12 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
       _questions[questionIndex]
           .answers
           .add(EditableAnswer(text: '', isCorrect: false));
-      _answerControllers[questionIndex].add(TextEditingController());
     });
   }
 
   void _deleteAnswer(int questionIndex, int answerIndex) {
     setState(() {
       _questions[questionIndex].answers.removeAt(answerIndex);
-      _answerControllers[questionIndex].removeAt(answerIndex);
     });
   }
 
@@ -218,133 +229,125 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(labelText: 'Tiêu đề'),
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: _descriptionController,
-                    maxLines: 2,
-                    decoration: InputDecoration(labelText: 'Mô tả'),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800], // Xanh dương đậm
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomTextFormField(
+                      label: 'Tiêu đề',
+                      initialValue: _titleController.text,
+                      onSaved: (value) => _titleController.text = value ?? '',
                     ),
-                    onPressed: provider.isUpdatingQuiz ? null : _saveQuizInfo,
-                    child: provider.isUpdatingQuiz
-                        ? CircularProgressIndicator()
-                        : Text('Lưu thông tin Quiz'),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800], // Xanh dương đậm
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    SizedBox(height: 12),
+                    CustomTextFormField(
+                      label: 'Mô tả',
+                      initialValue: _descriptionController.text,
+                      maxLines: 2,
+                      onSaved: (value) =>
+                          _descriptionController.text = value ?? '',
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _showQuestions = !_showQuestions;
-                      });
-                    },
-                    child: Text(_showQuestions
-                        ? 'Ẩn chỉnh sửa câu hỏi'
-                        : 'Chỉnh sửa câu hỏi'),
-                  ),
-                  SizedBox(height: 16),
-                  if (_showQuestions) ...[
-                    Text(
-                      'Câu hỏi:',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: provider.isUpdatingQuiz ? null : _saveQuizInfo,
+                      child: provider.isUpdatingQuiz
+                          ? CircularProgressIndicator()
+                          : Text('Lưu thông tin Quiz'),
                     ),
-                    SizedBox(height: 8),
-                    ..._questions.asMap().entries.map((entry) {
-                      int qIndex = entry.key;
-                      EditableQuestion question = entry.value;
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showQuestions = !_showQuestions;
+                        });
+                      },
+                      child: Text(_showQuestions
+                          ? 'Ẩn chỉnh sửa câu hỏi'
+                          : 'Chỉnh sửa câu hỏi'),
+                    ),
+                    SizedBox(height: 16),
+                    if (_showQuestions) ...[
+                      Text('Câu hỏi:',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      ..._questions.asMap().entries.map((entry) {
+                        int qIndex = entry.key;
+                        EditableQuestion question = entry.value;
 
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(
-                              color: Colors.blue, width: 2), // viền xanh dương
-                          borderRadius: BorderRadius.circular(8), // bo góc đẹp
-                        ),
-                        color: Colors.white, // nền trắng
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Câu hỏi ${qIndex + 1}',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => _deleteQuestion(qIndex),
-                                  ),
-                                ],
-                              ),
-                              TextField(
-                                decoration: InputDecoration(
-                                    labelText: 'Nội dung câu hỏi'),
-                                controller: _questionControllers[qIndex],
-                                onChanged: (value) {
-                                  question.text = value;
-                                },
-                              ),
-                              SizedBox(height: 8),
-                              ...question.answers
-                                  .asMap()
-                                  .entries
-                                  .map((ansEntry) {
-                                int aIndex = ansEntry.key;
-                                EditableAnswer answer = ansEntry.value;
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        return Card(
+                          color: Colors.white,
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            // side: BorderSide(color: Colors.blue, width: 1.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
+                                    Text(
+                                      'Câu hỏi ${qIndex + 1}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    IconButton(
+                                      icon:
+                                          Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => _deleteQuestion(qIndex),
+                                    ),
+                                  ],
+                                ),
+                                CustomTextFormField(
+                                  label: 'Nội dung câu hỏi',
+                                  initialValue: question.text,
+                                  onSaved: (value) => _questions[qIndex].text =
+                                      value?.trim() ?? '',
+                                ),
+                                SizedBox(height: 8),
+                                ...question.answers.asMap().entries.map((ans) {
+                                  int aIndex = ans.key;
+                                  EditableAnswer answer = ans.value;
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 6),
+                                    child: Row(
                                       children: [
                                         Expanded(
-                                          child: TextField(
-                                            decoration: InputDecoration(
-                                              labelText: 'Đáp án ${aIndex + 1}',
-                                            ),
-                                            controller:
-                                                _answerControllers[qIndex]
-                                                    [aIndex],
-                                            onChanged: (value) {
-                                              answer.text = value;
-                                            },
+                                          child: CustomTextFormField(
+                                            label: 'Đáp án ${aIndex + 1}',
+                                            initialValue: answer.text,
+                                            onSaved: (value) =>
+                                                _questions[qIndex]
+                                                    .answers[aIndex]
+                                                    .text = value?.trim() ?? '',
                                           ),
                                         ),
-                                        Checkbox(
-                                          value: answer.isCorrect,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              // Chỉ cho phép 1 đáp án đúng
-                                              question.answers.forEach((ans) {
-                                                ans.isCorrect = false;
-                                              });
-                                              answer.isCorrect = value!;
-                                            });
-                                          },
+                                        SizedBox(width: 12),
+                                        Column(
+                                          children: [
+                                            Radio<bool>(
+                                              value: true,
+                                              groupValue: answer.isCorrect,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  for (var ans
+                                                      in question.answers) {
+                                                    ans.isCorrect = false;
+                                                  }
+                                                  answer.isCorrect =
+                                                      value ?? false;
+                                                });
+                                              },
+                                            ),
+                                            Text('Đúng'),
+                                          ],
                                         ),
-                                        Text('Đúng'),
                                         IconButton(
                                           icon: Icon(Icons.delete,
                                               color: Colors.red),
@@ -353,63 +356,43 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 10),
-                                  ],
-                                );
-                              }).toList(),
-                              SizedBox(height: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.blue[800], // Xanh dương đậm
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 8),
+                                  );
+                                }),
+                                SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: () => _addAnswer(qIndex),
+                                  child: Text('Thêm đáp án'),
                                 ),
-                                onPressed: () => _addAnswer(qIndex),
-                                child: Text('Thêm đáp án'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.blue[800], // Xanh dương đậm
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                              ],
                             ),
-                            onPressed: _addQuestion,
-                            child: Text('Thêm câu hỏi'),
                           ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.blue[800], // Xanh dương đậm
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                        );
+                      }).toList(),
+                      SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _addQuestion,
+                              child: Text('Thêm câu hỏi'),
                             ),
-                            onPressed: provider.isUpdatingQuestions
-                                ? null
-                                : _saveQuestions,
-                            child: provider.isUpdatingQuestions
-                                ? CircularProgressIndicator()
-                                : Text('Lưu câu hỏi'),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: provider.isUpdatingQuestions
+                                  ? null
+                                  : _saveQuestions,
+                              child: provider.isUpdatingQuestions
+                                  ? CircularProgressIndicator()
+                                  : Text('Lưu câu hỏi'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]
                   ],
-                ],
+                ),
               ),
             ),
     );

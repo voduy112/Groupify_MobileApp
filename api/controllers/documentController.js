@@ -5,8 +5,22 @@ const User = require("../models/User");
 const documentController = {
   getAllDocument: async (req, res) => {
     try {
-      const documents = await Document.find();
-      res.json(documents);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      const totalDocuments = await Document.countDocuments();
+      const documents = await Document.find()
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 });
+
+      res.json({
+        totalDocuments,
+        totalPages: Math.ceil(totalDocuments / limit),
+        currentPage: page,
+        documents,
+      });
     } catch (error) {
       res.status(404).json({ error: "Lỗi lấy thông tin tài liệu" });
     }
@@ -203,18 +217,20 @@ const documentController = {
 
   deleteDocumentsByGroupId: async (req, res) => {
     const groupId = req.params.id || req.query.id;
-  
+
     if (!groupId) {
       return res.status(400).json({ error: "Thiếu groupId" });
     }
-  
+
     try {
       const documents = await Document.find({ groupId });
-  
+
       if (documents.length === 0) {
-        return res.status(404).json({ error: "Không tìm thấy tài liệu thuộc groupId này" });
+        return res
+          .status(404)
+          .json({ error: "Không tìm thấy tài liệu thuộc groupId này" });
       }
-  
+
       for (const doc of documents) {
         // Xử lý xóa file chính
         if (doc.mainFile) {
@@ -223,9 +239,11 @@ const documentController = {
             .slice(-3)
             .join("/")
             .replace(/\.(pdf)$/i, "");
-          await cloudinary.uploader.destroy(filePublicId, { resource_type: "raw" });
+          await cloudinary.uploader.destroy(filePublicId, {
+            resource_type: "raw",
+          });
         }
-  
+
         // Xử lý xóa ảnh
         if (doc.imgDocument) {
           const imgPublicId = doc.imgDocument
@@ -235,15 +253,19 @@ const documentController = {
             .replace(/\.(jpg|jpeg|png|webp)$/i, "");
           await cloudinary.uploader.destroy(imgPublicId);
         }
-  
+
         // Xóa tài liệu khỏi MongoDB
         await Document.findByIdAndDelete(doc._id);
       }
-  
-      return res.status(200).json({ message: "Đã xóa tất cả tài liệu thuộc groupId thành công" });
+
+      return res
+        .status(200)
+        .json({ message: "Đã xóa tất cả tài liệu thuộc groupId thành công" });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: "Lỗi khi xóa tài liệu theo groupId" });
+      return res
+        .status(500)
+        .json({ error: "Lỗi khi xóa tài liệu theo groupId" });
     }
   },
 
@@ -420,8 +442,6 @@ const documentController = {
         res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
       }
     },
-    
-  
 };
 
 module.exports = documentController;

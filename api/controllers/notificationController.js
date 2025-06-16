@@ -1,8 +1,23 @@
 const admin = require("../config/Firebase");
 const User = require("../models/User");
 const Group = require("../models/Group");
+const Notification = require("../models/Notification");
 
 const notificationController = {
+  getAllNotification: async (req, res) => {
+    const { userId } = req.params;
+    const notifications = await Notification.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .limit(8);
+    res.status(200).send({ success: true, notifications });
+  },
+
+  readNotification: async (req, res) => {
+    const { notiId } = req.params;
+    await Notification.findByIdAndUpdate(notiId, { isRead: true });
+    res.status(200).send({ success: true });
+  },
+
   sendNotification: async (req, res) => {
     const { token, title, body } = req.body;
     console.log("Received request to send notification:", req.body);
@@ -30,16 +45,23 @@ const notificationController = {
   },
 
   sendJoinRequestNotification: async (req, res) => {
-    const { adminFcmToken, userName, groupName } = req.body;
+    const { adminFcmToken, userName, groupName, groupId, userId } = req.body;
     console.log(
       "Received request to send join request notification:",
       req.body
     );
 
-    if (!adminFcmToken || !userName || !groupName) {
+    if (!adminFcmToken || !userName || !groupName || !groupId || !userId) {
       return res
         .status(400)
         .send({ success: false, message: "Thiếu dữ liệu cần thiết" });
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Không tìm thấy group" });
     }
 
     const message = {
@@ -52,6 +74,15 @@ const notificationController = {
 
     try {
       const response = await admin.messaging().send(message);
+      await Notification.create({
+        userId: group.ownerId, // admin nhận
+        type: "join_request",
+        title: "Yêu cầu tham gia nhóm",
+        body: `Người dùng ${userName} muốn tham gia nhóm ${groupName}`,
+        groupId: group._id,
+        senderId: userId, // người gửi yêu cầu
+      });
+      console.log("response", response);
       res.status(200).send({ success: true, response });
     } catch (error) {
       res.status(500).send({ success: false, error: error.message });
@@ -83,6 +114,14 @@ const notificationController = {
     };
     try {
       const response = await admin.messaging().send(message);
+      await Notification.create({
+        userId: userId, // người dùng nhận
+        type: "join_accepted",
+        title: "Chấp nhận vào nhóm",
+        body: `Bạn đã được chấp nhận vào nhóm ${groupName}`,
+        groupId: group._id,
+        senderId: group.ownerId, // admin xác nhận
+      });
       res.status(200).send({ success: true, response });
     } catch (error) {
       res.status(500).send({ success: false, error: error.message });
@@ -133,33 +172,31 @@ const notificationController = {
         .send({ success: false, message: "Không tìm thấy group" });
     }
 
-    // Lấy FCM token của các thành viên (trừ admin)
-    const memberTokens = group.membersID
-      .filter(
-        (member) =>
-          member.fcmToken && member._id.toString() !== group.ownerId.toString()
-      )
-      .map((member) => member.fcmToken);
-
-    if (memberTokens.length === 0) {
-      return res.status(404).send({
-        success: false,
-        message: "Không có thành viên nào nhận được thông báo",
-      });
-    }
-
-    for (const token of memberTokens) {
-      const message = {
-        notification: {
-          title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
-          body: `Admin vừa gửi tài liệu: ${documentTitle}`,
-        },
-        token: token,
-      };
-      try {
-        await admin.messaging().send(message);
-      } catch (error) {
-        // handle error nếu cần
+    for (const member of group.membersID) {
+      if (
+        member.fcmToken &&
+        member._id.toString() !== group.ownerId.toString()
+      ) {
+        const message = {
+          notification: {
+            title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+            body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+          },
+          token: member.fcmToken,
+        };
+        try {
+          await admin.messaging().send(message);
+          await Notification.create({
+            userId: member._id,
+            type: "group_document",
+            title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+            body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+            groupId: group._id,
+            senderId: group.ownerId, // nên lưu cả senderId nếu muốn
+          });
+        } catch (error) {
+          // handle error nếu cần
+        }
       }
     }
     res.status(200).send({

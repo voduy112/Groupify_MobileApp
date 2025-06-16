@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../group_study/views/group_item.dart';
 import '../../group_study/providers/group_provider.dart';
 import '../../group_study/views/group_detail_screen.dart';
+import '../../authentication/providers/auth_provider.dart';
 
 class ShowAllGroupScreen extends StatefulWidget {
   const ShowAllGroupScreen({super.key});
@@ -12,8 +13,43 @@ class ShowAllGroupScreen extends StatefulWidget {
 }
 
 class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
+  final ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? userId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Lấy userId từ Provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      userId = authProvider.user?.id;
+      if (userId != null) {
+        Provider.of<GroupProvider>(context, listen: false)
+            .fetchAllGroup(userId!);
+      }
+    });
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final provider = Provider.of<GroupProvider>(context, listen: false);
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !provider.isLoading &&
+        provider.currentPage < provider.totalPages) {
+      provider.fetchMoreGroups(userId!);
+      print('fetchMoreGroups');
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +90,28 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
             child: filteredGroups.isEmpty
                 ? const Center(child: Text('Không tìm thấy nhóm nào'))
                 : ListView.builder(
-                    itemCount: filteredGroups.length,
+                    controller: _scrollController,
+                    itemCount: filteredGroups.length +
+                        (groupProvider.isFetchingMore ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final group = filteredGroups[index];
-                      return GroupItem(
-                        group: group,
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                GroupDetailScreen(groupId: group.id!),
-                          ));
-                        },
-                      );
+                      if (index < filteredGroups.length) {
+                        final group = filteredGroups[index];
+                        return GroupItem(
+                          group: group,
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  GroupDetailScreen(groupId: group.id!),
+                            ));
+                          },
+                        );
+                      } else {
+                        // Hiển thị loading khi đang fetch trang mới
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
                     },
                   ),
           ),

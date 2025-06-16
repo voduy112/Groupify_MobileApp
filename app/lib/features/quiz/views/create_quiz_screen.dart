@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 import '../providers/quiz_provider.dart';
 
 class CreateQuizScreen extends StatefulWidget {
@@ -12,8 +14,9 @@ class CreateQuizScreen extends StatefulWidget {
 }
 
 class _CreateQuizScreenState extends State<CreateQuizScreen> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  String? _title, _description;
 
   List<Map<String, dynamic>> _questions = [];
 
@@ -30,18 +33,51 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   }
 
   void _submitQuiz() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    for (int i = 0; i < _questions.length; i++) {
+      final question = _questions[i];
+      final questionText = Validate.normalizeText(question['text'] ?? '');
+
+      if (questionText.isNotEmpty) {
+        final validAnswers = (question['answers'] as List)
+            .where((a) => Validate.normalizeText(a['text'] ?? '').isNotEmpty)
+            .toList();
+
+        if (validAnswers.length < 2) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Câu hỏi ${i + 1} cần ít nhất 2 đáp án hợp lệ.')),
+          );
+          return;
+        }
+
+        final hasCorrect = validAnswers.any((a) => a['isCorrect'] == true);
+        if (!hasCorrect) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Câu hỏi ${i + 1} cần chọn một đáp án đúng.')),
+          );
+          return;
+        }
+
+        question['answers'] = validAnswers;
+      }
+    }
+
     final provider = Provider.of<QuizProvider>(context, listen: false);
 
     await provider.createQuiz(
-      title: _titleController.text,
-      description: _descriptionController.text,
+      title: _title!,
+      description: _description!,
       groupId: widget.groupId,
       questions: _questions,
     );
 
     if (provider.error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tạo quiz thành công!')),
+        const SnackBar(content: Text('Tạo quiz thành công!')),
       );
       Navigator.pop(context, true);
     } else {
@@ -57,132 +93,135 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tạo Quiz Mới'),
+        title: const Text('Tạo Quiz Mới'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Tiêu đề'),
-            ),
-            SizedBox(height: 12),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 2, // nhỏ lại 1 chút
-              decoration: InputDecoration(
-                labelText: 'Mô tả',
-                alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomTextFormField(
+                label: 'Tiêu đề',
+                fieldName: 'Tiêu đề',
+                onSaved: (val) => _title = val,
               ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Câu hỏi:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            ..._questions.asMap().entries.map((entry) {
-              int qIndex = entry.key;
-              Map<String, dynamic> question = entry.value;
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Câu hỏi ${qIndex + 1}',
-                        ),
-                        onChanged: (value) => question['text'] = value,
-                      ),
-                      SizedBox(height: 8),
-                      ...question['answers'].asMap().entries.map((ansEntry) {
-                        int aIndex = ansEntry.key;
-                        Map<String, dynamic> answer = ansEntry.value;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    labelText: 'Đáp án ${aIndex + 1}',
-                                  ),
-                                  onChanged: (value) => answer['text'] = value,
-                                ),
-                              ),
-                              Checkbox(
-                                value: answer['isCorrect'],
-                                onChanged: (value) {
-                                  setState(() {
-                                    // Đặt tất cả đáp án trong câu hỏi này về false
-                                    question['answers'].forEach((ans) {
-                                      ans['isCorrect'] = false;
-                                    });
+              const SizedBox(height: 12),
+              CustomTextFormField(
+                label: 'Mô tả',
+                fieldName: 'Mô tả',
+                maxLines: 2,
+                onSaved: (val) => _description = val,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Câu hỏi:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ..._questions.asMap().entries.map((entry) {
+                int qIndex = entry.key;
+                Map<String, dynamic> question = entry.value;
 
-                                    // Chỉ đáp án này là true
-                                    answer['isCorrect'] = value!;
-                                  });
-                                },
-                              ),
-                              Text('Đúng'),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            question['answers']
-                                .add({'text': '', 'isCorrect': false});
-                          });
-                        },
-                        child: Text('Thêm đáp án'),
-                      ),
-                    ],
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  elevation: 2,
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomTextFormField(
+                          label: 'Câu hỏi ${qIndex + 1}',
+                          fieldName: 'Câu hỏi ${qIndex + 1}',
+                          initialValue: question['text'],
+                          onSaved: (val) => question['text'] = val ?? '',
+                        ),
+                        const SizedBox(height: 8),
+                        ...question['answers'].asMap().entries.map((ansEntry) {
+                          int aIndex = ansEntry.key;
+                          Map<String, dynamic> answer = ansEntry.value;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomTextFormField(
+                                    label: 'Đáp án ${aIndex + 1}',
+                                    fieldName: 'Đáp án ${aIndex + 1}',
+                                    initialValue: answer['text'],
+                                    onSaved: (val) =>
+                                        answer['text'] = val ?? '',
+                                  ),
+                                ),
+                                Radio<bool>(
+                                  value: true,
+                                  groupValue: answer['isCorrect'] == true,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      for (var ans in question['answers']) {
+                                        ans['isCorrect'] = false;
+                                      }
+                                      answer['isCorrect'] = true;
+                                    });
+                                  },
+                                ),
+                                const Text('Đúng'),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              question['answers']
+                                  .add({'text': '', 'isCorrect': false});
+                            });
+                          },
+                          child: const Text('Thêm đáp án'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              const SizedBox(height: 12),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[800],
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  onPressed: _addQuestion,
+                  child: const Text(
+                    'Thêm câu hỏi',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-              );
-            }).toList(),
-            SizedBox(height: 12),
-            // Nút Thêm Câu hỏi ở dưới
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800], // Xanh dương đậm
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-                onPressed: _addQuestion,
-                child: Text(
-                  'Thêm câu hỏi',
-                  style: TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[800],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  onPressed: provider.isCreating ? null : _submitQuiz,
+                  child: provider.isCreating
+                      ? const CircularProgressIndicator()
+                      : const Text(
+                          'Tạo Quiz',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
-            // Nút Tạo Quiz
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: provider.isCreating ? null : _submitQuiz,
-                child: provider.isCreating
-                    ? CircularProgressIndicator()
-                    : Text(
-                        'Tạo Quiz',
-                        style: TextStyle(color: Colors.white),
-                      ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

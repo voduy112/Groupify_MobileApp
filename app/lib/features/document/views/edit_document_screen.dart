@@ -6,25 +6,31 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 
 import '../providers/document_provider.dart';
-import '../../authentication/providers/auth_provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
-import '../../../services/notification/messaging_provider.dart';
+import '../../../models/document.dart';
 
-class UploadDocumentScreen extends StatefulWidget {
-  final String groupId;
+class EditDocumentScreen extends StatefulWidget {
+  final Document document;
 
-  const UploadDocumentScreen({super.key, required this.groupId});
+  const EditDocumentScreen({super.key, required this.document});
 
   @override
-  State<UploadDocumentScreen> createState() => _UploadDocumentScreenState();
+  State<EditDocumentScreen> createState() => _EditDocumentScreenState();
 }
 
-class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
+class _EditDocumentScreenState extends State<EditDocumentScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? title;
-  String? description;
+  late String title;
+  late String description;
   PlatformFile? imageFile;
   PlatformFile? mainFile;
+
+  @override
+  void initState() {
+    super.initState();
+    title = widget.document.title ?? '';
+    description = widget.document.description ?? '';
+  }
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -34,7 +40,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         imageFile = PlatformFile(
           name: pickedFile.name,
           path: pickedFile.path,
-          size: 0,
+          size: File(pickedFile.path).lengthSync(),
         );
       });
     }
@@ -52,46 +58,25 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
     }
   }
 
-  Future<void> uploadDocument() async {
-    final user = context.read<AuthProvider>().user;
-
-    if (imageFile?.path == null || imageFile!.path!.isEmpty) {
-      _showDialog("Lỗi", "Vui lòng chọn ảnh");
-      return;
-    }
-
-    if (mainFile?.path == null || mainFile!.path!.isEmpty) {
-      _showDialog("Lỗi", "Vui lòng chọn file tài liệu PDF");
-      return;
-    }
-
+  Future<void> updateDocument() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      final provider = context.read<DocumentProvider>();
 
-      final documentProvider =
-          Provider.of<DocumentProvider>(context, listen: false);
-
-      bool success = await documentProvider.uploadDocument(
-        title: title!,
-        description: description!,
-        uploaderId: user?.id ?? "",
-        imageFile: imageFile,
-        mainFile: mainFile,
-        groupId: widget.groupId,
-      );
-
-      if (success) {
-        _showDialog("Thành công", "Tải tài liệu thành công", onClose: () {
+      try {
+        await provider.updateDocument(
+          widget.document.id!,
+          title,
+          description,
+          imageFile,
+          mainFile,
+          groupId: widget.document.groupId,
+        );
+        _showDialog("Thành công", "Cập nhật tài liệu thành công", onClose: () {
           context.pop(true);
         });
-
-        context.read<MessagingProvider>().sendGroupDocumentNotification(
-              user?.username ?? "",
-              widget.groupId,
-              title ?? "",
-            );
-      } else {
-        _showDialog("Thất bại", "Tải tài liệu thất bại");
+      } catch (e) {
+        _showDialog("Thất bại", "Cập nhật tài liệu thất bại");
       }
     }
   }
@@ -119,11 +104,11 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text('Chỉnh sửa tài liệu'),
         leading: IconButton(
-          onPressed: () => context.pop(),
           icon: Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
-        title: Text('Upload Document'),
       ),
       body: Form(
         key: _formKey,
@@ -133,24 +118,26 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
+              /// Tiêu đề
               CustomTextFormField(
                 label: 'Tiêu đề',
                 fieldName: 'Tiêu đề',
-                onSaved: (value) => title = value,
+                initialValue: title,
+                onSaved: (value) => title = value ?? '',
               ),
               SizedBox(height: 16),
 
-              // Description
+              /// Mô tả
               CustomTextFormField(
                 label: 'Mô tả',
                 fieldName: 'Mô tả',
+                initialValue: description,
                 maxLines: 3,
-                onSaved: (value) => description = value,
+                onSaved: (value) => description = value ?? '',
               ),
               SizedBox(height: 16),
 
-              // Image picker
+              /// Chọn ảnh
               Row(
                 children: [
                   ElevatedButton(
@@ -160,14 +147,14 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      imageFile?.name ?? 'Chưa chọn ảnh',
+                      imageFile?.name ??
+                          (widget.document.imgDocument?.split('/').last ??
+                              'Không có ảnh'),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 8),
               if (imageFile?.path != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -180,10 +167,24 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                       fit: BoxFit.cover,
                     ),
                   ),
+                )
+              else if (widget.document.imgDocument != null &&
+                  widget.document.imgDocument!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      widget.document.imgDocument!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               SizedBox(height: 16),
 
-              // Main file picker
+              /// Chọn file PDF
               Row(
                 children: [
                   ElevatedButton(
@@ -193,40 +194,25 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      mainFile?.name ?? 'Chưa chọn file',
+                      mainFile?.name ??
+                          (widget.document.mainFile?.split('/').last ??
+                              'Không có file'),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 32),
 
-              // Submit button
+              /// Nút cập nhật
               Center(
                 child: Consumer<DocumentProvider>(
-                  builder: (context, provider, child) {
-                    return ElevatedButton(
-                      onPressed: provider.isLoading ? null : uploadDocument,
-                      child: provider.isLoading
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Đang upload...'),
-                              ],
-                            )
-                          : Text('Upload'),
-                    );
-                  },
+                  builder: (context, provider, _) => ElevatedButton(
+                    onPressed: provider.isLoading ? null : updateDocument,
+                    child: provider.isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text('Cập nhật'),
+                  ),
                 ),
               ),
             ],
