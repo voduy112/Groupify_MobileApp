@@ -12,12 +12,7 @@ class MainScaffold extends StatelessWidget {
   const MainScaffold({Key? key, required this.child, required this.location})
       : super(key: key);
 
-  static const List<String> _titles = [
-    'Trang chủ',
-    'Nhóm',
-    'Trò chuyện',
-    'Trang cá nhân'
-  ];
+  static const List<String> _titles = ['Home', 'Group', 'Chat', 'Profile'];
   static const List<IconData> _icons = [
     Icons.home,
     Icons.group,
@@ -54,6 +49,7 @@ class MainScaffold extends StatelessWidget {
           },
         ),
       ),
+
     );
   }
 }

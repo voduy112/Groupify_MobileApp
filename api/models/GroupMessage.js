@@ -13,10 +13,7 @@ const groupMessageSchema = new mongoose.Schema({
     },
     message: {
         type: String,
-        required: false
-    },
-    imageUrl: { 
-        type: String 
+        required: true
     },
     timestamp: {
         type: Date,

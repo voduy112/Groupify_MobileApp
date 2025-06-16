@@ -4,6 +4,4 @@ const router = express.Router();
 
 router.post('/message/send/:groupId', chatGroupController.sendGroupMessage);
 router.get('/message/:groupId', chatGroupController.getGroupMessages);
-
-router.post('/message/send-image/:groupId', chatGroupController.upload.single('image'), chatGroupController.sendGroupImage);
 module.exports = router;

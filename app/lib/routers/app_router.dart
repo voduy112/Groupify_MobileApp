@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/widgets/main_scaffold.dart';
 import '../features/authentication/views/login_screen.dart';
@@ -12,11 +11,6 @@ import '../features/group_study/views/group_detail_screen_member.dart';
 import '../features/home/widgets/document_detail.dart';
 import '../features/profile/widgets/edit_profile_screen.dart';
 import '../features/authentication/views/otp_verification_screen.dart';
-import '../features/home/views/show_all_document_screen.dart';
-import '../features/home/views/group_detail_screen.dart';
-import '../features/home/views/show_all_group_screen.dart';
-import '../features/profile/views/edit_document_screen.dart';
-import '../features/profile/views/change_password_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -38,25 +32,6 @@ final GoRouter appRouter = GoRouter(
           path: '/home',
           builder: (context, state) => HomeScreen(),
           routes: [
-            GoRoute(
-              path: 'group/:id',
-              builder: (context, state) {
-                final groupId = state.pathParameters['id']!;
-                return GroupDetailScreen(
-                  key: ValueKey(groupId), 
-                  groupId: groupId,
-                );
-              },
-            ),
-
-            GoRoute(
-              path: '/show-all-document',
-              builder: (context, state) => ShowAllDocumentScreen(),
-            ),
-            GoRoute(
-              path: '/show-all-group',
-              builder: (context, state) => ShowAllGroupScreen(),
-            ),
             GoRoute(
               path: '/upload-document',
               builder: (context, state) => UploadDocumentScreen(),
@@ -81,6 +56,7 @@ final GoRouter appRouter = GoRouter(
                 return GroupDetailScreenMember(groupId: groupId);
               },
             ),
+
           ],
         ),
         GoRoute(
@@ -92,19 +68,8 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => ProfileScreen(),
           routes: [
             GoRoute(
-              path: 'change-password',
-              builder: (context, state) => ChangePasswordScreen(),
-            ),
-            GoRoute(
               path: 'edit',
               builder: (context, state) => EditProfileScreen(),
-            ),
-            GoRoute(
-              path: 'document/edit/:id',
-              builder: (context, state) {
-                final id = state.pathParameters['id'];
-                return EditDocumentScreen();
-              },
             ),
           ],
         ),

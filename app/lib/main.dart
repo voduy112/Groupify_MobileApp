@@ -7,10 +7,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'features/authentication/services/auth_service.dart';
 import 'features/authentication/providers/auth_provider.dart';
-import 'features/chat_group/providers/chatgroup_provider.dart';
-import 'features/chat_group/services/chatgroup_service.dart';
 import 'services/notification/firebase_messaging_service.dart';
-import 'services/notification/messaging_provider.dart';
 import 'routers/app_router.dart';
 import 'features/authentication/providers/user_provider.dart';
 import 'features/group_study/providers/group_provider.dart';
@@ -26,7 +23,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FirebaseMessagingService.initFCM();
-  DioClient.createInterceptors();
 
   runApp(
     OverlaySupport.global(
@@ -45,18 +41,15 @@ void main() async {
             create: (_) => UserProvider(),
           ),
           ChangeNotifierProvider(
+            create: (context) => GroupProvider(),
+          ),
+          ChangeNotifierProvider(
             create: (context) => ChatProvider(chatService: ChatService()),
           ),
           ChangeNotifierProvider(
               create: (_) =>
                   ChatgroupProvider(chatgroupService: ChatgroupService())),
-          ChangeNotifierProvider(
-            create: (context) {
-              final authProvider =
-                  Provider.of<AuthProvider>(context, listen: false);
-              return DocumentProvider(authProvider: authProvider);
-            },
-          ),
+          ChangeNotifierProvider(create: (_) => DocumentProvider()),
           ChangeNotifierProvider(create: (_) => QuizProvider()),
           ChangeNotifierProvider(create: (_) => GroupRequestProvider()),
           ChangeNotifierProvider(create: (_) => MessagingProvider()),
@@ -79,9 +72,6 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      builder: (context, child) {
-        return AppBackground(child: child!);
-      },
     );
   }
 }

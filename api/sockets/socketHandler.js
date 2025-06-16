@@ -32,12 +32,9 @@ function socketHandler(io) {
                     ]
                 })
                 .sort({timestamp: 1})
-                .populate("fromUserId", "username profilePicture email phoneNumber")
-                .populate("toUserId", "username profilePicture email phoneNumber");
-
-                // Ham de test hien thi thong bao loi
-                // socket.emit('chatHistory', [{ invalid: 'errorTest' }]);
-                
+                .populate("fromUserId", "username profilePicture")
+                .populate("toUserId", "username profilePicture");
+        
                 socket.emit("chatHistory", messages);
             } catch (error) {
                 console.error("Lỗi khi lấy lịch trò chuyện", error);
@@ -50,7 +47,7 @@ function socketHandler(io) {
             try {
                 const messages = await GroupMessage.find({groupId})
                     .sort({timestamp: 1})
-                    .populate("fromUserId", "username profilePicture");
+                    .populate("fromUserId", "username");
                 socket.emit("groupChatHistory", messages);
             } catch (error) {
                 console.error("Lỗi khi lấy tin nhắn nhóm", error);
@@ -59,26 +56,23 @@ function socketHandler(io) {
         });
 
         //Gui tin nhan ca nhan va luu vao MongoDB
-        socket.on("privateMessage", async ({ fromUserId, toUserId, message }) => {
+        socket.on("privateMessage", async ({fromUserId, toUserId, message}) => {
             try {
-              const room = createRoomId(fromUserId, toUserId);
-          
-              const saved = await Message.create({ fromUserId, toUserId, message });
-
-              const populatedMsg = await Message.findById(saved._id)
-                .populate("fromUserId", "username profilePicture email phoneNumber")
-                .populate("toUserId", "username profilePicture email phoneNumber");
-          
-              io.to(room).emit("privateMessage", populatedMsg);
-            } catch (error) {
-              console.log("Error saving message: ", error);
-            }
-          });
-        //Gui tin nhan nhom va luu vao MongoDB
-        socket.on("groupMessage", async ({groupId, fromUserId, message, imageUrl}) => {
-            try {
-                const saved = await GroupMessage.create({groupId, fromUserId, message, imageUrl});
+                const room = createRoomId(fromUserId, toUserId);
+                const saved = await Message.create({fromUserId, toUserId, message});
                 const populatedMsg = await saved.populate("fromUserId", "username profilePicture");
+
+                io.to(room).emit("privateMessage", populatedMsg);
+            } catch (error) {
+                console.log("Error saving message: ", error);
+            }
+        });
+
+        //Gui tin nhan nhom va luu vao MongoDB
+        socket.on("groupMessage", async ({groupId, fromUserId, message}) => {
+            try {
+                const saved = await GroupMessage.create({groupId, fromUserId, message});
+                const populatedMsg = await saved.populate("fromUserId", "username");
 
                 io.to(groupId).emit("groupMessage", populatedMsg);
             } catch (error) {

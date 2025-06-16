@@ -1,25 +1,34 @@
-import 'package:app/models/user.dart';
-
 class Message {
   final String id;
-  final User fromUser;
-  final User toUser;
+  final String fromUserId;
+  final String toUserId;
   final String message;
   final DateTime timestamp;
+  final String? fromUsername;
+  final String? toUsername;
 
   Message({
     required this.id,
-    required this.fromUser,
-    required this.toUser,
+    required this.fromUserId,
+    required this.toUserId,
     required this.message,
     required this.timestamp,
+    this.fromUsername,
+    this.toUsername,
+    
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['_id'],
-      fromUser: User.fromJson(json['fromUserId']),
-      toUser: User.fromJson(json['toUserId']),
+      fromUserId: json['fromUserId'] is Map
+          ? json['fromUserId']['_id']
+          : json['fromUserId'],
+      toUserId:
+          json['toUserId'] is Map ? json['toUserId']['_id'] : json['toUserId'],
+      fromUsername:
+          json['fromUserId'] is Map ? json['fromUserId']['username'] : null,
+      toUsername: json['toUserId'] is Map ? json['toUserId']['username'] : null,
       message: json['message'],
       timestamp: DateTime.parse(json['timestamp']).toLocal(),
     );
@@ -27,10 +36,10 @@ class Message {
 
   Map<String, dynamic> toJson() {
     return {
-      'fromUserId': fromUser.toJson(),
-      'toUserId': toUser.toJson(),
+      'fromUserId': fromUserId,
+      'toUserId': toUserId,
       'message': message,
-      'timestamp': timestamp.toIso8601String()
+      'timestamp': timestamp.toIso8601String(),
     };
   }
 }

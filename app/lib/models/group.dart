@@ -3,7 +3,7 @@ class Group {
   String? name;
   String? description;
   String? subject;
-  dynamic ownerId;
+  String? ownerId;
   List<String>? membersID;
   String? inviteCode;
   String? createDate;
@@ -23,26 +23,15 @@ class Group {
 
   Group.fromJson(Map<String, dynamic> json) {
     id = json['_id'];
-    name = json['name'] is Map
-        ? json['name']['vi'] ?? json['name'].values.first
-        : json['name'];
+    name = json['name'];
     description = json['description'];
     subject = json['subject'];
     ownerId = json['ownerId'];
-    membersID = (json['membersID'] as List<dynamic>?)
-        ?.map((member) {
-          if (member is String) return member;
-          if (member is Map && member['_id'] != null)
-            return member['_id'].toString();
-          return '';
-        })
-        .where((id) => id.isNotEmpty)
-        .toList();
+    membersID = List<String>.from(json['membersID'] ?? []);
     createDate = json['createDate'];
     inviteCode = json['inviteCode'];
     imgGroup = json['imgGroup'];
   }
-
 
   Map<String, dynamic> toJson() {
     return {

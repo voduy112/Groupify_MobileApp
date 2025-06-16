@@ -1,119 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../models/group.dart';
-import '../../group_study/providers/group_provider.dart';
-import 'package:provider/provider.dart';
-import '../../../features/authentication/providers/auth_provider.dart';
-import '../../group_study/views/group_detail_screen.dart';
 
-class ListGroupItem extends StatefulWidget {
-  final List<Group>? groups;
-  final String? from;
-  const ListGroupItem({super.key, this.groups, this.from});
-
-  @override
-  State<ListGroupItem> createState() => _ListGroupItemState();
-}
-
-class _ListGroupItemState extends State<ListGroupItem> {
-  @override
-  void initState() {
-    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
-    super.initState();
-    Future.microtask(() => Provider.of<GroupProvider>(context, listen: false)
-        .fetchAllGroup(userId ?? ''));
-  }
+class ListGroupItem extends StatelessWidget {
+  const ListGroupItem({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final groups = widget.groups ?? Provider.of<GroupProvider>(context).groups;
-    if (groups.isEmpty) {
-      return const Center(child: Text('Không có nhóm nào'));
-    }
+    // Dữ liệu group giả
+    final groups = [
+      {
+        'title': 'Title group',
+        'subject': 'An toàn hệ thống',
+        'memberCount': 20,
+        'imgGroup': null, // hoặc link ảnh nếu có
+      },
+      {
+        'title': 'Title group',
+        'subject': 'Anh Văn',
+        'memberCount': 25,
+        'imgGroup': null,
+      },
+    ];
 
-    print("groups: $groups");
-
-    return Container(
-      height: 400,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
+    return Expanded(
       child: ListView.builder(
-        itemCount: groups.length + 1,
+        itemCount: groups.length,
         itemBuilder: (context, index) {
-          if (index == groups.length) {
-            return Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  context.go('/home/show-all-group');
-                },
-                child: const Text('Xem thêm'),
-              ),
-            );
-          }
-
           final group = groups[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => GroupDetailScreen(groupId: group.id!),
-                ),
-              );
-            },
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[300],
-                        child: Image.network(
-                          group.imgGroup ?? '',
-                          fit: BoxFit.cover,
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Ảnh
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Thông tin
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${group['title'] ?? 'Title group'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Môn: ${group['subject'] ?? 'Không xác định'}',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Số lượng thành viên: ${group['memberCount'] ?? '0'}',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            group.name ?? 'Tên nhóm',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Môn: ${group.subject ?? 'Không xác định'}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );

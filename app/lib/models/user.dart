@@ -2,20 +2,22 @@ class User {
   String? id;
   String? username;
   String? email;
+  String? password;
   String? phoneNumber;
   String? profilePicture;
-  String? bio;
+  String? token;
   String? accessToken;
   String? refreshToken;
-  String? fcmToken;
+  String? fcmToken = '';
 
   User({
     this.id,
     this.username,
     this.email,
+    this.password,
     this.phoneNumber,
     this.profilePicture,
-    this.bio,
+    this.token,
     this.accessToken,
     this.refreshToken,
     this.fcmToken,
@@ -25,12 +27,13 @@ class User {
     id = json['_id'] ?? json['id'];
     username = json['username'];
     email = json['email'];
+    password = json['password'];
     phoneNumber = json['phoneNumber'];
     profilePicture = json['profilePicture'];
-    bio = json['bio'];
+    token = json['token'];
     accessToken = json['accessToken'];
     refreshToken = json['refreshToken'];
-    fcmToken = json['fcmToken'];
+    fcmToken = json['fcmToken'] ?? '';
   }
 
   Map<String, dynamic> toJson() {
@@ -38,12 +41,13 @@ class User {
       'id': id,
       'username': username,
       'email': email,
+      'password': password,
       'phoneNumber': phoneNumber,
       'profilePicture': profilePicture,
-      'bio': bio,
+      'token': token,
       'accessToken': accessToken,
       'refreshToken': refreshToken,
-      'fcmToken': fcmToken,
+      'fcmToken': fcmToken ?? '',
     };
   }
 }
