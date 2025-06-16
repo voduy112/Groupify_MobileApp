@@ -20,27 +20,25 @@ class GroupItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Ảnh nhóm
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  group.imgGroup!,
+                  group.imgGroup ?? '',
                   height: 60,
                   width: 60,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.broken_image, size: 100),
+                      const Icon(Icons.broken_image, size: 60),
                 ),
               ),
-
               const SizedBox(width: 12),
-              // Thông tin nhóm
-              Expanded(
+              Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -63,8 +61,9 @@ class GroupItem extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       group.description ?? '',
-                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14),
                       maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

@@ -8,10 +8,13 @@ const quizRoutes = require('./quiz');
 const chatRoutes = require('./chat');
 const resultRoutes = require('./result');
 const chatgroupRoutes = require('./chatGroup');
+
 const adminRoutes = require('./admin');
 
 const initRoutes = (app) => {
   app.use(express.json());
+
+const requestRoutes = require('./grouprequest');
 
   app.use("/api/auth", authRoutes);
   app.use("/api/profile", profileRoutes);
@@ -23,6 +26,7 @@ const initRoutes = (app) => {
   app.use("/api/admin", adminRoutes);
   app.use("/api/result", resultRoutes);
   app.use("/api/chatgroup", chatgroupRoutes);
+  app.use("/api/grouprequest", requestRoutes);
 };
 
 module.exports = initRoutes;

@@ -21,18 +21,27 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "default.jpg",
+      default:
+        "https://res.cloudinary.com/dpl7e9iqw/image/upload/v1748223588/Groupify_MobileApp/avatar_profile/6833c607622862f8ddf2a830_avatar.png",
     },
     bio: {
       type: String,
-      default: "",
+      default: "I am a new user",
     },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
+    accessToken: {
+      type: String,
+      default: "",
+    },
     refreshToken: {
+      type: String,
+      default: "",
+    },
+    fcmToken: {
       type: String,
       default: "",
     },

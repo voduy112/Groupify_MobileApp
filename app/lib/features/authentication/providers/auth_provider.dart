@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../../models/user.dart';
 import '../services/auth_service.dart';
+import 'dart:io';
+import '../services/user_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../services/api/dio_client.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
+  final UserService _userService = UserService();
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -13,6 +19,11 @@ class AuthProvider with ChangeNotifier {
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  Future<void> updateUser(String id, User user, {File? avatarImage}) async {
+    _user = await _userService.updateUser(id, user, avatarImage: avatarImage);
+    notifyListeners();
+  }
 
   void clearUser() {
     _user = null;
@@ -24,6 +35,17 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     try {
       _user = await authService.login(email, password);
+      if (_user != null) {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await authService.updateFcmToken(_user!.id!, fcmToken);
+        }
+        final storage = FlutterSecureStorage();
+        await storage.write(key: 'accessToken', value: _user!.accessToken!);
+        await storage.write(key: 'refreshToken', value: _user!.refreshToken!);
+        DioClient.resetRefreshFlag();
+        DioClient.createInterceptors();
+      }
       _error = null;
       return null;
     } catch (e) {
@@ -40,10 +62,6 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      // print(name);
-      // print(email);
-      // print(phone);
-      // print(password);
       _user = await authService.register(name, email, phone, password);
       _error = null;
       return true;
@@ -55,16 +73,21 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void> logout(BuildContext context) async {
     _isLoading = true;
     notifyListeners();
     try {
       await authService.logout(context);
-      _user = null;
-      notifyListeners();
+      DioClient.resetRefreshFlag();
     } catch (e) {
       _error = e.toString();
     } finally {
+      final storage = FlutterSecureStorage();
+      await storage.delete(key: 'accessToken');
+      await storage.delete(key: 'refreshToken');
+      await storage.deleteAll();
+      _user = null;
       _isLoading = false;
       notifyListeners();
     }
@@ -84,6 +107,18 @@ class AuthProvider with ChangeNotifier {
     try {
       final result = await authService.resendOTP(email);
       return result == 'OTP sent successfully';
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(
+      String email, String oldPassword, String newPassword) async {
+    try {
+      await authService.changePassword(email, oldPassword, newPassword);
+
+      return true;
     } catch (e) {
       _error = e.toString();
       return false;
