@@ -234,8 +234,12 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) =>
-              DocumentProvider()..fetchDocumentsByGroupId(widget.groupId),
+          create: (context) {
+            final authProvider =
+                Provider.of<AuthProvider>(context, listen: false);
+            return DocumentProvider(authProvider: authProvider)
+              ..fetchDocumentsByGroupId(widget.groupId);
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => QuizProvider()..fetchQuizzesByGroupId(widget.groupId),

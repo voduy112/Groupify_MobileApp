@@ -5,6 +5,8 @@ import '../../../features/document/services/document_service.dart';
 import '../../../features/document/providers/document_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../../document/views/document_rating_info.dart';
+
 class DocumentDetailScreen extends StatefulWidget {
   final String documentId;
   const DocumentDetailScreen({super.key, required this.documentId});
@@ -65,15 +67,39 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                 ),
               ),
             const SizedBox(height: 16),
-            Text(
-              document!.title ?? 'Không có tiêu đề',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Row(children: [
+              const Icon(
+                Icons.title_sharp,
+                color: Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  ('Tiêu đề: ' '${document!.title}') ?? 'Không có tiêu đề',
+                  style: TextStyle(fontSize: 24),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              )
+            ]),
             const SizedBox(height: 8),
-            Text(
-              document!.description ?? 'Không có mô tả',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Row(children: [
+              const Icon(
+                Icons.description_outlined,
+                color: Colors.green,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  ('Tiêu đề: ' '${document!.description}') ?? '',
+                  style: TextStyle(fontSize: 24),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                ),
+              )
+            ]),
+            const SizedBox(height: 8),
+            DocumentRatingInfo(documentId: widget.documentId),
             const SizedBox(height: 16),
             Center(
               child: Column(

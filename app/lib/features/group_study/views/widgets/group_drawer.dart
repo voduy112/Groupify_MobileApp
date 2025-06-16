@@ -168,7 +168,6 @@ class GroupDrawer extends StatelessWidget {
                   );
                 },
               ),
-
               // Nếu là admin thì hiển thị nút chuyển quyền, ngược lại là rời nhóm
               isAdmin
                   ? ListTile(
@@ -181,7 +180,6 @@ class GroupDrawer extends StatelessWidget {
                       title: const Text('Rời nhóm'),
                       onTap: onLeaveGroup,
                     ),
-
               if (isAdmin)
                 ListTile(
                   leading: const Icon(Icons.delete_outline),
