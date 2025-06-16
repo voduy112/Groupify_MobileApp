@@ -219,7 +219,7 @@ class DocumentService {
       );
     }
   }
-}
+
 
   // Gửi rating cho tài liệu
   Future<void> rateDocument({
