@@ -1,3 +1,4 @@
+
 const documentController = require("../controllers/documentController.js");
 const express = require("express");
 const router = express.Router();
@@ -15,4 +16,9 @@ router.get('/:id/comments', documentController.getComments);
 router.get("/", documentController.getAllDocument);
 router.delete("/:id", documentController.deleteDocument);
 router.post("/", uploadImageAndFile, documentController.uploadDocument);
+router.get('/reports', documentController.getReportedDocuments);
+router.delete('/:id/reports', documentController.clearDocumentReports);
+
+
+router.post('/:id/report', documentController.reportDocument);
 module.exports = router;
