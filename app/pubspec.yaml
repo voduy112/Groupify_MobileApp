@@ -47,12 +47,13 @@ dependencies:
   overlay_support: ^2.0.1
   carousel_slider: ^5.0.0
   convex_bottom_bar: ^3.2.0
-  cached_network_image: ^3.3.1
   socket_io_client: ^3.1.2
   image_picker: ^1.1.2
   permission_handler: ^11.0.1
   file_picker: ^8.1.2
   scroll_snap_list: ^0.9.1
+  flutter_secure_storage: ^9.0.0
+  flutter_rating_bar: ^4.0.0
 
 dev_dependencies:
   flutter_test:
@@ -99,6 +100,9 @@ flutter:
           weight: 700
         - asset: assets/fonts/Dongle-Light.ttf
           weight: 300
+  assets:
+    - assets/image/
+    - assets/image/background.jpeg
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf
