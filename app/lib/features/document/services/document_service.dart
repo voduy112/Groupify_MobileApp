@@ -202,4 +202,82 @@ class DocumentService {
       );
     }
   }
+
+
+  // Gửi rating cho tài liệu
+  Future<void> rateDocument({
+    required String documentId,
+    required String userId,
+    required double rating,
+  }) async {
+    final response = await _dio.post(
+      '/api/document/$documentId/rate',
+      data: {
+        'userId': userId,
+        'ratingValue': rating,
+      },
+      options: Options(
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+      ),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Lỗi khi đánh giá tài liệu');
+    }
+  }
+
+// Lấy thông tin rating của tài liệu
+  Future<Map<String, dynamic>> getRatingOfDocument(String documentId) async {
+    final response = await _dio.get('/api/document/$documentId/rating');
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Lỗi khi lấy đánh giá');
+    }
+  }
+
+  Future<void> sendComment({
+    required String documentId,
+    required String userId,
+    required String content,
+  }) async {
+    final response = await _dio.post(
+      '/api/document/$documentId/comments',
+      data: {
+        'userId': userId,
+        'content': content,
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Bình luận gửi thành công
+      debugPrint("Bình luận thành công: ${response.data}");
+    } else {
+      throw Exception('Lỗi gửi bình luận: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getComments(String documentId,
+      {int skip = 0, int limit = 10}) async {
+    final response = await _dio.get(
+      '/api/document/$documentId/comments',
+      queryParameters: {
+        'skip': skip,
+        'limit': limit,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        'comments': response.data['comments'] ?? [],
+        'total': response.data['total'] ?? 0,
+        'hasMore': response.data['hasMore'] ?? false,
+      };
+    } else {
+      throw Exception('Lỗi khi lấy bình luận: ${response.statusCode}');
+    }
+  }
+
 }
+
