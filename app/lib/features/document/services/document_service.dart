@@ -178,6 +178,7 @@ class DocumentService {
       rethrow;
     }
   }
+
   Future<void> deleteDocument(String documentId) async {
     try {
       final response = await _dio.delete('/api/document/$documentId');
@@ -189,6 +190,7 @@ class DocumentService {
       rethrow;
     }
   }
+
   Future<void> updateDocument(
     String documentId,
     String title,
@@ -219,7 +221,6 @@ class DocumentService {
       );
     }
   }
-}
 
   // Gửi rating cho tài liệu
   Future<void> rateDocument({
@@ -295,6 +296,4 @@ class DocumentService {
       throw Exception('Lỗi khi lấy bình luận: ${response.statusCode}');
     }
   }
-
 }
-

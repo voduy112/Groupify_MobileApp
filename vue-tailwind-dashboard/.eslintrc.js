@@ -6,8 +6,7 @@ module.exports = {
   },
   extends: [
     "plugin:vue/vue3-recommended",
-    "eslint:recommended",
-    "plugin:prettier/recommended", // dùng config này thay cho 'prettier'
+    "eslint:recommended", // dùng config này thay cho 'prettier'
   ],
   parserOptions: {
     ecmaVersion: 2020,
