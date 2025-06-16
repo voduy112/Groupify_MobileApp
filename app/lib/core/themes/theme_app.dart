@@ -6,14 +6,14 @@ class AppTheme {
       fontFamily: 'Dongle',
       brightness: Brightness.light,
       primarySwatch: Colors.blue,
-      scaffoldBackgroundColor: Color(0xFFF6F7D3),
+      scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
         titleTextStyle: TextStyle(
           fontSize: 30,
           fontWeight: FontWeight.bold,
           color: Color(0xFF305973),
         ),
-        backgroundColor: Color(0xFFF6F7D3),
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
@@ -23,7 +23,7 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
         titleMedium: TextStyle(
-          fontSize: 28,
+          fontSize: 30,
           fontWeight: FontWeight.bold,
           color: Color(0xFF305973),
         ),
@@ -40,12 +40,13 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey[800],
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.blue[100], // Nền trắng
+          foregroundColor: Colors.blue[800], // Chữ và icon màu xanh
           minimumSize: const Size(30, 30),
-          elevation: 5,
+          elevation: 0, // Không đổ bóng nếu không cần
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.blue[800]!), // Viền xanh
           ),
         ),
       ),

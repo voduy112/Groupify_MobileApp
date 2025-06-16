@@ -1,7 +1,12 @@
 class Validate {
-  static String? notEmpty(String? value, {String? message}) {
-    if (value == null || value.trim().isEmpty) {
-      return message ?? 'Trường này không được để trống';
+  static String normalizeText(String value) {
+    return value.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  static String? notEmpty(String? value, {String? fieldName}) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isEmpty) {
+      return '${fieldName ?? 'Trường này'} không được để trống';
     }
     return null;
   }
@@ -21,7 +26,7 @@ class Validate {
     if (value == null || value.trim().isEmpty) {
       return 'Số điện thoại không được để trống';
     }
-    final phoneRegex = RegExp(r'^[0-9]{11}$');
+    final phoneRegex = RegExp(r'^[0-9]{10}$');
     if (!phoneRegex.hasMatch(value)) {
       return 'Số điện thoại không hợp lệ';
     }

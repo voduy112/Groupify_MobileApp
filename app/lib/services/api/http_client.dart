@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class HttpClient {
-  static const String baseUrl = 'http://10.0.2.2:5000';
+  static const String baseUrl = 'http://192.168.248.107:5000';
   static final http.Client _client = http.Client();
 
   /// GET request
