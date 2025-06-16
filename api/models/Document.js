@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({
+
     groupId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Group'
@@ -55,8 +56,7 @@ const documentSchema = new mongoose.Schema({
           createdAt: { type: Date, default: Date.now }
         }
       ],
-      
+    })
 
-}, { timestamps: true });
 
 module.exports = mongoose.model('Document', documentSchema);

@@ -1,6 +1,15 @@
-const cloudinary = require("../config/Cloudinary");
+const cloudinary = require('../config/Cloudinary');
 const Document = require("../models/Document");
 const User = require("../models/User");
+const Report = require("../models/Report");
+const User = require('../models/User');
+
+const getPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  const parts = url.split('/');
+  const lastThree = parts.slice(-3).join('/');
+  return lastThree.replace(/\.(jpg|jpeg|png|webp|pdf)$/i, '');
+};
 
 const documentController = {
   getAllDocument: async (req, res) => {
@@ -55,6 +64,30 @@ const documentController = {
       res.status(500).json({ error: "Lỗi khi lấy tài liệu theo userId" });
     }
   },
+
+  getAllDocument: async (req, res) => {
+    try {
+      const documents = await Document.find()
+        .populate('uploaderId', 'username')
+        .lean();
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy danh sách tài liệu", detail: error });
+    }
+  },
+
+  getDocumentById: async (req, res) => {
+    try {
+      const document = await Document.findById(req.params.id)
+        .populate('uploaderId', 'username')
+        .lean();
+      if (!document) return res.status(404).json({ error: "Không tìm thấy tài liệu" });
+      res.json(document);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu", detail: error });
+    }
+  },
+
 
   getDocumentsByGroupId: async (req, res) => {
     const groupId = req.params.id || req.query.id;
@@ -199,6 +232,205 @@ const documentController = {
           overwrite: false,
         }
       );
+  getDocumentsByGroupId: async (req, res) => {
+    const groupId = req.params.id || req.query.id;
+    if (!groupId) return res.status(400).json({ error: "Thiếu groupId" });
+
+    try {
+      const documents = await Document.find({ groupId })
+        .populate('uploaderId', 'username')
+        .lean();
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy tài liệu theo groupId", detail: error });
+    }
+  },
+
+  getReportedDocuments: async (req, res) => {
+    try {
+      const reports = await Report.find()
+        .populate('reporterId', 'username')
+        .populate({
+          path: 'documentId',
+          populate: { path: 'uploaderId', select: 'username' },
+        })
+        .lean();
+
+      const grouped = {};
+
+      for (const report of reports) {
+        const doc = report.documentId;
+        if (!doc || !doc._id) continue;
+
+        const docId = doc._id.toString();
+
+        if (!grouped[docId]) {
+          grouped[docId] = {
+            _id: doc._id,
+            groupId: doc.groupId || null,
+            title: doc.title || 'Không có tiêu đề',
+            description: doc.description || '',
+            imgDocument: doc.imgDocument || '',
+            mainFile: doc.mainFile || '',
+            uploaderId: doc.uploaderId?.username || 'Không rõ',
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+            reportReasons: [],
+            reportCount: 0,
+          };
+        }
+
+        grouped[docId].reportReasons.push({
+          reason: report.reason || 'Không có lý do',
+          reporter: report.reporterId?.username || 'Không rõ',
+          createdAt: report.createdAt,
+        });
+
+        grouped[docId].reportCount += 1;
+      }
+
+      res.status(200).json(Object.values(grouped));
+    } catch (err) {
+      console.error("Lỗi khi lấy báo cáo:", err);
+      res.status(500).json({ message: "Lỗi server", error: err.message });
+    }
+  },
+
+
+  reportDocument: async (req, res) => {
+    const { id } = req.params;
+    const reporterId = req.user?._id || req.body.reporterId;
+    const reason = req.body.reason?.trim();
+
+    if (!reporterId || !reason) {
+      return res.status(400).json({ message: 'Thiếu người báo cáo hoặc lý do báo cáo' });
+    }
+
+    try {
+      const document = await Document.findById(id);
+      if (!document) return res.status(404).json({ message: 'Không tìm thấy tài liệu' });
+
+      const existed = await Report.findOne({ documentId: id, reporterId, reason });
+      if (existed) {
+        return res.status(400).json({ message: 'Bạn đã báo cáo tài liệu này với lý do này rồi.' });
+      }
+
+      const newReport = await Report.create({ documentId: id, reporterId, reason });
+
+      const reportCount = await Report.countDocuments({ documentId: id });
+
+      const reporterUser = await User.findById(reporterId).select('username');
+      const reporterUsername = reporterUser?.username || 'Không rõ';
+
+      res.status(200).json({
+        message: 'Báo cáo thành công',
+        reportCount,
+        report: {
+          reason: newReport.reason,
+          reporter: reporterUsername,
+          createdAt: newReport.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error('Lỗi khi báo cáo:', error);
+      res.status(500).json({ message: 'Lỗi khi báo cáo tài liệu', detail: error.message });
+    }
+  },
+
+  clearDocumentReports: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const document = await Document.findById(id);
+      if (!document) return res.status(404).json({ message: "Tài liệu không tồn tại" });
+
+      await Report.deleteMany({ documentId: id });
+      document.reportCount = 0;
+      await document.save();
+
+      res.json({ message: "Đã xoá tất cả báo cáo của tài liệu" });
+    } catch (error) {
+      res.status(500).json({ message: "Lỗi khi xoá báo cáo", detail: error });
+    }
+  },
+
+
+  deleteDocument: async (req, res) => {
+    try {
+      const document = await Document.findById(req.params.id);
+      if (!document) return res.status(404).json({ error: "Tài liệu không tồn tại" });
+
+      const imgPublicId = getPublicIdFromUrl(document.imgDocument);
+      const filePublicId = getPublicIdFromUrl(document.mainFile);
+      if (imgPublicId) await cloudinary.uploader.destroy(imgPublicId);
+      if (filePublicId) await cloudinary.uploader.destroy(filePublicId, { resource_type: "raw" });
+
+      await Report.deleteMany({ documentId: document._id });
+      await document.deleteOne();
+
+      res.json({ message: "Xóa tài liệu thành công" });
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi xóa tài liệu", detail: error });
+    }
+  },
+
+  updateDocument: async (req, res) => {
+    try {
+      const existing = await Document.findById(req.params.id);
+      if (!existing) return res.status(404).json({ error: "Tài liệu không tồn tại" });
+
+      const updateData = { ...req.body };
+
+      if (req.files?.image?.[0]) {
+        const oldImgId = getPublicIdFromUrl(existing.imgDocument);
+        if (oldImgId) await cloudinary.uploader.destroy(oldImgId);
+        const uploadImg = await cloudinary.uploader.upload(req.files.image[0].path, {
+          folder: "Groupify_MobileApp/img_document",
+          public_id: `${req.params.id}_imgdocument`,
+          overwrite: true,
+        });
+        updateData.imgDocument = uploadImg.secure_url;
+      }
+
+      if (req.files?.mainFile?.[0]) {
+        const oldFileId = getPublicIdFromUrl(existing.mainFile);
+        if (oldFileId) await cloudinary.uploader.destroy(oldFileId, { resource_type: "raw" });
+        const uploadFile = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
+          folder: "Groupify_MobileApp/file_document",
+          public_id: `${req.params.id}_filedocument`,
+          resource_type: "raw",
+          overwrite: true,
+        });
+        updateData.mainFile = uploadFile.secure_url;
+      }
+
+      const updated = await Document.findByIdAndUpdate(req.params.id, updateData, { new: true });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi cập nhật thông tin tài liệu", detail: error });
+    }
+  },
+
+
+  uploadDocument: async (req, res) => {
+    try {
+      const { groupId, title, description, uploaderId } = req.body;
+
+      if (!groupId || !title || !description || !uploaderId) {
+        return res.status(400).json({ error: "Thiếu thông tin tài liệu" });
+      }
+
+      if (!req.files?.mainFile?.[0] || !req.files?.image?.[0]) {
+        return res.status(400).json({ error: "Thiếu file chính hoặc ảnh đại diện" });
+      }
+
+      const imgUpload = await cloudinary.uploader.upload(req.files.image[0].path, {
+        folder: "Groupify_MobileApp/img_document",
+      });
+
+      const fileUpload = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
+        folder: "Groupify_MobileApp/file_document",
+        resource_type: "raw",
+      });
 
       const newDocument = new Document({
         groupId,
@@ -442,6 +674,279 @@ const documentController = {
         res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
       }
     },
+      const newDoc = new Document({
+        groupId,
+        title,
+        description,
+        uploaderId,
+        imgDocument: imgUpload.secure_url,
+        mainFile: fileUpload.secure_url,
+      });
+
+      const saved = await newDoc.save();
+      res.json(saved);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi tải tài liệu mới", detail: error });
+    }
+  },
 };
 
+=======
+const cloudinary = require('../config/Cloudinary');
+const Document = require("../models/Document");
+const Report = require("../models/Report");
+const User = require('../models/User');
+
+const getPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  const parts = url.split('/');
+  const lastThree = parts.slice(-3).join('/');
+  return lastThree.replace(/\.(jpg|jpeg|png|webp|pdf)$/i, '');
+};
+
+const documentController = {
+
+  getAllDocument: async (req, res) => {
+    try {
+      const documents = await Document.find()
+        .populate('uploaderId', 'username')
+        .lean();
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy danh sách tài liệu", detail: error });
+    }
+  },
+
+  getDocumentById: async (req, res) => {
+    try {
+      const document = await Document.findById(req.params.id)
+        .populate('uploaderId', 'username')
+        .lean();
+      if (!document) return res.status(404).json({ error: "Không tìm thấy tài liệu" });
+      res.json(document);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu", detail: error });
+    }
+  },
+
+
+  getDocumentsByGroupId: async (req, res) => {
+    const groupId = req.params.id || req.query.id;
+    if (!groupId) return res.status(400).json({ error: "Thiếu groupId" });
+
+    try {
+      const documents = await Document.find({ groupId })
+        .populate('uploaderId', 'username')
+        .lean();
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi lấy tài liệu theo groupId", detail: error });
+    }
+  },
+
+  getReportedDocuments: async (req, res) => {
+    try {
+      const reports = await Report.find()
+        .populate('reporterId', 'username')
+        .populate({
+          path: 'documentId',
+          populate: { path: 'uploaderId', select: 'username' },
+        })
+        .lean();
+
+      const grouped = {};
+
+      for (const report of reports) {
+        const doc = report.documentId;
+        if (!doc || !doc._id) continue;
+
+        const docId = doc._id.toString();
+
+        if (!grouped[docId]) {
+          grouped[docId] = {
+            _id: doc._id,
+            groupId: doc.groupId || null,
+            title: doc.title || 'Không có tiêu đề',
+            description: doc.description || '',
+            imgDocument: doc.imgDocument || '',
+            mainFile: doc.mainFile || '',
+            uploaderId: doc.uploaderId?.username || 'Không rõ',
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+            reportReasons: [],
+            reportCount: 0,
+          };
+        }
+
+        grouped[docId].reportReasons.push({
+          reason: report.reason || 'Không có lý do',
+          reporter: report.reporterId?.username || 'Không rõ',
+          createdAt: report.createdAt,
+        });
+
+        grouped[docId].reportCount += 1;
+      }
+
+      res.status(200).json(Object.values(grouped));
+    } catch (err) {
+      console.error("Lỗi khi lấy báo cáo:", err);
+      res.status(500).json({ message: "Lỗi server", error: err.message });
+    }
+  },
+
+
+  reportDocument: async (req, res) => {
+    const { id } = req.params;
+    const reporterId = req.user?._id || req.body.reporterId;
+    const reason = req.body.reason?.trim();
+
+    if (!reporterId || !reason) {
+      return res.status(400).json({ message: 'Thiếu người báo cáo hoặc lý do báo cáo' });
+    }
+
+    try {
+      const document = await Document.findById(id);
+      if (!document) return res.status(404).json({ message: 'Không tìm thấy tài liệu' });
+
+      const existed = await Report.findOne({ documentId: id, reporterId, reason });
+      if (existed) {
+        return res.status(400).json({ message: 'Bạn đã báo cáo tài liệu này với lý do này rồi.' });
+      }
+
+      const newReport = await Report.create({ documentId: id, reporterId, reason });
+
+      const reportCount = await Report.countDocuments({ documentId: id });
+
+      const reporterUser = await User.findById(reporterId).select('username');
+      const reporterUsername = reporterUser?.username || 'Không rõ';
+
+      res.status(200).json({
+        message: 'Báo cáo thành công',
+        reportCount,
+        report: {
+          reason: newReport.reason,
+          reporter: reporterUsername,
+          createdAt: newReport.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error('Lỗi khi báo cáo:', error);
+      res.status(500).json({ message: 'Lỗi khi báo cáo tài liệu', detail: error.message });
+    }
+  },
+
+  clearDocumentReports: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const document = await Document.findById(id);
+      if (!document) return res.status(404).json({ message: "Tài liệu không tồn tại" });
+
+      await Report.deleteMany({ documentId: id });
+      document.reportCount = 0;
+      await document.save();
+
+      res.json({ message: "Đã xoá tất cả báo cáo của tài liệu" });
+    } catch (error) {
+      res.status(500).json({ message: "Lỗi khi xoá báo cáo", detail: error });
+    }
+  },
+
+
+  deleteDocument: async (req, res) => {
+    try {
+      const document = await Document.findById(req.params.id);
+      if (!document) return res.status(404).json({ error: "Tài liệu không tồn tại" });
+
+      const imgPublicId = getPublicIdFromUrl(document.imgDocument);
+      const filePublicId = getPublicIdFromUrl(document.mainFile);
+      if (imgPublicId) await cloudinary.uploader.destroy(imgPublicId);
+      if (filePublicId) await cloudinary.uploader.destroy(filePublicId, { resource_type: "raw" });
+
+      await Report.deleteMany({ documentId: document._id });
+      await document.deleteOne();
+
+      res.json({ message: "Xóa tài liệu thành công" });
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi xóa tài liệu", detail: error });
+    }
+  },
+
+  updateDocument: async (req, res) => {
+    try {
+      const existing = await Document.findById(req.params.id);
+      if (!existing) return res.status(404).json({ error: "Tài liệu không tồn tại" });
+
+      const updateData = { ...req.body };
+
+      if (req.files?.image?.[0]) {
+        const oldImgId = getPublicIdFromUrl(existing.imgDocument);
+        if (oldImgId) await cloudinary.uploader.destroy(oldImgId);
+        const uploadImg = await cloudinary.uploader.upload(req.files.image[0].path, {
+          folder: "Groupify_MobileApp/img_document",
+          public_id: `${req.params.id}_imgdocument`,
+          overwrite: true,
+        });
+        updateData.imgDocument = uploadImg.secure_url;
+      }
+
+      if (req.files?.mainFile?.[0]) {
+        const oldFileId = getPublicIdFromUrl(existing.mainFile);
+        if (oldFileId) await cloudinary.uploader.destroy(oldFileId, { resource_type: "raw" });
+        const uploadFile = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
+          folder: "Groupify_MobileApp/file_document",
+          public_id: `${req.params.id}_filedocument`,
+          resource_type: "raw",
+          overwrite: true,
+        });
+        updateData.mainFile = uploadFile.secure_url;
+      }
+
+      const updated = await Document.findByIdAndUpdate(req.params.id, updateData, { new: true });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi cập nhật thông tin tài liệu", detail: error });
+    }
+  },
+
+
+  uploadDocument: async (req, res) => {
+    try {
+      const { groupId, title, description, uploaderId } = req.body;
+
+      if (!groupId || !title || !description || !uploaderId) {
+        return res.status(400).json({ error: "Thiếu thông tin tài liệu" });
+      }
+
+      if (!req.files?.mainFile?.[0] || !req.files?.image?.[0]) {
+        return res.status(400).json({ error: "Thiếu file chính hoặc ảnh đại diện" });
+      }
+
+      const imgUpload = await cloudinary.uploader.upload(req.files.image[0].path, {
+        folder: "Groupify_MobileApp/img_document",
+      });
+
+      const fileUpload = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
+        folder: "Groupify_MobileApp/file_document",
+        resource_type: "raw",
+      });
+
+      const newDoc = new Document({
+        groupId,
+        title,
+        description,
+        uploaderId,
+        imgDocument: imgUpload.secure_url,
+        mainFile: fileUpload.secure_url,
+      });
+
+      const saved = await newDoc.save();
+      res.json(saved);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi tải tài liệu mới", detail: error });
+    }
+  },
+};
+
+>>>>>>> 82043c5 (BE admin)
 module.exports = documentController;
+
