@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/user.dart';
-import '../../../models/message.dart'; 
+import '../../../models/message.dart';
 import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connectSocket() {
-    socket = IO.io('http://192.168.1.175:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.220:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -53,7 +53,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     });
 
-    socket.on('chatHistory', (data) async{
+    socket.on('chatHistory', (data) async {
       await Future.delayed(const Duration(seconds: 2));
 
       setState(() {
@@ -125,76 +125,78 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
       body: _isloading
-      ? const Center(child: CircularProgressIndicator())
-      : Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.only(bottom: 50),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                final isMe = msg.fromUserId == widget.currentUserId;
-
-                return Align(
-                  alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: isMe ? Colors.blue.shade100 : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: isMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          msg.message,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat('HH:mm').format(msg.timestamp),
-                          style:
-                              const TextStyle(fontSize: 12, color: Colors.grey),
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const Divider(height: 1),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            color: Colors.white,
-            child: Row(
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập tin nhắn...',
-                      border: InputBorder.none,
-                    ),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(bottom: 50),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      final isMe = msg.fromUserId == widget.currentUserId;
+
+                      return Align(
+                        alignment:
+                            isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: isMe
+                                ? Colors.blue.shade100
+                                : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: isMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                msg.message,
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                DateFormat('HH:mm').format(msg.timestamp),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.blue),
-                  onPressed: _sendMessage,
+                const Divider(height: 1),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          decoration: const InputDecoration(
+                            hintText: 'Nhập tin nhắn...',
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Colors.blue),
+                        onPressed: _sendMessage,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

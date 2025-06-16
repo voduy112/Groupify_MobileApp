@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../features/document_share/providers/document_share_provider.dart';
-import '../../../models/document.dart';
 
-class DocumentDetailScreen extends StatelessWidget {
+class DocumentDetailScreen extends StatefulWidget {
   final String documentId;
   const DocumentDetailScreen({super.key, required this.documentId});
 
@@ -40,12 +38,12 @@ class DocumentDetailScreen extends StatelessWidget {
               ),
             const SizedBox(height: 16),
             Text(
-              document.title ?? 'Không có tiêu đề',
+              document!.title ?? 'Không có tiêu đề',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              document.description ?? 'Không có mô tả',
+              document!.description ?? 'Không có mô tả',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),

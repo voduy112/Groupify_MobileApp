@@ -50,6 +50,9 @@ dependencies:
   cached_network_image: ^3.3.1
   socket_io_client: ^3.1.2
   image_picker: ^1.1.2
+  permission_handler: ^11.0.1
+  file_picker: ^8.1.2
+  scroll_snap_list: ^0.9.1
 
 dev_dependencies:
   flutter_test:

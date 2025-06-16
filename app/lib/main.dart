@@ -15,7 +15,9 @@ import 'features/document/providers/document_provider.dart';
 import 'features/quiz/providers/quiz_provider.dart';
 import 'core/themes/theme_app.dart';
 import 'features/document_share/providers/document_share_provider.dart';
-
+import 'services/api/dio_client.dart';
+import 'features/grouprequest/providers/grouprequest_provider.dart';
+import 'core/widgets/app_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,11 +47,12 @@ void main() async {
             create: (context) => ChatProvider(chatService: ChatService()),
           ),
           ChangeNotifierProvider(
-            create: (_) => DocumentProvider()
-          ),
-          ChangeNotifierProvider(
-            create: (_) => QuizProvider()
-          ),
+              create: (_) =>
+                  ChatgroupProvider(chatgroupService: ChatgroupService())),
+          ChangeNotifierProvider(create: (_) => DocumentProvider()),
+          ChangeNotifierProvider(create: (_) => QuizProvider()),
+          ChangeNotifierProvider(create: (_) => GroupRequestProvider()),
+          ChangeNotifierProvider(create: (_) => MessagingProvider()),
         ],
         child: const MyApp(),
       ),
