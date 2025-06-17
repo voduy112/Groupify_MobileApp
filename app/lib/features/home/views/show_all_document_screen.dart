@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -91,11 +92,42 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                               Text(filteredDocuments[index].description ?? ''),
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              filteredDocuments[index].imgDocument ?? '',
+                            child: CachedNetworkImage(
+                              imageUrl:
+                                  filteredDocuments[index].imgDocument ?? '',
                               fit: BoxFit.cover,
                               height: 100,
                               width: 100,
+                              placeholder: (context, url) => Container(
+                                height: 120,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: Colors.grey,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                height: 120,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: Colors.grey,
+                                    size: 35,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                           onTap: () {
