@@ -442,6 +442,47 @@ const documentController = {
         res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
       }
     },
+
+    deleteComment: async (req, res) => {
+      const { documentId, commentId } = req.params;
+      const userId = req.body.userId;
+    
+      if (!userId) {
+        return res.status(400).json({ error: 'Thiếu userId' });
+      }
+    
+      try {
+        const document = await Document.findById(documentId);
+        if (!document) {
+          return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+        }
+    
+        const comment = document.comments.find(
+          (c) => c._id.toString() === commentId
+        );
+    
+        if (!comment) {
+          return res.status(404).json({ error: 'Không tìm thấy bình luận' });
+        }
+    
+        if (comment.userId.toString() !== userId) {
+          return res.status(403).json({ error: 'Bạn không có quyền xóa bình luận này' });
+        }
+    
+        // Xoá comment bằng filter
+        document.comments = document.comments.filter(
+          (c) => c._id.toString() !== commentId
+        );
+    
+        await document.save();
+    
+        res.json({ message: 'Xóa bình luận thành công' });
+      } catch (error) {
+        console.error('Lỗi backend:', error);
+        res.status(500).json({ error: error.message || 'Lỗi khi xóa bình luận' });
+      }
+    }    
+    
 };
 
 module.exports = documentController;
