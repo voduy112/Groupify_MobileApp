@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../models/document.dart';
 import '../../../features/document/views/document_detail_screen.dart';
@@ -208,10 +209,40 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             if (document!.imgDocument != null &&
                 document!.imgDocument!.isNotEmpty)
               Center(
-                child: Image.network(
-                  document!.imgDocument!,
+                child: CachedNetworkImage(
+                  imageUrl: document!.imgDocument!,
                   height: 200,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 120,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: double.infinity,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 30,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 16),

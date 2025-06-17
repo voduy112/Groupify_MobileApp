@@ -112,14 +112,35 @@ class DocumentItem extends StatelessWidget {
                         height: 60,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
-                          width: 60,
-                          height: 60,
-                          color: Colors.grey[300],
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2)),
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.broken_image),
+                        errorWidget: (context, url, error) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 30,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
