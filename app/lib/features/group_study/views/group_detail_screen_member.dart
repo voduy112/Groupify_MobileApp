@@ -334,19 +334,24 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                           }
                         },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.group_add, color: Colors.white),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (context) => SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.7,
-                              child: RequestListWidget(groupId: _group!.id!),
-                            ),
-                          );
-                        },
-                      ),
+                      if (_group != null &&
+                          _group!.ownerId != null &&
+                          _group!.ownerId!['_id'] == currentUser?.id)
+                        IconButton(
+                          icon:
+                              const Icon(Icons.group_add, color: Colors.white),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.7,
+                                child: RequestListWidget(groupId: _group!.id!),
+                              ),
+                            );
+                          },
+                        ),
                       IconButton(
                         icon: const Icon(Icons.menu, color: Colors.white),
                         onPressed: () {

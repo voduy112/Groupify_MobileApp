@@ -63,8 +63,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     if (user == null) {
       if (!mounted) return;
       showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (_) => const AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.blue, width: 2),
+          ),
           title: Text("Thông báo"),
           content: Text("Bạn cần đăng nhập để tham gia nhóm"),
         ),
@@ -78,6 +83,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => const AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Colors.blue, width: 2),
+        ),
         title: Text("Đang xử lý"),
         content: Row(
           children: [
@@ -102,8 +111,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
 
     if (!mounted) return;
-    Navigator.of(context, rootNavigator: true)
-        .pop(); // Đóng dialog "đang xử lý"
+    Navigator.of(context, rootNavigator: true).pop();
 
     if (success) {
       // Điều hướng đến màn hình GroupDetailScreenMember
@@ -116,8 +124,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       // Hiển thị thông báo lỗi
       if (!mounted) return;
       showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.blue, width: 2),
+          ),
           title: const Text("Thất bại"),
           content: Text(groupProvider.error?.contains("đã tham gia") == true
               ? "Bạn đã ở trong nhóm này rồi"
@@ -273,8 +287,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
                       if (currentUser == null) {
                         showDialog(
+                          barrierDismissible: false,
                           context: context,
                           builder: (_) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: const BorderSide(
+                                  color: Colors.blue, width: 2),
+                            ),
                             title: const Text("Thông báo"),
                             content:
                                 const Text("Bạn cần đăng nhập để xin vào nhóm"),
@@ -293,6 +314,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         context: context,
                         barrierDismissible: false,
                         builder: (_) => const AlertDialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                const BorderSide(color: Colors.blue, width: 2),
+                          ),
                           title: Text("Đang xử lý"),
                           content: Row(
                             children: [
@@ -324,7 +350,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
                       showDialog(
                         context: context,
+                        barrierDismissible: false,
                         builder: (_) => AlertDialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side:
+                                const BorderSide(color: Colors.blue, width: 2),
+                          ),
                           title: Text(success ? "Thành công" : "Thất bại"),
                           content: Text(success
                               ? "Đã gửi yêu cầu vào nhóm thành công"
@@ -354,11 +387,18 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     label: const Text("Mã mời"),
                     onPressed: () {
                       showDialog(
+                        barrierDismissible: false,
                         context: context,
                         builder: (contextDialog) {
                           final TextEditingController controller =
                               TextEditingController();
                           return AlertDialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: const BorderSide(
+                                  color: Colors.blue, width: 2),
+                            ),
                             title: const Text("Nhập mã mời"),
                             content: TextField(
                               controller: controller,
