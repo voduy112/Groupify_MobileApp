@@ -334,7 +334,11 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                           }
                         },
                       ),
-                      if (_group?.ownerId?['_id'] == currentUser?.id)
+
+                      if (_group != null &&
+                          _group!.ownerId != null &&
+                          _group!.ownerId!['_id'] == currentUser?.id)
+
                         IconButton(
                           icon:
                               const Icon(Icons.group_add, color: Colors.white),
