@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../document/services/document_service.dart';
 
@@ -97,11 +98,41 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                     left: 20,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        document.imgDocument ?? '',
+                      child: CachedNetworkImage(
+                        imageUrl: document.imgDocument ?? '',
                         height: 120,
                         width: 100,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

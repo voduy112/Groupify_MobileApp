@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../models/group.dart';
 
@@ -35,9 +36,39 @@ class GroupHeader extends StatelessWidget {
               SizedBox(
                 height: 200,
                 width: double.infinity,
-                child: Image.network(
-                  group!.imgGroup!,
+                child: CachedNetworkImage(
+                  imageUrl: group!.imgGroup!,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 120,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 120,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 35,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               Container(
