@@ -36,34 +36,45 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
+    if (_questions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng thêm ít nhất 1 câu hỏi.')),
+      );
+      return;
+    }
+
     for (int i = 0; i < _questions.length; i++) {
       final question = _questions[i];
       final questionText = Validate.normalizeText(question['text'] ?? '');
 
-      if (questionText.isNotEmpty) {
-        final validAnswers = (question['answers'] as List)
-            .where((a) => Validate.normalizeText(a['text'] ?? '').isNotEmpty)
-            .toList();
-
-        if (validAnswers.length < 2) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Câu hỏi ${i + 1} cần ít nhất 2 đáp án hợp lệ.')),
-          );
-          return;
-        }
-
-        final hasCorrect = validAnswers.any((a) => a['isCorrect'] == true);
-        if (!hasCorrect) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Câu hỏi ${i + 1} cần chọn một đáp án đúng.')),
-          );
-          return;
-        }
-
-        question['answers'] = validAnswers;
+      if (questionText.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Câu hỏi ${i + 1} không được để trống.')),
+        );
+        return;
       }
+
+      final validAnswers = (question['answers'] as List)
+          .where((a) => Validate.normalizeText(a['text'] ?? '').isNotEmpty)
+          .toList();
+
+      if (validAnswers.length < 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Câu hỏi ${i + 1} cần ít nhất 2 đáp án hợp lệ.')),
+        );
+        return;
+      }
+
+      final hasCorrect = validAnswers.any((a) => a['isCorrect'] == true);
+      if (!hasCorrect) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Câu hỏi ${i + 1} cần chọn một đáp án đúng.')),
+        );
+        return;
+      }
+
+      question['answers'] = validAnswers;
     }
 
     final provider = Provider.of<QuizProvider>(context, listen: false);
@@ -105,6 +116,12 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
               CustomTextFormField(
                 label: 'Tiêu đề',
                 fieldName: 'Tiêu đề',
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Vui lòng nhập tiêu đề';
+                  }
+                  return null;
+                },
                 onSaved: (val) => _title = val,
               ),
               const SizedBox(height: 12),
@@ -112,6 +129,12 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
                 label: 'Mô tả',
                 fieldName: 'Mô tả',
                 maxLines: 2,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Vui lòng nhập mô tả';
+                  }
+                  return null;
+                },
                 onSaved: (val) => _description = val,
               ),
               const SizedBox(height: 16),
@@ -137,6 +160,12 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
                           label: 'Câu hỏi ${qIndex + 1}',
                           fieldName: 'Câu hỏi ${qIndex + 1}',
                           initialValue: question['text'],
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) {
+                              return 'Vui lòng nhập nội dung câu hỏi';
+                            }
+                            return null;
+                          },
                           onSaved: (val) => question['text'] = val ?? '',
                         ),
                         const SizedBox(height: 8),
@@ -153,6 +182,12 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
                                     label: 'Đáp án ${aIndex + 1}',
                                     fieldName: 'Đáp án ${aIndex + 1}',
                                     initialValue: answer['text'],
+                                    validator: (val) {
+                                      if (val == null || val.trim().isEmpty) {
+                                        return 'Vui lòng nhập đáp án';
+                                      }
+                                      return null;
+                                    },
                                     onSaved: (val) =>
                                         answer['text'] = val ?? '',
                                   ),
