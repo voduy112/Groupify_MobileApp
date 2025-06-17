@@ -137,11 +137,9 @@ class _DocumentRatingScreenState extends State<DocumentRatingScreen> {
           ],
         ),
       ),
-
     );
   }
 }
-
 
 // widget them binh luan
 class CommentForm extends StatefulWidget {
@@ -252,8 +250,7 @@ class _CommentListState extends State<CommentList> {
   Widget build(BuildContext context) {
     final provider = Provider.of<DocumentProvider>(context);
     final allComments = provider.comments[widget.documentId] ?? [];
-    final visibleComments =
-        allComments.take(_visibleCount).toList(); 
+    final visibleComments = allComments.take(_visibleCount).toList();
     return Column(
       children: [
         ListView.separated(
@@ -274,61 +271,137 @@ class _CommentListState extends State<CommentList> {
                 ? '${createdAt.day}/${createdAt.month}/${createdAt.year} ${createdAt.hour}:${createdAt.minute.toString().padLeft(2, '0')}'
                 : '';
 
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
+            // Thêm Dismissible ở đây
+            return Dismissible(
+              key: ValueKey(cmt['_id']),
+              direction: provider.currentUserId == cmt['userId']
+                  ? DismissDirection.endToStart
+                  : DismissDirection.none,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                color: Colors.red,
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              confirmDismiss: (_) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Xác nhận xoá'),
+                    content:
+                        const Text('Bạn có chắc chắn muốn xoá bình luận này?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Huỷ'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.red.shade100),
+                          foregroundColor: MaterialStateProperty.all<Color>(
+                              Colors.red.shade800),
+                          side: MaterialStateProperty.all<BorderSide>(
+                            BorderSide(color: Colors.red.shade800),
+                          ),
+                        ),
+                        child: const Text('Xoá'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onDismissed: (_) async {
+                final success =
+                    await provider.deleteComment(widget.documentId, cmt['_id']);
+                if (!success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Xoá bình luận thất bại')),
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
                       color: Colors.black12,
                       blurRadius: 4,
-                      offset: Offset(0, 2)),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.grey.shade200,
-                    backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-                        ? NetworkImage(avatarUrl)
-                        : null,
-                    child: avatarUrl == null || avatarUrl.isEmpty
-                        ? Text(
-                            username.isNotEmpty
-                                ? username[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(color: Colors.black),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(username,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.blue)),
-                        const SizedBox(height: 4),
-                        Text(content ?? ''),
-                        if (timeDisplay.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              timeDisplay,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey),
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                          ? NetworkImage(avatarUrl)
+                          : null,
+                      child: avatarUrl == null || avatarUrl.isEmpty
+                          ? Text(
+                              username.isNotEmpty
+                                  ? username[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(color: Colors.black),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: Theme.of(context).textTheme.titleSmall,
+                              children: [
+                                TextSpan(
+                                    text: username,
+                                    style: TextStyle(color: Colors.blue)),
+                                if (provider.currentUserId ==
+                                    cmt['userId']) ...[
+                                  const TextSpan(
+                                    text: ' · ',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  const TextSpan(
+                                    text: 'You',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                      ],
+                          Text(content ?? ''),
+                          if (timeDisplay.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                timeDisplay,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },

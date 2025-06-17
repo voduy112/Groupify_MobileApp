@@ -62,4 +62,38 @@ class MessagingService {
       "documentTitle": documentTitle,
     });
   }
+
+  static Future<void> muteGroup(String groupId, String userId) async {
+    await DioClient.instance.post("/api/notification/mute-group", data: {
+      "groupId": groupId,
+      "userId": userId,
+    });
+  }
+
+  static Future<void> unmuteGroup(String groupId, String userId) async {
+    await DioClient.instance.post("/api/notification/unmute-group", data: {
+      "groupId": groupId,
+      "userId": userId,
+    });
+  }
+
+  static Future<List<dynamic>> getMutedGroups(String userId) async {
+    final response =
+        await DioClient.instance.get("/api/notification/muted-groups/$userId");
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return response.data['groups'];
+    } else {
+      throw Exception('Không thể lấy danh sách nhóm đã tắt thông báo');
+    }
+  }
+
+  static Future<bool> isGroupMuted(String userId, String groupId) async {
+    final response = await DioClient.instance
+        .get("/api/notification/is-group-muted/$userId/$groupId");
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return response.data['isMuted'] == true;
+    } else {
+      throw Exception('Không thể kiểm tra trạng thái mute của nhóm');
+    }
+  }
 }
