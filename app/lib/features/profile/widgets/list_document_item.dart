@@ -125,6 +125,36 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
+                          ),
+                        ),
                       )
                     : Container(
                         width: 60,
