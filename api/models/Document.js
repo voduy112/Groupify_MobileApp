@@ -49,12 +49,15 @@ const documentSchema = new mongoose.Schema({
     
       comments: [
         {
-          userId: { type: String, required: true },
-          username: { type: String }, // có thể lấy từ user hiện tại
+          _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+          userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+          username: { type: String },
+          avatar: { type: String },
           content: { type: String, required: true },
           createdAt: { type: Date, default: Date.now }
         }
       ],
+      
       
 
 }, { timestamps: true });
