@@ -58,15 +58,29 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => CreateGroupScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-        tooltip: 'Tạo nhóm mới',
+      floatingActionButton: SizedBox(
+        height: 65,
+        width: 65,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => CreateGroupScreen()),
+            );
+          },
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: Colors.white, width: 1),
+          ),
+          elevation: 8,
+          child: Icon(
+            Icons.add,
+            size: 36,
+            color: Colors.blue.shade500,
+          ),
+          tooltip: 'Tạo nhóm mới',
+        ),
       ),
     );
   }
