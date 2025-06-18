@@ -139,9 +139,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Đóng'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        await Provider.of<MessagingProvider>(context,
+                                listen: false)
+                            .readAllNotification(widget.userId);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Đọc tất cả'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Đóng'),
+                    ),
+                  ],
                 ),
               ],
             );
