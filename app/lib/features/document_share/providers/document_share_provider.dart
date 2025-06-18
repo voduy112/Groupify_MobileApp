@@ -122,4 +122,8 @@ class DocumentShareProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<List<Document>> searchDocument(String query) async {
+    return await _documentShareService.searchDocument(query);
+  }
 }
