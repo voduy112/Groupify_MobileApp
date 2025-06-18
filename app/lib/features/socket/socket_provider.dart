@@ -135,6 +135,7 @@ class SocketProvider with ChangeNotifier {
     _socket.on('groupMessage', (data) {
       try {
         final msg = GroupMessage.fromJson(data);
+        print("🔥 Nhận được groupMessage socket: $data");
         onNewMessage(msg);
       } catch (e) {
         onError(e);
@@ -152,7 +153,6 @@ class SocketProvider with ChangeNotifier {
       }
     });
   }
-
 
   void listen(String event, Function(dynamic data) handler) {
     _socket.on(event, handler);
@@ -180,7 +180,6 @@ class SocketProvider with ChangeNotifier {
     _initialized = false;
   }
 
-
   void off(String event) {
     _socket.off(event);
   }
@@ -191,4 +190,3 @@ class SocketProvider with ChangeNotifier {
     super.dispose();
   }
 }
-
