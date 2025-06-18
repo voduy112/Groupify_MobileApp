@@ -36,9 +36,9 @@ class Document {
       'title': title,
       'description': description,
       'uploaderId': uploaderId,
-      'createAt' : createAt,
-      'imgDocument' : imgDocument,
-      'mainFile' : mainFile,
+      'createAt': createAt,
+      'imgDocument': imgDocument,
+      'mainFile': mainFile,
     };
   }
 }
