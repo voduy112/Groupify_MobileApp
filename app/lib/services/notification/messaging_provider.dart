@@ -38,6 +38,11 @@ class MessagingProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> readAllNotification(String userId) async {
+    await MessagingService.readAllNotification(userId);
+    notifyListeners();
+  }
+
   Future<void> sendJoinRequestNotification(String adminFcmToken,
       String userName, String groupName, String groupId, String userId) async {
     if (adminFcmToken == null) {
