@@ -15,14 +15,6 @@ class ListDocumentItem extends StatefulWidget {
 
 class _ListDocumentItemState extends State<ListDocumentItem> {
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() =>
-        Provider.of<DocumentShareProvider>(context, listen: false)
-            .fetchDocuments());
-  }
-
-  @override
   Widget build(BuildContext context) {
     final documents = context.watch<DocumentShareProvider>().documents;
 
