@@ -53,7 +53,7 @@ class AuthProvider with ChangeNotifier {
         final socketProvider =
             Provider.of<SocketProvider>(context, listen: false);
         socketProvider.connect(
-          'http://192.168.1.231:5000',
+          'http://192.168.1.237:5000',
           queryParams: {'userId': _user!.id!},
           token: _user!.accessToken,
         );
