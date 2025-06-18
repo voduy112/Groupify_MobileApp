@@ -264,6 +264,21 @@ const notificationController = {
       res.status(500).json({ error: "Lỗi khi unmute nhóm" });
     }
   },
+  readAllNotifications: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      await Notification.updateMany(
+        { userId: userId, isRead: false },
+        { $set: { isRead: true } }
+      );
+      res.status(200).send({
+        success: true,
+        message: "Đã đánh dấu tất cả thông báo là đã đọc",
+      });
+    } catch (error) {
+      res.status(500).send({ success: false, message: "Lỗi server" });
+    }
+  },
 };
 
 module.exports = notificationController;
