@@ -92,10 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ListDocumentItem(),
               TitleApp(title: 'Nhóm', context: context),
               SizedBox(height: 10),
-              ListGroupItem(
-                groups: groupProvider.groups.take(5).toList(),
-                from: 'home',
-              ),
+              ListGroupItem(),
             ],
           ),
         ),
