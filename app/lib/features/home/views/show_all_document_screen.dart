@@ -234,12 +234,24 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
         ],
       ),
       floatingActionButton: Container(
+        height: 65,
+        width: 65,
         margin: EdgeInsets.only(bottom: 20),
         child: FloatingActionButton(
           onPressed: () {
             context.go('/home/upload-document');
           },
-          child: Icon(Icons.add),
+          backgroundColor: Colors.white10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: Colors.white, width: 1),
+          ),
+          elevation: 8,
+          child: Icon(
+            Icons.add,
+            size: 36,
+            color: Colors.blue.shade500,
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
