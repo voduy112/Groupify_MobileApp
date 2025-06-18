@@ -98,7 +98,6 @@ const chatGroupController = {
       if (io) {
         io.to(groupId).emit("groupMessage", populatedMsg);
       }
-
       return res.status(200).json(populatedMsg);
 
     } catch (error) {

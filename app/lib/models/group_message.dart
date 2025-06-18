@@ -1,5 +1,4 @@
 import 'package:app/models/user.dart';
-//import 'package:app/models/group.dart';
 
 class GroupMessage {
   final String id;
@@ -8,6 +7,7 @@ class GroupMessage {
   final User fromUser;
   final String? imageUrl;
   final String groupId;
+  final bool isUploading;
 
   GroupMessage({
     required this.id,
@@ -16,6 +16,7 @@ class GroupMessage {
     required this.fromUser,
     this.imageUrl,
     required this.groupId,
+    this.isUploading = false,
   });
 
 

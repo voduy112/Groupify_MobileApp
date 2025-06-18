@@ -70,8 +70,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-
-
   Future<bool> register(
       String name, String email, String phone, String password) async {
     _isLoading = true;

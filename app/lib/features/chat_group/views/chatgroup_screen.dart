@@ -259,21 +259,47 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                                   const SizedBox(height: 4),
                                   if (msg.imageUrl != null &&
                                       msg.imageUrl!.isNotEmpty)
-                                    GestureDetector(
-                                      onTap: () =>
-                                          _openImageDialog(msg.imageUrl!),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Container(
-                                          constraints: const BoxConstraints(
-                                              maxHeight: 200),
-                                          child: Image.network(
-                                            msg.imageUrl!,
-                                            fit: BoxFit.cover,
-                                            width: 200,
-                                          ),
-                                        ),
-                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: msg.isUploading
+                                          ? Stack(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Image.file(
+                                                    File(msg
+                                                        .imageUrl!), // Local path
+                                                    width: 200,
+                                                    height: 150,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                                const Positioned.fill(
+                                                  child: Center(
+                                                      child:
+                                                          CircularProgressIndicator()),
+                                                ),
+                                              ],
+                                            )
+                                          : GestureDetector(
+                                              onTap: () => _openImageDialog(
+                                                  msg.imageUrl!),
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: Container(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                          maxHeight: 200),
+                                                  child: Image.network(
+                                                    msg.imageUrl!,
+                                                    fit: BoxFit.cover,
+                                                    width: 200,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                     ),
                                   if (msg.message.isNotEmpty)
                                     Padding(
