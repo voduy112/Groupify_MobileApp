@@ -22,6 +22,7 @@ import 'features/document_share/providers/document_share_provider.dart';
 import 'services/api/dio_client.dart';
 import 'features/grouprequest/providers/grouprequest_provider.dart';
 import 'core/widgets/app_background.dart';
+import 'features/report/providers/report_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => QuizProvider()),
           ChangeNotifierProvider(create: (_) => GroupRequestProvider()),
           ChangeNotifierProvider(create: (_) => MessagingProvider()),
+          ChangeNotifierProvider(create: (_) => ReportProvider()),
         ],
         child: const MyApp(),
       ),

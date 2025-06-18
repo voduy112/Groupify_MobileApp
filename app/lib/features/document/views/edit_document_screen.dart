@@ -83,8 +83,14 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
 
   void _showDialog(String title, String content, {VoidCallback? onClose}) {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Colors.blue, width: 2),
+        ),
         title: Text(title),
         content: Text(content),
         actions: [
