@@ -9,6 +9,7 @@ import 'features/authentication/services/auth_service.dart';
 import 'features/authentication/providers/auth_provider.dart';
 import 'features/chat_group/providers/chatgroup_provider.dart';
 import 'features/chat_group/services/chatgroup_service.dart';
+import 'features/socket/socket_provider.dart';
 import 'services/notification/firebase_messaging_service.dart';
 import 'services/notification/messaging_provider.dart';
 import 'routers/app_router.dart';
@@ -35,6 +36,7 @@ void main() async {
           ChangeNotifierProvider(
             create: (context) => AuthProvider(authService: AuthService()),
           ),
+          ChangeNotifierProvider(create: (_) => SocketProvider()),
           ChangeNotifierProvider(
             create: (_) => DocumentShareProvider(),
           ),

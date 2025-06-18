@@ -51,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       final error = await authProvider.login(
                         emailController.text,
                         passwordController.text,
+                        context,
                       );
+
                       final user = authProvider.user;
                       if (error == null && user != null) {
                         context.go('/home');

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:intl/intl.dart';
 import '../../../models/user.dart';
 import '../../../models/message.dart';
-import 'package:intl/intl.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../profile/views/profile_screen.dart';
 import '../providers/chat_provider.dart';
 import '../widget/error_banner.dart';
 import '../../../services/notification/messaging_provider.dart';
+import '../../socket/socket_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
@@ -25,7 +25,6 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late IO.Socket socket;
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String? _errorMsg;
@@ -33,7 +32,37 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _connectSocket();
+    final socketProvider = context.read<SocketProvider>();
+
+    socketProvider.joinRoom(widget.currentUserId, widget.otherUser.id!);
+    socketProvider.loadMessages(widget.currentUserId, widget.otherUser.id!);
+
+    socketProvider.listenChatHistory(
+      (msgs) {
+        if (!mounted) return;
+        context.read<ChatProvider>().setMessages(msgs);
+        setState(() => _errorMsg = null);
+        _scrollToBottom();
+      },
+      () {
+        if (!mounted) return;
+        setState(
+            () => _errorMsg = 'Không thể hiển thị tin nhắn. Vui lòng thử lại.');
+      },
+    );
+
+    socketProvider.listenPrivateMessage((msg) {
+      final isValid = (msg.fromUser.id == widget.otherUser.id &&
+              msg.toUser.id == widget.currentUserId) ||
+          (msg.fromUser.id == widget.currentUserId &&
+              msg.toUser.id == widget.otherUser.id);
+
+      if (isValid && mounted) {
+        context.read<ChatProvider>().addMessage(msg);
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChatProvider>().fetchMessages(
             widget.currentUserId,
@@ -42,97 +71,29 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _connectSocket() {
-    socket = IO.io('http://192.168.1.227:5000', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
-
-    socket.connect();
-
-    socket.onConnect((_) {
-      socket.emit('joinRoom', {
-        'fromUserId': widget.currentUserId,
-        'toUserId': widget.otherUser.id,
-      });
-
-      socket.emit('loadMessages', {
-        'fromUserId': widget.currentUserId,
-        'toUserId': widget.otherUser.id,
-      });
-    });
-
-    /*socket.on('chatHistory', (data) {
-      final List<Message> msgs = List<Message>.from(
-        data.map((json) => Message.fromJson(json)).toList(),
-      );
-      context.read<ChatProvider>().setMessages(msgs);
-      _scrollToBottom();
-    });*/
-
-    socket.on('chatHistory', (data) {
-      try {
-        final List<Message> msgs = List<Message>.from(
-          data.map((json) => Message.fromJson(json)).toList(),
-        );
-        context.read<ChatProvider>().setMessages(msgs);
-        setState(() {
-          _errorMsg = null;
-        });
-        _scrollToBottom();
-      } catch (e) {
-        setState(() {
-          _errorMsg = 'Không thể hiển thị tin nhắn. Vui lòng thử lại.';
-        });
-      }
-    });
-
-    socket.on('privateMessage', (data) {
-      final msg = Message.fromJson(data);
-
-      final isValid = (msg.fromUser.id == widget.otherUser.id &&
-              msg.toUser.id == widget.currentUserId) ||
-          (msg.fromUser.id == widget.currentUserId &&
-              msg.toUser.id == widget.otherUser.id);
-
-      if (isValid) {
-        context.read<ChatProvider>().addMessage(msg);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToBottom();
-        });
-      }
-    });
-  }
-
   void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     try {
-      // Gửi message qua socket
-      socket.emit('privateMessage', {
-        'fromUserId': widget.currentUserId,
-        'toUserId': widget.otherUser.id,
-        'message': text,
-      });
-
+      context.read<SocketProvider>().sendPrivateMessage(
+            widget.currentUserId,
+            widget.otherUser.id!,
+            text,
+          );
       _controller.clear();
       _scrollToBottom();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMsg = 'Không gửi được tin nhắn. Vui lòng thử lại.';
       });
-      return; // Dừng lại nếu gửi message socket lỗi
+      return;
     }
 
-    // Gửi notification, lỗi thì chỉ log, không ảnh hưởng UI
     try {
       final senderName =
           context.read<AuthProvider>().user?.username ?? 'Người dùng';
-      print("senderName: $senderName");
-      print("receiverId: ${widget.otherUser.id}");
-      print("message: $text");
       await context.read<MessagingProvider>().sendPersonalChatNotification(
             widget.otherUser.id!,
             senderName,
@@ -140,7 +101,6 @@ class _ChatScreenState extends State<ChatScreen> {
           );
     } catch (e) {
       print('Lỗi gửi notification: $e');
-      // Có thể show SnackBar nhẹ nếu muốn, nhưng không ảnh hưởng tới UI chat
     }
   }
 
@@ -155,7 +115,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    socket.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -215,7 +174,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                //show thong bao loi neu khong gui hoac load duoc tin nhan
                 if (_errorMsg != null)
                   ErrorBanner(
                     message: _errorMsg!,
@@ -311,31 +269,32 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const Divider(height: 1),
                 Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    color: Colors.white,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _controller,
-                            keyboardType: TextInputType.multiline,
-                            maxLines: 2,
-                            minLines: 1,
-                            textInputAction: TextInputAction.newline,
-                            decoration: const InputDecoration(
-                              hintText: 'Nhập tin nhắn...',
-                              border: InputBorder.none,
-                            ),
-                            onFieldSubmitted: (_) => _sendMessage(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _controller,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 2,
+                          minLines: 1,
+                          textInputAction: TextInputAction.newline,
+                          decoration: const InputDecoration(
+                            hintText: 'Nhập tin nhắn...',
+                            border: InputBorder.none,
                           ),
+                          onFieldSubmitted: (_) => _sendMessage(),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: _sendMessage,
-                          color: Colors.blue,
-                        ),
-                      ],
-                    )),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send),
+                        onPressed: _sendMessage,
+                        color: Colors.blue,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
     );

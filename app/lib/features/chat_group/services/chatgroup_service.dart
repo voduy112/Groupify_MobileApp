@@ -1,6 +1,8 @@
 import 'dart:io';
-
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../models/group_message.dart';
 import '../../../services/api/dio_client.dart';
 
@@ -31,12 +33,17 @@ class ChatgroupService {
     required String groupId,
   }) async {
     try {
-      String fileName = imageFile.path.split('/').last;
+      final String fileName = imageFile.path.split('/').last;
 
-      FormData formData = FormData.fromMap({
-        'fromUserId': fromUserId,
-        'image':
-            await MultipartFile.fromFile(imageFile.path, filename: fileName),
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: fileName,
+          contentType: MediaType.parse(
+            lookupMimeType(imageFile.path) ?? 'image/jpeg',
+          ),
+        ),
+        'fromUserId': fromUserId, 
       });
 
       final response = await _dio.post(
@@ -53,5 +60,4 @@ class ChatgroupService {
       throw Exception('Lỗi upload ảnh: $e');
     }
   }
-
 }

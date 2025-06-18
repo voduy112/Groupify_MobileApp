@@ -18,8 +18,13 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['_id'],
-      fromUser: User.fromJson(json['fromUserId']),
-      toUser: User.fromJson(json['toUserId']),
+      fromUser: json['fromUserId'] is Map
+          ? User.fromJson(json['fromUserId'])
+          : User(id: json['fromUserId'], username: ''),
+      toUser: json['toUserId'] is Map
+          ? User.fromJson(json['toUserId'])
+          : User(id: json['toUserId'], username: ''),
+
       message: json['message'],
       timestamp: DateTime.parse(json['timestamp']).toLocal(),
     );
