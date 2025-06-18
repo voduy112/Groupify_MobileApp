@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../../../models/group_message.dart';
 import '../services/chatgroup_service.dart';
@@ -11,11 +10,13 @@ class ChatgroupProvider with ChangeNotifier {
 
   List<GroupMessage> _messages = [];
   bool _isLoading = false;
+  bool _isSendingImage = false;
 
   List<GroupMessage> get messages => _messages;
   bool get isLoading => _isLoading;
+  bool get isSendingImage => _isSendingImage;
 
-  //lay tin nhan nhom
+  // Lấy tin nhắn nhóm
   Future<void> getGroupMessages(String groupId) async {
     _isLoading = true;
     notifyListeners();
@@ -44,26 +45,29 @@ class ChatgroupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  //ham gui anh
+  // Gửi ảnh nhóm
   Future<void> sendGroupImage({
     required File imageFile,
     required String fromUserId,
     required String groupId,
   }) async {
+    if (_isSendingImage) return; // Ngăn gửi trùng
+    _isSendingImage = true;
+    notifyListeners();
+
     try {
-      // Chỉ gửi ảnh, không xử lý kết quả trả về
       await chatgroupService.uploadImageAndReturnMessage(
         imageFile,
         fromUserId: fromUserId,
         groupId: groupId,
       );
 
-      // Không thêm tin nhắn vào _messages ở đây.
-      // Tin nhắn sẽ đến từ socket: 'groupMessage'
+      // Tin nhắn sẽ đến từ socket event 'groupMessage'
     } catch (e) {
       debugPrint('Lỗi khi gửi ảnh nhóm: $e');
+    } finally {
+      _isSendingImage = false;
+      notifyListeners();
     }
   }
-
-
 }

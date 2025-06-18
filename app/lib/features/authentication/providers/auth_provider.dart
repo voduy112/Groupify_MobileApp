@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/user.dart';
+import '../../socket/socket_provider.dart';
 import '../services/auth_service.dart';
 import 'dart:io';
 import '../services/user_service.dart';
@@ -30,7 +32,8 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> login(String email, String password) async {
+  Future<String?> login(
+      String email, String password, BuildContext context) async {
     _isLoading = true;
     notifyListeners();
     try {
@@ -40,12 +43,22 @@ class AuthProvider with ChangeNotifier {
         if (fcmToken != null) {
           await authService.updateFcmToken(_user!.id!, fcmToken);
         }
+
         final storage = FlutterSecureStorage();
         await storage.write(key: 'accessToken', value: _user!.accessToken!);
         await storage.write(key: 'refreshToken', value: _user!.refreshToken!);
         DioClient.resetRefreshFlag();
         DioClient.createInterceptors();
+
+        final socketProvider =
+            Provider.of<SocketProvider>(context, listen: false);
+        socketProvider.connect(
+          'http://192.168.1.229:5000',
+          queryParams: {'userId': _user!.id!},
+          token: _user!.accessToken,
+        );
       }
+
       _error = null;
       return null;
     } catch (e) {
@@ -56,6 +69,8 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+
 
   Future<bool> register(
       String name, String email, String phone, String password) async {
@@ -80,6 +95,10 @@ class AuthProvider with ChangeNotifier {
     try {
       await authService.logout(context);
       DioClient.resetRefreshFlag();
+
+      final socketProvider =
+          Provider.of<SocketProvider>(context, listen: false);
+      socketProvider.disconnect();
     } catch (e) {
       _error = e.toString();
     } finally {

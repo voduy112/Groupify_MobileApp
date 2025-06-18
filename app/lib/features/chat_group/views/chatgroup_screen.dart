@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../models/group_message.dart';
 import '../../../models/user.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../chat/widget/error_banner.dart';
 import '../../profile/views/profile_screen.dart';
+import '../../socket/socket_provider.dart';
 import '../providers/chatgroup_provider.dart';
 
 class ChatgroupScreen extends StatefulWidget {
@@ -30,70 +30,57 @@ class ChatgroupScreen extends StatefulWidget {
 }
 
 class _ChatgroupScreenState extends State<ChatgroupScreen> {
-  late IO.Socket socket;
   final TextEditingController _controller = TextEditingController();
   String? _errorMsg;
 
   @override
   void initState() {
     super.initState();
-    _connectSocket();
-  }
 
-  void _connectSocket() {
-    socket = IO.io('http://192.168.1.227:5000', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
+    final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+    final chatProvider = Provider.of<ChatgroupProvider>(context, listen: false);
 
-    socket.connect();
+    socketProvider.joinGroupChat(
+      groupId: widget.groupId,
+      userId: widget.currentUser.id!,
+    );
 
-    socket.onConnect((_) {
-      socket.emit('joinGroup', {
-        'groupId': widget.groupId,
-        'userId': widget.currentUser.id,
-      });
-      socket.emit('loadGroupMessages', {
-        'groupId': widget.groupId,
-      });
-    });
-
-    socket.on('groupMessage', (data) {
-      final msg = GroupMessage.fromJson(data);
-      context.read<ChatgroupProvider>().addMessage(msg);
-      _scrollToBottom();
-    });
-
-    socket.on('groupChatHistory', (data) {
-      try {
-        final List<GroupMessage> msgs = List<GroupMessage>.from(
-          data.map((json) => GroupMessage.fromJson(json)).toList(),
-        );
-        context.read<ChatgroupProvider>().setMessages(msgs);
+    socketProvider.listenGroupChatEvents(
+      onNewMessage: (msg) {
+        chatProvider.addMessage(msg);
+        _scrollToBottom();
+      },
+      onHistoryLoaded: (messages) {
+        chatProvider.setMessages(messages);
         setState(() {
           _errorMsg = null;
         });
         _scrollToBottom();
-      } catch (e) {
+      },
+      onError: (error) {
+        if (!mounted) return;
         setState(() {
           _errorMsg = 'Không thể hiển thị tin nhắn nhóm. Vui lòng thử lại.';
         });
-      }
-    });
+      },
+    );
   }
 
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+
     try {
-      socket.emit('groupMessage', {
-        'groupId': widget.groupId,
-        'fromUserId': widget.currentUser.id,
-        'message': text,
-      });
+      final socketProvider = context.read<SocketProvider>();
+      socketProvider.sendGroupMessage(
+        groupId: widget.groupId,
+        fromUserId: widget.currentUser.id!,
+        message: text,
+      );
       _controller.clear();
       _scrollToBottom();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMsg = 'Không gửi được tin nhắn. Vui lòng thử lại.';
       });
@@ -108,7 +95,6 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
 
       File imageFile = File(picked.path);
 
-      // Gửi ảnh qua API
       await context.read<ChatgroupProvider>().sendGroupImage(
             imageFile: imageFile,
             fromUserId: widget.currentUser.id!,
@@ -117,6 +103,7 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
 
       _scrollToBottom();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMsg = 'Không thể gửi ảnh: $e';
       });
@@ -165,8 +152,6 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
 
   @override
   void dispose() {
-    socket.dispose();
-    socket.disconnect();
     _controller.dispose();
     super.dispose();
   }
@@ -175,11 +160,11 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
   Widget build(BuildContext context) {
     final messages = context.watch<ChatgroupProvider>().messages;
     final isLoading = context.watch<ChatgroupProvider>().isLoading;
+    final isSendingImage = context.watch<ChatgroupProvider>().isSendingImage;
     return isLoading
         ? const Center(child: CircularProgressIndicator())
         : Column(
             children: [
-              //show thong bao loi neu khong gui duoc hoac khong load duoc tin nhan
               if (_errorMsg != null)
                 ErrorBanner(
                   message: _errorMsg!,
@@ -195,6 +180,7 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                   itemBuilder: (context, index) {
                     final msg = messages[index];
                     final isMe = msg.fromUser.id == widget.currentUser.id;
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8.0, vertical: 4),
@@ -216,7 +202,8 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ProfileScreen(user: fullUser),
+                                      builder: (_) =>
+                                          ProfileScreen(user: fullUser),
                                     ),
                                   );
                                 } catch (e) {
@@ -245,8 +232,8 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                           const SizedBox(width: 8),
                           ConstrainedBox(
                             constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.5),
+                              maxWidth: MediaQuery.of(context).size.width * 0.5,
+                            ),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10, horizontal: 14),
@@ -290,10 +277,12 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                                     ),
                                   if (msg.message.isNotEmpty)
                                     Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(msg.message,
-                                            style:
-                                                const TextStyle(fontSize: 16))),
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        msg.message,
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ),
                                   const SizedBox(height: 3),
                                   Text(
                                     DateFormat('HH:mm').format(msg.timestamp),
@@ -321,7 +310,8 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                                               .toUpperCase() ??
                                           '',
                                       style:
-                                          const TextStyle(color: Colors.white))
+                                          const TextStyle(color: Colors.white),
+                                    )
                                   : null,
                             ),
                         ],
@@ -338,7 +328,7 @@ class _ChatgroupScreenState extends State<ChatgroupScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.image, color: Colors.blue),
-                      onPressed: _pickAndSendImage,
+                      onPressed: isSendingImage ? null : _pickAndSendImage,
                     ),
                     Expanded(
                       child: TextFormField(
