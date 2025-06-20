@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/message.dart';
 import '../../../models/user.dart';
+import '../../socket/socket_provider.dart';
 import '../services/chat_service.dart';
 
 class ChatProvider with ChangeNotifier {
@@ -16,6 +17,10 @@ class ChatProvider with ChangeNotifier {
   int _currentPage = 1;
   int _totalPages = 1;
   bool _isFetchingMore = false;
+  int _messagePage = 1;
+  bool _hasMoreMessages = true;
+  bool _isFetchingMoreMessages = false;
+  bool get isFetchingMoreMessages => _isFetchingMoreMessages;
 
   List<Message> get messages => _messages;
   List<User> get chatUsers => _chatUsers;
@@ -24,6 +29,7 @@ class ChatProvider with ChangeNotifier {
   String? get error => _error;
   bool get isFetchingMore => _isFetchingMore;
   bool get hasMore => _currentPage <= _totalPages;
+  bool get hasMoreMessages => _hasMoreMessages;
 
   Future<void> fetchMessages(String user1Id, String user2Id) async {
     _isLoading = true;
@@ -107,6 +113,54 @@ class ChatProvider with ChangeNotifier {
     _lastMsgs.clear();
     _error = null;
     _isLoading = false;
+    notifyListeners();
+  }
+
+  void loadInitialMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    _messages.clear();
+    _messagePage = 1;
+    _hasMoreMessages = true;
+    socketProvider.loadMessages(user1Id, user2Id, page: _messagePage);
+  }
+
+  /*void loadMoreMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    if (!_hasMoreMessages) return;
+    _messagePage++;
+    socketProvider.loadMessages(user1Id, user2Id, page: _messagePage);
+  }*/
+
+  void loadMoreMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    if (!_hasMoreMessages || _isFetchingMoreMessages) return;
+
+    _isFetchingMoreMessages = true;
+    notifyListeners();
+
+    _messagePage++;
+    socketProvider.loadMessages(
+      user1Id,
+      user2Id,
+      page: _messagePage,
+    );
+  }
+
+
+  void setHasMoreMessages(bool value) {
+    _hasMoreMessages = value;
+  }
+
+  void addMessagesToTop(List<Message> msgs) {
+    _messages.insertAll(0, msgs);
+    notifyListeners();
+  }
+
+  bool get isFirstPage => _messagePage == 1;
+  
+
+  void setIsFetchingMoreMessages(bool value) {
+    _isFetchingMoreMessages = value;
     notifyListeners();
   }
 

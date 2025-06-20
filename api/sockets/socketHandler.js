@@ -23,27 +23,41 @@ function socketHandler(io) {
         });
 
         //Lay lich su tro chuyen
-        socket.on("loadMessages", async ({fromUserId, toUserId}) => {
+        socket.on("loadMessages", async ({fromUserId, toUserId, page = 1, limit = 20}) => {
             try {
-                const messages = await Message.find({
-                    $or: [
-                        {fromUserId, toUserId},
-                        {fromUserId: toUserId, toUserId: fromUserId}
-                    ]
+              const skip = (page - 1) * limit;
+          
+              const [messages, total] = await Promise.all([
+                Message.find({
+                  $or: [
+                    { fromUserId, toUserId },
+                    { fromUserId: toUserId, toUserId: fromUserId },
+                  ],
                 })
-                .sort({timestamp: 1})
-                .populate("fromUserId", "username profilePicture email phoneNumber")
-                .populate("toUserId", "username profilePicture email phoneNumber");
-
-                // Ham de test hien thi thong bao loi
-                // socket.emit('chatHistory', [{ invalid: 'errorTest' }]);
-                
-                socket.emit("chatHistory", messages);
+                  .sort({ timestamp: -1 })
+                  .skip(skip)
+                  .limit(limit)
+                  .populate("fromUserId", "username profilePicture email phoneNumber")
+                  .populate("toUserId", "username profilePicture email phoneNumber"),
+                Message.countDocuments({
+                  $or: [
+                    { fromUserId, toUserId },
+                    { fromUserId: toUserId, toUserId: fromUserId },
+                  ],
+                }),
+              ]);
+          
+              const hasMore = page * limit < total;
+          
+              socket.emit("chatHistory", {
+                messages: messages.reverse(),
+                hasMore,
+              });
             } catch (error) {
-                console.error("Lỗi khi lấy lịch trò chuyện", error);
-                socket.emit("chatHistory", []);
+              console.error("Lỗi khi lấy lịch trò chuyện", error);
+              socket.emit("chatHistory", { messages: [], hasMore: false });
             }
-        });
+          });          
         
         //Lay lich su tro chuyen nhom
         socket.on("loadGroupMessages", async ({groupId}) => {
