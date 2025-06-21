@@ -78,12 +78,12 @@ const authController = {
     try {
       const user = await User.findOne({ email: req.body.email });
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "Không tìm thấy tài khoản" });
       }
 
       const isMatch = await bcrypt.compare(req.body.password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
+        return res.status(400).json({ message: "Mật khẩu không đúng" });
       }
 
       // Nếu khớp thông tin:
@@ -97,7 +97,7 @@ const authController = {
       const { password, ...others } = user._doc;
 
       if (!user.isVerified) {
-        return res.status(403).json({ message: "Please verify your email" });
+        return res.status(403).json({ message: "Vui lòng xác thực email" });
       }
 
       // Trả cả 2 token về phía client
@@ -107,9 +107,8 @@ const authController = {
         refreshToken,
       });
     } catch (error) {
-      console.error(error);
       res.status(500).json({
-        message: "Error logging in user",
+        message: "Lỗi đăng nhập",
         error: error.message,
       });
     }
