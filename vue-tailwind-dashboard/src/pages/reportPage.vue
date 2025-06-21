@@ -41,6 +41,7 @@
     >
       Loading...
     </div>
+
     <div v-else>
       <div
         v-if="error"
@@ -94,15 +95,12 @@
             Reports: {{ doc.reportCount }}
           </p>
 
-          <div class="mt-4 flex gap-2">
+          <div class="mt-4 flex flex-wrap gap-2">
             <button
               class="text-blue-600 hover:underline text-sm"
               @click="toggleReportDetails(doc)"
             >
-              👁️
-              {{
-                reportDetailsVisible[doc._id] ? "Hide Details" : "View Details"
-              }}
+              👁️ {{ reportDetailsVisible[doc._id] ? "Hide Details" : "View Details" }}
             </button>
             <button
               class="text-red-600 hover:underline text-sm"
@@ -117,6 +115,13 @@
             >
               ❌ Cancel Report
             </button>
+            <button
+              v-if="doc.reportCount > 10 && reportDetailsVisible[doc._id]"
+              class="text-green-700 hover:underline text-sm"
+              @click="approveDocument(doc._id)"
+            >
+              ✅ Approve & Delete after 1 day
+            </button>
           </div>
 
           <div
@@ -124,7 +129,6 @@
             class="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-sm text-yellow-800"
           >
             <strong>Report Details:</strong>
-
             <div
               v-if="doc.reportReasons && doc.reportReasons.length"
               class="mt-2 space-y-2"
@@ -135,8 +139,7 @@
                 class="border-b border-yellow-200 pb-2"
               >
                 <p>
-                  - <strong>Lý do:</strong>
-                  {{ report.reason || "Không có lý do" }}
+                  - <strong>Lý do:</strong> {{ report.reason || "Không có lý do" }}
                 </p>
                 <p class="ml-4 text-xs text-gray-600">
                   👤 Người báo cáo: {{ report.reporter }}
@@ -146,7 +149,6 @@
                 </p>
               </div>
             </div>
-
             <div
               v-else
               class="mt-2 text-gray-600"
@@ -181,7 +183,7 @@ export default {
       const query = this.searchQuery.trim().toLowerCase();
       if (!query) return this.documents;
       return this.documents.filter((doc) =>
-        doc.title?.toLowerCase().includes(query),
+        doc.title?.toLowerCase().includes(query)
       );
     },
   },
@@ -233,7 +235,7 @@ export default {
 
     async confirmDelete(documentId) {
       const confirmed = window.confirm(
-        "Bạn có chắc chắn muốn xóa tài liệu này không?",
+        "Bạn có chắc chắn muốn xóa tài liệu này không?"
       );
       if (!confirmed) return;
 
@@ -249,7 +251,7 @@ export default {
 
     async cancelReport(documentId) {
       const confirmed = window.confirm(
-        "Bạn có chắc chắn muốn hủy tất cả báo cáo cho tài liệu này không?",
+        "Bạn có chắc chắn muốn hủy tất cả báo cáo cho tài liệu này không?"
       );
       if (!confirmed) return;
 
@@ -263,6 +265,27 @@ export default {
         alert("Failed to cancel reports.");
       }
     },
+
+    async approveDocument(documentId) {
+      const confirmed = window.confirm(
+        "Bạn có chắc chắn duyệt và xóa tài liệu này sau 1 ngày?"
+      );
+      if (!confirmed) return;
+
+      try {
+        const res = await axios.post(`http://localhost:5000/api/reports/approve/${documentId}`);
+        alert(res.data.message || "Đã duyệt tài liệu.");
+        this.fetchReportedDocuments();
+        this.reportDetailsVisible[documentId] = false;
+      } catch (error) {
+        console.error("Approve failed:", error);
+        alert("Không thể duyệt và xóa tài liệu.");
+      }
+    },
   },
 };
 </script>
+
+<style scoped>
+
+</style>
