@@ -29,6 +29,7 @@ class CustomTextFormField extends StatefulWidget {
 
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
   late FocusNode _focusNode;
+  final _fieldKey = GlobalKey<FormFieldState>();
   bool _touched = false;
 
   @override
@@ -40,6 +41,12 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       if (_focusNode.hasFocus && !_touched) {
         setState(() {
           _touched = true;
+        });
+
+        Future.microtask(() {
+          if (mounted) {
+            _fieldKey.currentState?.validate();
+          }
         });
       }
     });
@@ -54,6 +61,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: _fieldKey,
       initialValue: widget.initialValue,
       focusNode: _focusNode,
       keyboardType: widget.keyboardType,
@@ -66,6 +74,14 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             (value) => Validate.notEmpty(value,
                 fieldName: widget.fieldName ?? widget.label);
         return v(value);
+      },
+      onChanged: (_) {
+        if (!_touched) {
+          setState(() {
+            _touched = true;
+          });
+        }
+        _fieldKey.currentState?.validate();
       },
       onSaved: (value) =>
           widget.onSaved?.call(Validate.normalizeText(value ?? '')),

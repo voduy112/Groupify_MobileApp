@@ -178,6 +178,7 @@ class DocumentService {
       rethrow;
     }
   }
+
   Future<void> deleteDocument(String documentId) async {
     try {
       final response = await _dio.delete('/api/document/$documentId');
@@ -189,6 +190,7 @@ class DocumentService {
       rethrow;
     }
   }
+
   Future<void> updateDocument(
     String documentId,
     String title,
@@ -219,7 +221,6 @@ class DocumentService {
       );
     }
   }
-}
 
   // Gửi rating cho tài liệu
   Future<void> rateDocument({
@@ -296,5 +297,24 @@ class DocumentService {
     }
   }
 
-}
+  //Xoa binh luan
+  Future<void> deleteComment({
+    required String documentId,
+    required String commentId,
+    required String userId,
+  }) async {
+    final response = await _dio.delete(
+      '/api/document/comments/$documentId/$commentId',
+      data: {
+        'userId': userId,
+      },
+      options: Options(
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
 
+    if (response.statusCode != 200) {
+      throw Exception(response.data['error'] ?? 'Xóa bình luận thất bại');
+    }
+  }
+}

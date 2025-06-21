@@ -1,6 +1,8 @@
 <template>
   <div class="p-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">📁 Group List</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+      📁 Group List
+    </h1>
 
     <div class="mb-6 max-w-md relative">
       <input
@@ -8,7 +10,7 @@
         type="text"
         placeholder="Search groups"
         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200 pr-10"
-      />
+      >
       <svg
         class="w-5 h-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
@@ -19,8 +21,17 @@
         stroke-linejoin="round"
         viewBox="0 0 24 24"
       >
-        <circle cx="11" cy="11" r="7" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <circle
+          cx="11"
+          cy="11"
+          r="7"
+        />
+        <line
+          x1="21"
+          y1="21"
+          x2="16.65"
+          y2="16.65"
+        />
       </svg>
     </div>
 
@@ -37,10 +48,12 @@
           :src="getGroupImage(group.imgGroup)"
           alt="Ảnh nhóm"
           class="w-full h-40 object-cover rounded-xl mb-4"
-        />
+        >
 
         <div class="flex items-start justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">{{ group.name }}</h2>
+          <h2 class="text-xl font-bold text-gray-800">
+            {{ group.name }}
+          </h2>
           <div class="space-x-2 text-sm">
             <button
               class="text-blue-600 hover:underline"
@@ -81,27 +94,34 @@
       </div>
     </div>
 
-    <div v-else class="text-gray-500 mt-4">Không tìm thấy nhóm nào.</div>
+    <div
+      v-else
+      class="text-gray-500 mt-4"
+    >
+      Không tìm thấy nhóm nào.
+    </div>
 
     <div
       v-if="selectedGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
     >
       <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-        <h3 class="text-xl font-bold mb-4">Sửa nhóm</h3>
+        <h3 class="text-xl font-bold mb-4">
+          Sửa nhóm
+        </h3>
         <label class="block mb-2">
           <span class="text-gray-700">Tên nhóm</span>
           <input
             v-model="selectedGroup.name"
             class="w-full border p-2 rounded"
-          />
+          >
         </label>
         <label class="block mb-2">
           <span class="text-gray-700">Mô tả</span>
           <textarea
             v-model="selectedGroup.description"
             class="w-full border p-2 rounded"
-          ></textarea>
+          />
         </label>
         <div class="flex justify-end mt-4 space-x-2">
           <button
@@ -137,7 +157,10 @@
           >
             Không có thành viên.
           </li>
-          <li v-for="member in viewingGroup.membersID" :key="member._id">
+          <li
+            v-for="member in viewingGroup.membersID"
+            :key="member._id"
+          >
             {{ member.username }}
           </li>
         </ul>

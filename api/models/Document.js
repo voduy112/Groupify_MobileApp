@@ -18,10 +18,6 @@ const documentSchema = new mongoose.Schema({
     required: true,
     ref: 'User'
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
   imgDocument: {
     type: String,
     default: 'default.jpg'
@@ -31,6 +27,7 @@ const documentSchema = new mongoose.Schema({
     default: 'file.pdf'
   },
 
+  
   ratings: [ 
     {
       userId: {
@@ -47,16 +44,18 @@ const documentSchema = new mongoose.Schema({
     }
   ],
 
+ 
   comments: [
     {
-      userId: { type: String, required: true },
+      _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
       username: { type: String },
+      avatar: { type: String },
       content: { type: String, required: true },
       createdAt: { type: Date, default: Date.now }
     }
   ],
 
-  // ✅ Thêm vào đây:
   reportCount: {
     type: Number,
     default: 0
@@ -72,6 +71,7 @@ const documentSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now }
     }
   ]
-});
+
+}, { timestamps: true }); 
 
 module.exports = mongoose.model('Document', documentSchema);

@@ -1,17 +1,15 @@
+const reportController = require('../controllers/reportController.js');
 const express = require("express");
 const router = express.Router();
-const documentController = require("../controllers/documentController");
 
-// Lấy tất cả tài liệu bị report 
-router.get("/reports", documentController.getReportedDocuments);
+router.get("/", reportController.getAllReports);
+router.get("/:id", reportController.getReportById);
+router.get("/document/:id", reportController.getReportsByDocumentId);
+router.get('/document/:documentId/reporter/:reporterId', reportController.getReportByDocumentIdAndReporterId);
+router.post("/", reportController.createReport);
+router.put("/:id",reportController.updateReport);
+router.delete("/:id", reportController.deleteReport);
 
-// Lấy chi tiết các báo cáo của một tài liệu
-router.get("/document/:id", documentController.getReportsByDocumentId);
 
-// Báo cáo tài liệu
-router.post("/:id/report", documentController.reportDocument);
-
-// Xoá tất cả báo cáo của một tài liệu
-router.delete("/:id/reports", documentController.clearDocumentReports);
-
+ 
 module.exports = router;

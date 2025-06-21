@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 
 class DioClient {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.219:5000',
+
+    baseUrl: 'http://192.168.1.115:5000',
+
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));
 
   static final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
 
   static bool _hasRefreshed = false;
 

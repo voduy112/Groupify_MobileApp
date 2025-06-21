@@ -20,5 +20,6 @@ router.get("/:id", documentController.getDocumentById);
 
 router.get("/", documentController.getAllDocument);
 router.post("/", uploadImageAndFile, documentController.uploadDocument);
+router.delete('/comments/:documentId/:commentId', documentController.deleteComment);
 
 module.exports = router;

@@ -70,4 +70,16 @@ class MessagingProvider extends ChangeNotifier {
     await MessagingService.sendGroupDocumentNotification(
         adminName, groupId, documentTitle);
   }
+
+  Future<void> muteGroup(String groupId, String userId) async {
+    await MessagingService.muteGroup(groupId, userId);
+  }
+
+  Future<void> unmuteGroup(String groupId, String userId) async {
+    await MessagingService.unmuteGroup(groupId, userId);
+  }
+
+  Future<List<dynamic>> getMutedGroups(String userId) async {
+    return await MessagingService.getMutedGroups(userId);
+  }
 }

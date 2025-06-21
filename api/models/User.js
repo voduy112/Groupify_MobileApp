@@ -56,6 +56,12 @@ const userSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    mutedGroups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group",
+      },
+    ],
   },
   { timestamps: true }
 );

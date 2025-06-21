@@ -20,6 +20,7 @@ import '../../document/providers/document_provider.dart';
 import '../../quiz/providers/quiz_provider.dart';
 import '../../grouprequest/providers/grouprequest_provider.dart';
 import 'widgets/member_list.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class GroupDetailScreenMember extends StatefulWidget {
   final String groupId;
@@ -44,6 +45,8 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   bool _loadingMembers = false;
   String? _errorMembers;
 
+  bool isMuted = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,8 +56,19 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   Future<void> _loadGroup() async {
     try {
       final group = await _groupService.getGroup(widget.groupId);
+      final currentUser =
+          Provider.of<AuthProvider>(context, listen: false).user;
+      bool muted = false;
+      if (currentUser != null) {
+        final messagingProvider =
+            Provider.of<MessagingProvider>(context, listen: false);
+        final mutedGroups =
+            await messagingProvider.getMutedGroups(currentUser.id!);
+        muted = mutedGroups.any((group) => group['_id'] == widget.groupId);
+      }
       setState(() {
         _group = group;
+        isMuted = muted;
       });
     } catch (e) {
       setState(() {
@@ -292,24 +306,47 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_group != null &&
-                          _group!.ownerId != null &&
-                          _group!.ownerId!['_id'] == currentUser?.id)
-                        IconButton(
-                          icon:
-                              const Icon(Icons.group_add, color: Colors.white),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) => SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.7,
-                                child: RequestListWidget(groupId: _group!.id!),
-                              ),
-                            );
-                          },
+                      IconButton(
+                        icon: Icon(
+                          isMuted
+                              ? Icons.notifications_off
+                              : Icons.notifications,
+                          color: Colors.white,
                         ),
+                        onPressed: () async {
+                          final userId = currentUser?.id;
+                          if (userId == null || _group == null) return;
+
+                          setState(() {
+                            isMuted = !isMuted;
+                          });
+
+                          final messagingProvider =
+                              Provider.of<MessagingProvider>(context,
+                                  listen: false);
+
+                          if (isMuted) {
+                            await messagingProvider.muteGroup(
+                                _group!.id!, userId);
+                          } else {
+                            await messagingProvider.unmuteGroup(
+                                _group!.id!, userId);
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.group_add, color: Colors.white),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              child: RequestListWidget(groupId: _group!.id!),
+                            ),
+                          );
+                        },
+                      ),
                       IconButton(
                         icon: const Icon(Icons.menu, color: Colors.white),
                         onPressed: () {

@@ -171,6 +171,7 @@ class DocumentProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<bool> deleteDocumentById(String documentId) async {
     _isLoading = true;
     _error = null;
@@ -178,7 +179,7 @@ class DocumentProvider extends ChangeNotifier {
 
     try {
       await _documentService.deleteDocument(documentId);
-            _documents.removeWhere((doc) => doc.id == documentId);
+      _documents.removeWhere((doc) => doc.id == documentId);
 
       return true;
     } catch (e) {
@@ -190,6 +191,7 @@ class DocumentProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void> updateDocument(String documentId, String title,
       String description, dynamic image, dynamic mainFile,
       {String? groupId}) async {
@@ -235,8 +237,6 @@ class DocumentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
-
   Future<bool> rateDocument(String documentId, double rating) async {
     try {
       await _documentService.rateDocument(
@@ -278,8 +278,6 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-
-
   Future<void> fetchComments(String documentId,
       {int skip = 0, int limit = 10}) async {
     try {
@@ -307,8 +305,33 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-  bool hasMoreComments(String documentId) => commentsHasMore[documentId] ?? false;
+  bool hasMoreComments(String documentId) =>
+      commentsHasMore[documentId] ?? false;
   int getTotalCommentCount(String documentId) => commentsTotal[documentId] ?? 0;
-  int getLoadedCommentCount(String documentId) => comments[documentId]?.length ?? 0;
+  int getLoadedCommentCount(String documentId) =>
+      comments[documentId]?.length ?? 0;
 
+  //Xoa binh luan
+  Future<bool> deleteComment(String documentId, String commentId) async {
+    try {
+      await _documentService.deleteComment(
+        documentId: documentId,
+        commentId: commentId,
+        userId: currentUserId,
+      );
+      comments[documentId]?.removeWhere((cmt) => cmt['_id'] == commentId);
+
+      if (commentsTotal.containsKey(documentId)) {
+        commentsTotal[documentId] =
+            (commentsTotal[documentId]! - 1).clamp(0, double.infinity).toInt();
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Lỗi khi xóa bình luận: $e';
+      notifyListeners();
+      return false;
+    }
+  }
 }

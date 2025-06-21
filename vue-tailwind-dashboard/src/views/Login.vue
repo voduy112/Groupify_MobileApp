@@ -1,33 +1,19 @@
 <template>
-  <div
-    class="min-h-screen flex flex-col items-center justify-center bg-blue-50 px-4"
-  >
+  <div class="min-h-screen flex flex-col items-center justify-center bg-blue-50 px-4">
     <h1 class="text-4xl font-extrabold text-blue-800 mb-8 leading-tight">
       Đăng nhập Admin
     </h1>
 
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
       <form @submit.prevent="handleLogin" class="space-y-6">
-        <input
-          v-model="email"
-          type="email"
-          required
-          placeholder="Email"
-          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-base placeholder-gray-500 text-gray-900"
-        />
+        <input v-model="email" type="email" required placeholder="Email"
+          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-base placeholder-gray-500 text-gray-900" />
 
-        <input
-          v-model="password"
-          type="password"
-          required
-          placeholder="Mật khẩu"
-          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-base placeholder-gray-500 text-gray-900"
-        />
+        <input v-model="password" type="password" required placeholder="Mật khẩu"
+          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 text-base placeholder-gray-500 text-gray-900" />
 
-        <button
-          type="submit"
-          class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-lg py-3 rounded-md transition duration-200"
-        >
+        <button type="submit"
+          class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold text-lg py-3 rounded-md transition duration-200">
           Đăng nhập
         </button>
       </form>
