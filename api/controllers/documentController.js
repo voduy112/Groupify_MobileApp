@@ -3,7 +3,13 @@ const Document = require("../models/Document");
 const User = require("../models/User");
 const Report = require("../models/Report");
 
-
+function removeVietnameseTones(str) {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
 
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
