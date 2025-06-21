@@ -1,11 +1,13 @@
+import 'package:app/core/utils/validate.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../models/document.dart';
 import '../../../features/document/views/document_detail_screen.dart';
 import '../../../features/document/services/document_service.dart';
 import '../../../features/document/providers/document_provider.dart';
 import 'package:provider/provider.dart';
-
+import '../../../core/widgets/custom_text_form_field.dart';
 import '../../document/views/document_rating_info.dart';
 import '../../report/providers/report_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
@@ -59,7 +61,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       return;
     }
 
-    // ✅ Kiểm tra nếu người dùng là chủ sở hữu tài liệu => không cho báo cáo
     final isOwner = await reportProvider.checkOwner(
       documentId: document!.id!,
       userId: userId,
@@ -74,7 +75,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       return;
     }
 
-    // 🔍 Kiểm tra người dùng đã báo cáo tài liệu này chưa
     final existingReport =
         await reportProvider.getReportByDocumentIdAndReporterId(
       document!.id!,
@@ -129,44 +129,118 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       return;
     }
 
-    // Nếu chưa báo cáo và không phải chủ sở hữu => hiển thị form
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Báo cáo tài liệu'),
-          content: TextField(
-            controller: reasonController,
-            decoration: const InputDecoration(hintText: 'Nhập lý do báo cáo'),
-            maxLines: 3,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Huỷ'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final success = await reportProvider.createReport(
-                  reporterId: userId,
-                  reason: reasonController.text.trim(),
-                  documentId: document!.id!,
-                );
+        String selectedReason = 'Nội dung không phù hợp';
+        final TextEditingController customReasonController =
+            TextEditingController();
+        final _formKey = GlobalKey<FormState>();
 
-                Navigator.of(context).pop();
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success
-                        ? 'Báo cáo đã được gửi'
-                        : 'Gửi báo cáo thất bại'),
-                  ),
-                );
-              },
-              child: const Text('Gửi'),
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Colors.blue, width: 2),
             ),
-          ],
-        );
+            title: const Text('Báo cáo tài liệu'),
+            content: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String>(
+                      title: const Text('Nội dung không phù hợp'),
+                      value: 'Nội dung không phù hợp',
+                      groupValue: selectedReason,
+                      onChanged: (value) =>
+                          setState(() => selectedReason = value!),
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Nội dung gây thù ghét'),
+                      value: 'Nội dung gây thù ghét',
+                      groupValue: selectedReason,
+                      onChanged: (value) =>
+                          setState(() => selectedReason = value!),
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Nội dung xúc phạm cá nhân/tổ chức'),
+                      value: 'Nội dung xúc phạm cá nhân/tổ chức',
+                      groupValue: selectedReason,
+                      onChanged: (value) =>
+                          setState(() => selectedReason = value!),
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Khác'),
+                      value: 'Khác',
+                      groupValue: selectedReason,
+                      onChanged: (value) =>
+                          setState(() => selectedReason = value!),
+                    ),
+                    if (selectedReason == 'Khác')
+                      CustomTextFormField(
+                        label: 'Lý do cụ thể',
+                        maxLines: 3,
+                        fieldName: 'Lý do cụ thể',
+                        validator: (value) =>
+                            Validate.notEmpty(value, fieldName: 'Lý do cụ thể'),
+                        onSaved: (value) =>
+                            customReasonController.text = value ?? '',
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Huỷ'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (selectedReason == 'Khác') {
+                    if (!_formKey.currentState!.validate()) return;
+                    _formKey.currentState!.save();
+                  }
+
+                  final reason = selectedReason == 'Khác'
+                      ? customReasonController.text.trim()
+                      : selectedReason;
+
+                  if (reason.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Vui lòng nhập lý do báo cáo')),
+                    );
+                    return;
+                  }
+
+                  final success = await reportProvider.createReport(
+                    reporterId: userId,
+                    reason: reason,
+                    documentId: document!.id!,
+                  );
+
+                  Navigator.of(context).pop();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? 'Báo cáo đã được gửi'
+                            : 'Gửi báo cáo thất bại',
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Gửi'),
+              ),
+            ],
+          );
+        });
       },
     );
   }
@@ -208,10 +282,40 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             if (document!.imgDocument != null &&
                 document!.imgDocument!.isNotEmpty)
               Center(
-                child: Image.network(
-                  document!.imgDocument!,
+                child: CachedNetworkImage(
+                  imageUrl: document!.imgDocument!,
                   height: 200,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 120,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: double.infinity,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Colors.grey,
+                        size: 30,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 16),
@@ -239,7 +343,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  ('Tiêu đề: ' '${document!.description}') ?? '',
+                  ('Mô tả: ' '${document!.description}') ?? '',
                   style: TextStyle(fontSize: 24),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3,

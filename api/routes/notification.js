@@ -27,6 +27,8 @@ router.get("/user/:userId", notificationController.getAllNotification);
 
 router.post("/read/:notiId", notificationController.readNotification);
 
+router.post("/read-all/:userId", notificationController.readAllNotifications);
+
 router.get("/muted-groups/:userId", notificationController.getMutedGroups);
 router.post("/mute-group", notificationController.muteGroup);
 router.post("/unmute-group", notificationController.unmuteGroup);

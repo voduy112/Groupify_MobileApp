@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/message.dart';
 import '../../../models/user.dart';
+import '../../socket/socket_provider.dart';
 import '../services/chat_service.dart';
 
 class ChatProvider with ChangeNotifier {
@@ -13,12 +14,22 @@ class ChatProvider with ChangeNotifier {
   Map<String, String> _lastMsgs = {};
   bool _isLoading = false;
   String? _error;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _isFetchingMore = false;
+  int _messagePage = 1;
+  bool _hasMoreMessages = true;
+  bool _isFetchingMoreMessages = false;
+  bool get isFetchingMoreMessages => _isFetchingMoreMessages;
 
   List<Message> get messages => _messages;
   List<User> get chatUsers => _chatUsers;
   Map<String, String> get lastMsgs => _lastMsgs;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isFetchingMore => _isFetchingMore;
+  bool get hasMore => _currentPage <= _totalPages;
+  bool get hasMoreMessages => _hasMoreMessages;
 
   Future<void> fetchMessages(String user1Id, String user2Id) async {
     _isLoading = true;
@@ -36,47 +47,56 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> fetchChatList(String userId) async {
-    _isLoading = true;
+  Future<void> fetchChatList(String userId, {bool refresh = false}) async {
+    if (refresh) {
+      _chatUsers.clear();
+      _currentPage = 1;
+    }
+
+    if (_isFetchingMore) return;
+
+    _isLoading = _currentPage == 1;
+    _isFetchingMore = _currentPage > 1;
+    _error = null;
     notifyListeners();
 
     try {
-      final users = await chatService.getChatList(userId);
-      _chatUsers = users;
-      _lastMsgs.clear();
+      final data = await chatService.getChatList(userId, page: _currentPage);
+      final users = data['chats'] as List<User>;
+      final totalPages = data['totalPages'] as int;
+      final lastMsgsMap = data['lastMsgs'] as Map<String, String>;
 
-      for (var user in users) {
-        final msgs = await chatService.getMessages(userId, user.id!);
-        if (msgs.isNotEmpty) {
-          final lastMsg = msgs.last;
-          final isCurrentUserSender = lastMsg.fromUser.id == userId;
+      _chatUsers.addAll(users);
+      _lastMsgs.addAll(lastMsgsMap);
+      _totalPages = totalPages;
+      _currentPage++;
 
-          final displayUserId = lastMsg.fromUser.id == userId
-              ? lastMsg.toUser.id
-              : lastMsg.fromUser.id;
-
-          _lastMsgs[displayUserId!] =
-              isCurrentUserSender ? 'Bạn: ${lastMsg.message}' : lastMsg.message;
-        } else {
-          _lastMsgs[user.id!] = '';
-        }
-      }
-      _error = null;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
-      _chatUsers = [];
+      notifyListeners();
     } finally {
       _isLoading = false;
+      _isFetchingMore = false;
       notifyListeners();
     }
+  }
+
+  Future<bool> fetchChatListPage(String userId, {int? page}) async {
+    if (page != null) {
+      _currentPage = page;
+    }
+    await fetchChatList(userId);
+    return hasMore;
   }
 
   void addMessage(Message message) {
     _messages.add(message);
     notifyListeners();
   }
-  
-  Future<void> deleteChatWithUser(String currentUserId, String otherUserId) async {
+
+  Future<void> deleteChatWithUser(
+      String currentUserId, String otherUserId) async {
     await chatService.deleteChat(currentUserId, otherUserId);
     _chatUsers.removeWhere((user) => user.id == otherUserId);
     _lastMsgs.remove(otherUserId);
@@ -87,4 +107,61 @@ class ChatProvider with ChangeNotifier {
     _messages = messages;
     notifyListeners();
   }
+
+  void resetChatList() {
+    _chatUsers.clear();
+    _lastMsgs.clear();
+    _error = null;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void loadInitialMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    _messages.clear();
+    _messagePage = 1;
+    _hasMoreMessages = true;
+    socketProvider.loadMessages(user1Id, user2Id, page: _messagePage);
+  }
+
+  /*void loadMoreMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    if (!_hasMoreMessages) return;
+    _messagePage++;
+    socketProvider.loadMessages(user1Id, user2Id, page: _messagePage);
+  }*/
+
+  void loadMoreMessages(
+      String user1Id, String user2Id, SocketProvider socketProvider) {
+    if (!_hasMoreMessages || _isFetchingMoreMessages) return;
+
+    _isFetchingMoreMessages = true;
+    notifyListeners();
+
+    _messagePage++;
+    socketProvider.loadMessages(
+      user1Id,
+      user2Id,
+      page: _messagePage,
+    );
+  }
+
+
+  void setHasMoreMessages(bool value) {
+    _hasMoreMessages = value;
+  }
+
+  void addMessagesToTop(List<Message> msgs) {
+    _messages.insertAll(0, msgs);
+    notifyListeners();
+  }
+
+  bool get isFirstPage => _messagePage == 1;
+  
+
+  void setIsFetchingMoreMessages(bool value) {
+    _isFetchingMoreMessages = value;
+    notifyListeners();
+  }
+
 }

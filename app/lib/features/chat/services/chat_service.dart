@@ -23,7 +23,7 @@ class ChatService {
     }
   }
 
-  Future<List<User>> getChatList(String userId) async {
+  /*Future<List<User>> getChatList(String userId) async {
     try {
       final response = await _dio.get('/api/chat/list/$userId');
 
@@ -36,11 +36,33 @@ class ChatService {
     } catch (e) {
       throw Exception('Lỗi API lấy danh sach chat: $e');
     }
+  }*/
+
+  Future<Map<String, dynamic>> getChatList(String userId,
+      {int page = 1}) async {
+    final res = await _dio.get('/api/chat/list/$userId?page=$page&limit=10');
+    final List<dynamic> chatsJson = res.data['chats'];
+
+    final users = <User>[];
+    final lastMsgs = <String, String>{};
+
+    for (var json in chatsJson) {
+      final user = User.fromJson(json);
+      users.add(user);
+      final msg = json['lastMessage'] ?? '';
+      final isSender = json['isSender'] ?? false;
+      lastMsgs[user.id!] = isSender ? 'Bạn: $msg' : msg;
+    }
+
+    return {
+      'chats': users,
+      'lastMsgs': lastMsgs,
+      'totalPages': res.data['totalPages'],
+    };
   }
 
   Future<void> deleteChat(String userId1, String userId2) async {
-    final response =
-        await _dio.delete('/api/chat/$userId1/$userId2');
+    final response = await _dio.delete('/api/chat/$userId1/$userId2');
     if (response.statusCode != 200) {
       throw Exception('Xóa cuộc trò chuyện thất bại');
     }

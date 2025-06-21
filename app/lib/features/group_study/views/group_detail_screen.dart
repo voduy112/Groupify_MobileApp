@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../models/group.dart';
 import '../services/group_service.dart';
@@ -63,8 +64,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     if (user == null) {
       if (!mounted) return;
       showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (_) => const AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.blue, width: 2),
+          ),
           title: Text("Thông báo"),
           content: Text("Bạn cần đăng nhập để tham gia nhóm"),
         ),
@@ -78,6 +84,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => const AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Colors.blue, width: 2),
+        ),
         title: Text("Đang xử lý"),
         content: Row(
           children: [
@@ -102,8 +112,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
 
     if (!mounted) return;
-    Navigator.of(context, rootNavigator: true)
-        .pop(); // Đóng dialog "đang xử lý"
+    Navigator.of(context, rootNavigator: true).pop();
 
     if (success) {
       // Điều hướng đến màn hình GroupDetailScreenMember
@@ -116,8 +125,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       // Hiển thị thông báo lỗi
       if (!mounted) return;
       showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.blue, width: 2),
+          ),
           title: const Text("Thất bại"),
           content: Text(groupProvider.error?.contains("đã tham gia") == true
               ? "Bạn đã ở trong nhóm này rồi"
@@ -181,13 +196,41 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   if (_group!.imgGroup != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _group!.imgGroup!,
+                      child: CachedNetworkImage(
+                        imageUrl: _group!.imgGroup!,
                         height: 180,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 100),
+                        placeholder: (context, url) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 120,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   const SizedBox(height: 20),
@@ -273,8 +316,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
                       if (currentUser == null) {
                         showDialog(
+                          barrierDismissible: false,
                           context: context,
                           builder: (_) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: const BorderSide(
+                                  color: Colors.blue, width: 2),
+                            ),
                             title: const Text("Thông báo"),
                             content:
                                 const Text("Bạn cần đăng nhập để xin vào nhóm"),
@@ -293,6 +343,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         context: context,
                         barrierDismissible: false,
                         builder: (_) => const AlertDialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                const BorderSide(color: Colors.blue, width: 2),
+                          ),
                           title: Text("Đang xử lý"),
                           content: Row(
                             children: [
@@ -324,7 +379,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
                       showDialog(
                         context: context,
+                        barrierDismissible: false,
                         builder: (_) => AlertDialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side:
+                                const BorderSide(color: Colors.blue, width: 2),
+                          ),
                           title: Text(success ? "Thành công" : "Thất bại"),
                           content: Text(success
                               ? "Đã gửi yêu cầu vào nhóm thành công"
@@ -354,11 +416,18 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     label: const Text("Mã mời"),
                     onPressed: () {
                       showDialog(
+                        barrierDismissible: false,
                         context: context,
                         builder: (contextDialog) {
                           final TextEditingController controller =
                               TextEditingController();
                           return AlertDialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: const BorderSide(
+                                  color: Colors.blue, width: 2),
+                            ),
                             title: const Text("Nhập mã mời"),
                             content: TextField(
                               controller: controller,

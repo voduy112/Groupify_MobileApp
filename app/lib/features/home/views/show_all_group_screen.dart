@@ -14,8 +14,10 @@ class ShowAllGroupScreen extends StatefulWidget {
 
 class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
   final ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isSearching = false;
+  List<dynamic> _searchResults = [];
   String? userId;
 
   @override
@@ -44,6 +46,33 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
     }
   }
 
+  void _onSearchChanged(String value) async {
+    setState(() {
+      _searchQuery = value;
+      _isSearching = true;
+    });
+    if (value.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+    try {
+      final provider = Provider.of<GroupProvider>(context, listen: false);
+      final results = await provider.searchGroup(value);
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -54,12 +83,8 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
   @override
   Widget build(BuildContext context) {
     final groupProvider = Provider.of<GroupProvider>(context);
-    final filteredGroups = groupProvider.groups.where((group) {
-      final name = group.name?.toLowerCase() ?? '';
-      final description = group.description?.toLowerCase() ?? '';
-      return name.contains(_searchQuery.toLowerCase()) ||
-          description.contains(_searchQuery.toLowerCase());
-    }).toList();
+    final groups = groupProvider.groups;
+    final showList = _searchQuery.isEmpty ? groups : _searchResults;
 
     return Scaffold(
       appBar: AppBar(
@@ -78,42 +103,48 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              onChanged: _onSearchChanged,
             ),
           ),
           const SizedBox(height: 5),
           Expanded(
-            child: filteredGroups.isEmpty
-                ? const Center(child: Text('Không tìm thấy nhóm nào'))
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount: filteredGroups.length +
-                        (groupProvider.isFetchingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index < filteredGroups.length) {
-                        final group = filteredGroups[index];
-                        return GroupItem(
-                          group: group,
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  GroupDetailScreen(groupId: group.id!),
-                            ));
-                          },
-                        );
-                      } else {
-                        // Hiển thị loading khi đang fetch trang mới
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                    },
-                  ),
+            child: _isSearching
+                ? const Center(child: CircularProgressIndicator())
+                : showList.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Không tìm thấy nhóm nào',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: showList.length +
+                            (_searchQuery.isEmpty &&
+                                    groupProvider.isFetchingMore
+                                ? 1
+                                : 0),
+                        itemBuilder: (context, index) {
+                          if (index < showList.length) {
+                            final group = showList[index];
+                            return GroupItem(
+                              group: group,
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      GroupDetailScreen(groupId: group.id!),
+                                ));
+                              },
+                            );
+                          } else {
+                            // Hiển thị loading khi đang fetch trang mới
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                        },
+                      ),
           ),
         ],
       ),

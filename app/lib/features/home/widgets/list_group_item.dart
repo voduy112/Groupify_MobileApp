@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/group.dart';
 import '../../group_study/providers/group_provider.dart';
 import 'package:provider/provider.dart';
@@ -16,14 +17,6 @@ class ListGroupItem extends StatefulWidget {
 }
 
 class _ListGroupItemState extends State<ListGroupItem> {
-  @override
-  void initState() {
-    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
-    super.initState();
-    Future.microtask(() => Provider.of<GroupProvider>(context, listen: false)
-        .fetchAllGroup(userId ?? ''));
-  }
-
   @override
   Widget build(BuildContext context) {
     final groups = widget.groups ?? Provider.of<GroupProvider>(context).groups;
@@ -86,9 +79,39 @@ class _ListGroupItemState extends State<ListGroupItem> {
                         width: 60,
                         height: 60,
                         color: Colors.grey[300],
-                        child: Image.network(
-                          group.imgGroup ?? '',
+                        child: CachedNetworkImage(
+                          imageUrl: group.imgGroup ?? '',
                           fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            height: 120,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Colors.grey,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            height: 120,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Colors.grey,
+                                size: 30,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

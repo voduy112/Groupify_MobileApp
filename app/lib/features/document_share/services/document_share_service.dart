@@ -136,4 +136,11 @@ class DocumentShareService {
         await _dio.put('/api/document/$documentId', data: formData);
     return response.data;
   }
+
+  Future<List<Document>> searchDocument(String query) async {
+    final response = await _dio.get('/api/document/search?query=$query');
+    return (response.data as List)
+        .map((json) => Document.fromJson(json))
+        .toList();
+  }
 }

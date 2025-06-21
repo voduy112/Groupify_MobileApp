@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/user.dart';
+import '../../socket/socket_provider.dart';
 import '../services/auth_service.dart';
 import 'dart:io';
 import '../services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../services/api/dio_client.dart';
+import 'package:dio/dio.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
@@ -30,7 +33,8 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> login(String email, String password) async {
+  Future<String?> login(
+      String email, String password, BuildContext context) async {
     _isLoading = true;
     notifyListeners();
     try {
@@ -40,16 +44,29 @@ class AuthProvider with ChangeNotifier {
         if (fcmToken != null) {
           await authService.updateFcmToken(_user!.id!, fcmToken);
         }
+
         final storage = FlutterSecureStorage();
         await storage.write(key: 'accessToken', value: _user!.accessToken!);
         await storage.write(key: 'refreshToken', value: _user!.refreshToken!);
         DioClient.resetRefreshFlag();
         DioClient.createInterceptors();
+
+        final socketProvider =
+            Provider.of<SocketProvider>(context, listen: false);
+        socketProvider.connect(
+          'http://192.168.1.174:5000',
+          queryParams: {'userId': _user!.id!},
+          token: _user!.accessToken,
+        );
       }
+
       _error = null;
       return null;
+    } on DioException catch (e) {
+      _error = e.response?.data['message'] ?? 'Đã có lỗi xảy ra';
+      return _error;
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       return _error;
     } finally {
       _isLoading = false;
@@ -80,6 +97,10 @@ class AuthProvider with ChangeNotifier {
     try {
       await authService.logout(context);
       DioClient.resetRefreshFlag();
+
+      final socketProvider =
+          Provider.of<SocketProvider>(context, listen: false);
+      socketProvider.disconnect();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -90,6 +111,16 @@ class AuthProvider with ChangeNotifier {
       _user = null;
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<String> checkEmail(String email) async {
+    try {
+      final result = await authService.checkEmail(email);
+      return result;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return e.toString();
     }
   }
 
