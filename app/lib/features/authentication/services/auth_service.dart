@@ -19,15 +19,14 @@ class AuthService {
       if (response.statusCode == 200) {
         return User.fromJson(response.data);
       } else {
-        throw Exception('Failed to login: ${response.statusCode}');
+        throw Exception(response.data['message']);
       }
     } on DioError catch (e) {
       if (e.response?.statusCode == 403 &&
           e.response?.data['message'] == 'Please verify your email') {
         throw Exception('Please verify your email');
       }
-      throw Exception(
-          'Error logging in: ${e.response?.data['message'] ?? e.message}');
+      throw Exception(e.response?.data['message'] ?? e.message);
     }
   }
 

@@ -202,8 +202,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context.go('/otp-verify', extra: _email);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Đăng nhập thất bại!'),
+                                  SnackBar(
+                                    content:
+                                        Text(error ?? 'Đăng nhập thất bại!'),
                                   ),
                                 );
                               }
