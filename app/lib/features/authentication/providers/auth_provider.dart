@@ -62,7 +62,7 @@ class AuthProvider with ChangeNotifier {
       _error = null;
       return null;
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       return _error;
     } finally {
       _isLoading = false;
