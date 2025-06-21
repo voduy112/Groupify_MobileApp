@@ -61,12 +61,16 @@ class SocketProvider with ChangeNotifier {
     });
   }
 
-  void loadMessages(String fromUserId, String toUserId) {
+  void loadMessages(String fromUserId, String toUserId,
+      {int page = 1, int limit = 20}) {
     emit('loadMessages', {
       'fromUserId': fromUserId,
       'toUserId': toUserId,
+      'page': page,
+      'limit': limit,
     });
   }
+
 
   void sendPrivateMessage(String fromUserId, String toUserId, String message) {
     emit('privateMessage', {
@@ -77,15 +81,20 @@ class SocketProvider with ChangeNotifier {
   }
 
   void listenChatHistory(
-      Function(List<Message>) onSuccess, Function()? onError) {
-    listen('chatHistory', (data) {
+    void Function(List<Message> messages, bool hasMore) onSuccess,
+    VoidCallback onError,
+  ) {
+    _socket.on('chatHistory', (data) {
       try {
-        final List<Message> msgs = List<Message>.from(
-          data.map((json) => Message.fromJson(json)).toList(),
-        );
-        onSuccess(msgs);
+        final messages = (data['messages'] as List)
+            .map((json) => Message.fromJson(json))
+            .toList();
+        final hasMore = data['hasMore'] as bool? ?? false;
+
+        onSuccess(messages, hasMore);
       } catch (e) {
-        onError?.call();
+        print('Lỗi xử lý chatHistory: $e');
+        onError();
       }
     });
   }
@@ -135,6 +144,7 @@ class SocketProvider with ChangeNotifier {
     _socket.on('groupMessage', (data) {
       try {
         final msg = GroupMessage.fromJson(data);
+        print("🔥 Nhận được groupMessage socket: $data");
         onNewMessage(msg);
       } catch (e) {
         onError(e);
@@ -152,7 +162,6 @@ class SocketProvider with ChangeNotifier {
       }
     });
   }
-
 
   void listen(String event, Function(dynamic data) handler) {
     _socket.on(event, handler);
@@ -180,7 +189,6 @@ class SocketProvider with ChangeNotifier {
     _initialized = false;
   }
 
-
   void off(String event) {
     _socket.off(event);
   }
@@ -191,4 +199,3 @@ class SocketProvider with ChangeNotifier {
     super.dispose();
   }
 }
-

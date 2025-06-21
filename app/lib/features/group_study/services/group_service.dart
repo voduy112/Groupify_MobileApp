@@ -287,4 +287,8 @@ class GroupService {
     }
   }
 
+  Future<List<Group>> searchGroup(String query) async {
+    final response = await _dio.get('/api/group/search?query=$query');
+    return (response.data as List).map((json) => Group.fromJson(json)).toList();
+  }
 }

@@ -2,7 +2,34 @@ const Group = require("../models/Group");
 
 const cloudinary = require("../config/Cloudinary");
 
+function removeVietnameseTones(str) {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
+
 const groupController = {
+  searchGroup: async (req, res) => {
+    const { query } = req.query;
+    try {
+      const groups = await Group.find({
+        name: { $regex: query, $options: "i" },
+      });
+      if (groups.length > 0) {
+        return res.json(groups);
+      }
+      const allGroups = await Group.find({});
+      const queryNoAccent = removeVietnameseTones(query).toLowerCase();
+      const filtered = allGroups.filter((group) =>
+        removeVietnameseTones(group.name).toLowerCase().includes(queryNoAccent)
+      );
+      res.json(filtered);
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi tìm kiếm nhóm" });
+    }
+  },
   createGroup: async (req, res) => {
     try {
       const { name, description, subject, ownerId, membersID, inviteCode } =
@@ -74,7 +101,7 @@ const groupController = {
         .populate("membersID")
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: 1 });
 
       return res.json({
         totalGroups,

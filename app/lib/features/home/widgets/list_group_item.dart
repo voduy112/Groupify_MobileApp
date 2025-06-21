@@ -18,14 +18,6 @@ class ListGroupItem extends StatefulWidget {
 
 class _ListGroupItemState extends State<ListGroupItem> {
   @override
-  void initState() {
-    final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
-    super.initState();
-    Future.microtask(() => Provider.of<GroupProvider>(context, listen: false)
-        .fetchAllGroup(userId ?? ''));
-  }
-
-  @override
   Widget build(BuildContext context) {
     final groups = widget.groups ?? Provider.of<GroupProvider>(context).groups;
     if (groups.isEmpty) {

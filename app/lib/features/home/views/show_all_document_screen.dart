@@ -10,9 +10,11 @@ class ShowAllDocumentScreen extends StatefulWidget {
 }
 
 class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
-  TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSearching = false;
+  List<dynamic> _searchResults = [];
 
   @override
   void initState() {
@@ -32,29 +34,49 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
     }
   }
 
+  void _onSearchChanged(String value) async {
+    setState(() {
+      _searchQuery = value;
+      _isSearching = true;
+    });
+    if (value.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+    try {
+      final provider =
+          Provider.of<DocumentShareProvider>(context, listen: false);
+      final results = await provider.searchDocument(value);
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final documentProvider = Provider.of<DocumentShareProvider>(context);
-    final filteredDocuments = documentProvider.documents
-        .where((doc) =>
-            (doc.title != null &&
-                doc.title!
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase())) ||
-            (doc.description != null &&
-                doc.description!
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase())))
-        .toList();
+    final documents = documentProvider.documents;
+    final showList = _searchQuery.isEmpty ? documents : _searchResults;
     return Scaffold(
       appBar: AppBar(
-        title: Text('All Documents'),
+        title: Text('Tất cả tài liệu'),
       ),
       body: Column(
         children: [
@@ -70,87 +92,166 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              onChanged: _onSearchChanged,
             ),
           ),
           Expanded(
-            child: filteredDocuments.isEmpty
-                ? Center(child: Text('No documents found'))
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount: filteredDocuments.length +
-                        (documentProvider.isFetchingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index < filteredDocuments.length) {
-                        return ListTile(
-                          title: Text(filteredDocuments[index].title ?? ''),
-                          subtitle:
-                              Text(filteredDocuments[index].description ?? ''),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: CachedNetworkImage(
-                              imageUrl:
-                                  filteredDocuments[index].imgDocument ?? '',
-                              fit: BoxFit.cover,
-                              height: 100,
-                              width: 100,
-                              placeholder: (context, url) => Container(
-                                height: 120,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    color: Colors.grey,
-                                    size: 40,
+            child: _isSearching
+                ? Center(child: CircularProgressIndicator())
+                : showList.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Không tìm thấy tài liệu',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: showList.length +
+                            (_searchQuery.isEmpty &&
+                                    documentProvider.isFetchingMore
+                                ? 1
+                                : 0),
+                        itemBuilder: (context, index) {
+                          if (index < showList.length) {
+                            final doc = showList[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  context.go('/home/document/${doc.id}',
+                                      extra: {'from': 'show_all_document'});
+                                },
+                                child: Card(
+                                  elevation: 3,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16),
+                                          bottomLeft: Radius.circular(16),
+                                        ),
+                                        child: CachedNetworkImage(
+                                          imageUrl: doc.imgDocument ?? '',
+                                          width: 100,
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              Container(
+                                            width: 100,
+                                            height: 120,
+                                            color: Colors.grey.shade200,
+                                            child: const Center(
+                                              child: Icon(
+                                                  Icons
+                                                      .image_not_supported_outlined,
+                                                  color: Colors.grey,
+                                                  size: 40),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) =>
+                                              Container(
+                                            width: 100,
+                                            height: 120,
+                                            color: Colors.grey.shade200,
+                                            child: const Center(
+                                              child: Icon(
+                                                  Icons
+                                                      .image_not_supported_outlined,
+                                                  color: Colors.grey,
+                                                  size: 35),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                doc.title ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF305973),
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                doc.description ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black87,
+                                                ),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                      Icons.picture_as_pdf,
+                                                      size: 18,
+                                                      color: Colors.redAccent),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Xem chi tiết',
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                              errorWidget: (context, url, error) => Container(
-                                height: 120,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    color: Colors.grey,
-                                    size: 35,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          onTap: () {
-                            context.go(
-                                '/home/document/${filteredDocuments[index].id}',
-                                extra: {'from': 'show_all_document'});
-                          },
-                        );
-                      } else {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                    },
-                  ),
+                            );
+                          } else {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                        },
+                      ),
           ),
         ],
       ),
       floatingActionButton: Container(
+        height: 65,
+        width: 65,
         margin: EdgeInsets.only(bottom: 20),
         child: FloatingActionButton(
           onPressed: () {
             context.go('/home/upload-document');
           },
-          child: Icon(Icons.add),
+          backgroundColor: Colors.white10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: Colors.white, width: 1),
+          ),
+          elevation: 8,
+          child: Icon(
+            Icons.add,
+            size: 36,
+            color: Colors.blue.shade500,
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

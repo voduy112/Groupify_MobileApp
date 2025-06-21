@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../authentication/providers/auth_provider.dart';
@@ -16,14 +15,27 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   String _searchQuery = '';
   List<User> _filteredUsers = [];
+
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadChatList();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialChatList());
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 100 &&
+          !_isLoadingMore &&
+          _hasMore) {
+        _loadMoreChatList();
+      }
     });
 
     _searchController.addListener(() {
@@ -34,31 +46,59 @@ class _ChatListScreenState extends State<ChatListScreen> {
     });
   }
 
-  Future<void> _loadChatList() async {
-    final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+  Future<void> _loadInitialChatList() async {
+    final currentUser = context.read<AuthProvider>().user;
     if (currentUser != null) {
-      await Provider.of<ChatProvider>(context, listen: false)
-          .fetchChatList(currentUser.id!);
-      _filterUsers();
+      _currentPage = 1;
+      context.read<ChatProvider>().resetChatList();
+      final hasMore =
+          await context
+          .read<ChatProvider>()
+          .fetchChatListPage(currentUser.id!, page: _currentPage);
+      setState(() {
+        _hasMore = hasMore;
+        _filterUsers();
+      });
+    }
+  }
+
+  Future<void> _loadMoreChatList() async {
+    setState(() => _isLoadingMore = true);
+    final currentUser = context.read<AuthProvider>().user;
+    if (currentUser != null) {
+      final hasMore =
+          await context.read<ChatProvider>().fetchChatListPage(currentUser.id!);
+      setState(() {
+        _currentPage++;
+        _hasMore = hasMore;
+        _isLoadingMore = false;
+        _filterUsers();
+      });
     }
   }
 
   void _filterUsers() {
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    setState(() {
-      _filteredUsers = chatProvider.chatUsers
-          .where((user) => user.username!.toLowerCase().contains(_searchQuery))
-          .toList();
-    });
+    final chatProvider = context.read<ChatProvider>();
+    _filteredUsers = chatProvider.chatUsers
+        .where((user) =>
+            user.username?.toLowerCase().contains(_searchQuery) ?? false)
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = Provider.of<ChatProvider>(context);
+    final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text("Trò chuyện")),
-      body: chatProvider.isLoading
+      body: chatProvider.isLoading && _currentPage == 1
           ? const Center(child: CircularProgressIndicator())
           : chatProvider.error != null
               ? Center(child: Text('Lỗi: ${chatProvider.error}'))
@@ -75,12 +115,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               vertical: 10, horizontal: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
+                              color: Theme.of(context).primaryColor,
+                            ),
                           ),
                         ),
                       ),
@@ -91,12 +131,24 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               child: Text(
                                 'Không tìm thấy người dùng!',
                                 style:
-                                    TextStyle(fontSize: 24, color: Colors.grey),
+                                    TextStyle(fontSize: 20, color: Colors.grey),
                               ),
                             )
                           : ListView.builder(
-                              itemCount: _filteredUsers.length,
+                              controller: _scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _filteredUsers.length +
+                                  (_isLoadingMore ? 1 : 0),
                               itemBuilder: (context, index) {
+                                if (_isLoadingMore &&
+                                    index == _filteredUsers.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
+                                  );
+                                }
+
                                 final user = _filteredUsers[index];
                                 final lastMessages =
                                     chatProvider.lastMsgs[user.id] ?? '';
@@ -118,7 +170,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                               otherUser: user,
                                             ),
                                           ),
-                                        ).then((_) => _loadChatList());
+                                        ).then((_) => _loadInitialChatList());
                                       }
                                     },
                                     onDelete: () async {
@@ -129,9 +181,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                             .read<ChatProvider>()
                                             .deleteChatWithUser(
                                                 currentUserId, user.id!);
-                                        setState(() {
-                                          _filterUsers();
-                                        });
+                                        _filterUsers();
                                       }
                                     },
                                   ),

@@ -14,6 +14,10 @@ class MessagingService {
     }
   }
 
+  static Future<void> readAllNotification(String userId) async {
+    await DioClient.instance.post('/api/notification/read-all/$userId');
+  }
+
   static Future<void> readNotification(String notiId) async {
     await DioClient.instance.post('/api/notification/read/$notiId');
   }

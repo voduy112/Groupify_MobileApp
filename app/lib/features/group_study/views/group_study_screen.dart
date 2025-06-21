@@ -7,6 +7,7 @@ import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../routers/app_router.dart';
 import 'create_group_screen.dart';
 import '../../../core/utils/session_expired_handler.dart';
+import 'package:shimmer/shimmer.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -36,7 +37,54 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
       body: Consumer<GroupProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return ListView.builder(
+              itemCount: provider.groups.length,
+              itemBuilder: (context, index) => Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey.shade300,
+                  highlightColor: Colors.grey.shade100,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 20,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 14,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           } else if (provider.error != null) {
             handleSessionExpired(context, provider.error);
             return Center(child: Text('Lỗi: ${provider.error}'));
@@ -58,15 +106,29 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => CreateGroupScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-        tooltip: 'Tạo nhóm mới',
+      floatingActionButton: SizedBox(
+        height: 65,
+        width: 65,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => CreateGroupScreen()),
+            );
+          },
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: Colors.white, width: 1),
+          ),
+          elevation: 8,
+          child: Icon(
+            Icons.add,
+            size: 36,
+            color: Colors.blue.shade500,
+          ),
+          tooltip: 'Tạo nhóm mới',
+        ),
       ),
     );
   }

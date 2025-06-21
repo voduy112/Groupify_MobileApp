@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+//import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../models/user.dart';
@@ -33,24 +36,49 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     final socketProvider = context.read<SocketProvider>();
+    final chatProvider = context.read<ChatProvider>();
 
+    // Join room và load trang đầu tiên
     socketProvider.joinRoom(widget.currentUserId, widget.otherUser.id!);
-    socketProvider.loadMessages(widget.currentUserId, widget.otherUser.id!);
+    chatProvider.setMessages([]); // Reset messages
+    chatProvider.loadInitialMessages(
+        widget.currentUserId, widget.otherUser.id!, socketProvider);
 
+    // Lắng nghe lịch sử trò chuyện với phân trang
     socketProvider.listenChatHistory(
-      (msgs) {
+      (msgs, hasMore) {
         if (!mounted) return;
-        context.read<ChatProvider>().setMessages(msgs);
-        setState(() => _errorMsg = null);
-        _scrollToBottom();
+        final chatProvider = context.read<ChatProvider>();
+        chatProvider.setHasMoreMessages(hasMore);
+        chatProvider.addMessagesToTop(msgs);
+        chatProvider.setIsFetchingMoreMessages(false);
+
+        if (chatProvider.isFirstPage) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _scrollToBottom());
+        }
       },
       () {
         if (!mounted) return;
-        setState(
-            () => _errorMsg = 'Không thể hiển thị tin nhắn. Vui lòng thử lại.');
+        setState(() {
+          _errorMsg = 'Không thể hiển thị tin nhắn. Vui lòng thử lại.';
+        });
       },
     );
 
+    // Scroll listener: nếu cuộn lên gần đỉnh thì load thêm
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels <=
+          _scrollController.position.minScrollExtent + 50) {
+        chatProvider.loadMoreMessages(
+          widget.currentUserId,
+          widget.otherUser.id!,
+          socketProvider,
+        );
+      }
+    });
+
+    // Lắng nghe tin nhắn mới
     socketProvider.listenPrivateMessage((msg) {
       final isValid = (msg.fromUser.id == widget.otherUser.id &&
               msg.toUser.id == widget.currentUserId) ||
@@ -58,16 +86,9 @@ class _ChatScreenState extends State<ChatScreen> {
               msg.toUser.id == widget.otherUser.id);
 
       if (isValid && mounted) {
-        context.read<ChatProvider>().addMessage(msg);
+        chatProvider.addMessage(msg);
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       }
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatProvider>().fetchMessages(
-            widget.currentUserId,
-            widget.otherUser.id!,
-          );
     });
   }
 
@@ -108,7 +129,11 @@ class _ChatScreenState extends State<ChatScreen> {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         final position = _scrollController.position.maxScrollExtent;
-        _scrollController.jumpTo(position + 50);
+        _scrollController.animateTo(
+          position,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -124,6 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final messages = context.watch<ChatProvider>().messages;
     final isLoading = context.watch<ChatProvider>().isLoading;
+    final isFetchingMore = context.watch<ChatProvider>().isFetchingMoreMessages;
 
     return Scaffold(
       appBar: AppBar(
@@ -185,9 +211,16 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 50),
-                    itemCount: messages.length,
+                    itemCount: messages.length + (isFetchingMore ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final msg = messages[index];
+                      if (isFetchingMore && index == 0) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final msg = messages[isFetchingMore ? index - 1 : index];
                       final isMe = msg.fromUser.id == widget.currentUserId;
 
                       return Padding(
@@ -284,6 +317,13 @@ class _ChatScreenState extends State<ChatScreen> {
                             hintText: 'Nhập tin nhắn...',
                             border: InputBorder.none,
                           ),
+                          onTap: () {
+                            // Khi nhấn vào ô nhập -> cuộn xuống đáy
+                            Future.delayed(const Duration(milliseconds: 100),
+                                () {
+                              _scrollToBottom();
+                            });
+                          },
                           onFieldSubmitted: (_) => _sendMessage(),
                         ),
                       ),

@@ -33,7 +33,7 @@ const chatController = {
             res.status(500).json({error: "Lỗi khi lấy tin nhắn"});
         }
     },
-    getChatList : async (req, res) => {
+    /*getChatList : async (req, res) => {
         try {
           const { userId } = req.params;
       
@@ -72,7 +72,62 @@ const chatController = {
           console.error("Lỗi getChatList:", error);
           res.status(500).json({ error: error.message || "Lỗi khi lấy danh sách trò chuyện" });
         }
-      },  
+      },  */
+
+      getChatList: async (req, res) => {
+        try {
+          const { userId } = req.params;
+          const page = parseInt(req.query.page) || 1;
+          const limit = parseInt(req.query.limit) || 10;
+      
+          const messages = await Message.find({
+            $or: [{ fromUserId: userId }, { toUserId: userId }]
+          })
+            .sort({ timestamp: -1 }) // tin nhắn mới nhất trước
+            .populate('fromUserId', 'username profilePicture email phoneNumber')
+            .populate('toUserId', 'username profilePicture email phoneNumber');
+      
+          const usersMap = new Map();
+      
+          messages.forEach((msg) => {
+            const from = msg.fromUserId;
+            const to = msg.toUserId;
+      
+            if (!from || !to || !from._id || !to._id) return;
+      
+            const isSender = from._id.toString() === userId;
+            const otherUser = isSender ? to : from;
+      
+            if (!usersMap.has(otherUser._id.toString())) {
+              usersMap.set(otherUser._id.toString(), {
+                _id: otherUser._id,
+                username: otherUser.username,
+                profilePicture: otherUser.profilePicture || '',
+                lastMessage: msg.message,
+                isSender: isSender
+              });
+            }
+          });
+      
+          const allChats = Array.from(usersMap.values());
+          const totalChats = allChats.length;
+          const totalPages = Math.ceil(totalChats / limit);
+      
+          const paginatedChats = allChats.slice((page - 1) * limit, page * limit);
+      
+          res.json({
+            totalChats,
+            totalPages,
+            currentPage: page,
+            chats: paginatedChats,
+          });
+        } catch (error) {
+          console.error("Lỗi getChatList:", error);
+          res.status(500).json({
+            error: error.message || "Lỗi khi lấy danh sách trò chuyện",
+          });
+        }
+      },      
 
       deleteChat: async (req, res) => {
         const { user1, user2 } = req.params;

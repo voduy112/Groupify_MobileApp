@@ -343,7 +343,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  ('Tiêu đề: ' '${document!.description}') ?? '',
+                  ('Mô tả: ' '${document!.description}') ?? '',
                   style: TextStyle(fontSize: 24),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 3,
