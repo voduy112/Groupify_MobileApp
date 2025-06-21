@@ -17,6 +17,7 @@ import '../features/home/views/group_detail_screen.dart';
 import '../features/home/views/show_all_group_screen.dart';
 import '../features/profile/views/edit_document_screen.dart';
 import '../features/profile/views/change_password_screen.dart';
+import '../features/authentication/views/forgot_password_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
@@ -25,6 +26,11 @@ final GoRouter appRouter = GoRouter(
       path: '/login',
       builder: (context, state) => LoginScreen(),
     ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+
     GoRoute(
       path: '/register',
       builder: (context, state) => RegisterScreen(),

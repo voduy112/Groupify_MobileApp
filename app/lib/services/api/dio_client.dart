@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 class DioClient {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.174:5000',
+
+    baseUrl: 'http://192.168.1.6:5000',
+
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));
