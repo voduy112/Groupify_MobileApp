@@ -179,7 +179,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _password ?? '',
                                 context,
                               );
-
                               final user = authProvider.user;
                               if (error == null && user != null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               } else if (error != null &&
                                   error
                                       .toString()
-                                      .contains('Please verify your email')) {
+                                      .contains('Vui lòng xác thực email')) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content:
