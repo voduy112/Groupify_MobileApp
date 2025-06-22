@@ -13,20 +13,19 @@ class AuthService {
 
   /// Đăng nhập với email và password, trả về User nếu thành công
   Future<User> login(String email, String password) async {
-    try {
-      final response = await _dio.post('/api/auth/login',
-          data: {'email': email, 'password': password});
-      if (response.statusCode == 200) {
-        return User.fromJson(response.data);
-      } else {
-        throw Exception(response.data['message']);
-      }
-    } on DioError catch (e) {
-      if (e.response?.statusCode == 403 &&
-          e.response?.data['message'] == 'Please verify your email') {
-        throw Exception('Please verify your email');
-      }
-      throw Exception(e.response?.data['message'] ?? e.message);
+    final response = await _dio
+        .post('/api/auth/login', data: {'email': email, 'password': password});
+
+    if (response.statusCode == 200) {
+      return User.fromJson(response.data);
+    } else {
+      // Dio sẽ tự động ném ra lỗi cho các status code ngoài 2xx,
+      // nên phần else này có thể không bao giờ được thực thi, nhưng để cho chắc chắn.
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        message: response.data['message'] ?? 'Đăng nhập thất bại',
+      );
     }
   }
 
