@@ -128,6 +128,18 @@ const authController = {
       res.status(500).json({ message: "Error during logout", error });
     }
   },
+  checkEmail: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      if (user) {
+        return res.status(200).json({ message: "Email đã tồn tại" });
+      }
+      return res.status(200).json({ message: "Email chưa tồn tại" });
+    } catch (error) {
+      res.status(500).json({ message: "Error checking email", error });
+    }
+  },
   refreshToken: async (req, res) => {
     try {
       const { refreshToken } = req.body;
