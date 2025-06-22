@@ -7,7 +7,7 @@ const authMiddleware = {
       const token = authHeader.split(" ")[1]; // Bearer token
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
-          return res.status(403).json({ message: "Token is not valid!" });
+          return res.status(401).json({ message: "Token is not valid!" });
         }
         req.user = user;
         next();
