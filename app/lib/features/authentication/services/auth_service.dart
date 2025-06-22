@@ -58,6 +58,16 @@ class AuthService {
     }
   }
 
+  Future<String> checkEmail(String email) async {
+    try {
+      final response =
+          await _dio.post('/api/auth/check-email', data: {'email': email});
+      return response.data['message'];
+    } on DioError catch (e) {
+      return e.response?.data['message'] ?? 'Error';
+    }
+  }
+
   Future<String> verifyOTP(String email, String otp) async {
     print("email đây: $email");
     print("otp đây: $otp");

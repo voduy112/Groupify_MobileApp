@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -96,8 +97,32 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final defaultPinTheme = PinTheme(
+      width: 70,
+      height: 70,
+      textStyle: const TextStyle(
+          fontSize: 30,
+          color: Color.fromRGBO(30, 60, 87, 1),
+          fontWeight: FontWeight.w600),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromRGBO(234, 239, 243, 1)),
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: const Color.fromRGBO(114, 178, 238, 1)),
+      borderRadius: BorderRadius.circular(8),
+    );
+
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration?.copyWith(
+        color: const Color.fromRGBO(234, 239, 243, 1),
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Xác thực OTP')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -111,31 +136,36 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Text(widget.email,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 25,
                       color: Colors.black)),
               const SizedBox(height: 24),
-              TextFormField(
+              Pinput(
+                length: 6,
                 controller: _otpController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Mã OTP',
-                  border: OutlineInputBorder(),
-                ),
+                defaultPinTheme: defaultPinTheme,
+                focusedPinTheme: focusedPinTheme,
+                submittedPinTheme: submittedPinTheme,
                 validator: Validate.otp,
-                maxLength: 6,
+                onCompleted: (pin) => _secondsRemaining > 0
+                    ? _verifyOTP()
+                    : ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Thời gian hết, vui lòng gửi lại OTP')),
+                      ),
               ),
               const SizedBox(height: 16),
               Text('Thời gian còn lại: ${_formatTime(_secondsRemaining)}',
-                  style: const TextStyle(color: Colors.red)),
+                  style: const TextStyle(color: Colors.red, fontSize: 20)),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _secondsRemaining > 0 ? _verifyOTP : null,
-                  child: const Text('Xác nhận'),
-                ),
-              ),
-              const SizedBox(height: 16),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: ElevatedButton(
+              //     onPressed: _secondsRemaining > 0 ? _verifyOTP : null,
+              //     child: const Text('Xác nhận'),
+              //   ),
+              // ),
+              const SizedBox(height: 5),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

@@ -110,6 +110,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<String> checkEmail(String email) async {
+    try {
+      final result = await authService.checkEmail(email);
+      return result;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      return e.toString();
+    }
+  }
+
   Future<bool> verifyOTP(String email, String otp) async {
     try {
       final result = await authService.verifyOTP(email, otp);
