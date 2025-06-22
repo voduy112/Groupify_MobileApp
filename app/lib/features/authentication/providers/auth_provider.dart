@@ -8,6 +8,7 @@ import '../services/user_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../services/api/dio_client.dart';
+import 'package:dio/dio.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService authService;
@@ -61,6 +62,9 @@ class AuthProvider with ChangeNotifier {
 
       _error = null;
       return null;
+    } on DioException catch (e) {
+      _error = e.response?.data['message'] ?? 'Đã có lỗi xảy ra';
+      return _error;
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
       return _error;
