@@ -10,6 +10,8 @@ class CustomTextFormField extends StatefulWidget {
   final Function(String?)? onSaved;
   final String? Function(String?)? validator;
   final int maxLines;
+  final Widget? suffixIcon;
+  final Function(String)? onChanged;
 
   const CustomTextFormField({
     super.key,
@@ -21,6 +23,8 @@ class CustomTextFormField extends StatefulWidget {
     this.onSaved,
     this.validator,
     this.maxLines = 1,
+    this.suffixIcon,
+    this.onChanged,
   });
 
   @override
@@ -67,7 +71,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       maxLines: widget.maxLines,
-      decoration: InputDecoration(labelText: widget.label),
+      decoration: InputDecoration(
+        labelText: widget.label,
+        suffixIcon: widget.suffixIcon,
+      ),
       validator: (value) {
         if (!_touched) return null;
         final v = widget.validator ??
@@ -75,12 +82,13 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                 fieldName: widget.fieldName ?? widget.label);
         return v(value);
       },
-      onChanged: (_) {
+      onChanged: (value) {
         if (!_touched) {
           setState(() {
             _touched = true;
           });
         }
+        widget.onChanged?.call(value);
         _fieldKey.currentState?.validate();
       },
       onSaved: (value) =>
