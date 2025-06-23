@@ -65,29 +65,12 @@ const documentController = {
   },
 
   getDocumentById: async (req, res) => {
-    const { id } = req.params;
-
     try {
-      const document = await Document.findById(id).populate(
-        "uploaderId",
-        "username"
-      );
-
+      const document = await Document.findById(req.params.id);
       if (!document)
         return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       res.json(document);
-
-      const objectId = new mongoose.Types.ObjectId(id);
-      const reports = await Report.find({ documentId: objectId });
-      const reportReasons = reports.map((r) => r.reason);
-
-      res.json({
-        ...document.toObject(),
-        reportCount: reports.length,
-        reportReasons,
-      });
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
       res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu" });
     }
   },
