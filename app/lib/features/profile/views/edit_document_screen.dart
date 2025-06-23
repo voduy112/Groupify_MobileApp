@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/utils/validate.dart';
 
 class EditDocumentScreen extends StatefulWidget {
   const EditDocumentScreen({super.key});
@@ -76,21 +78,23 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
     setState(() {
       isUpdating = true;
     });
+
     final provider = Provider.of<DocumentShareProvider>(context, listen: false);
     await provider.updateDocument(
       doc!.id!,
-      _titleController.text,
-      _descriptionController.text,
+      Validate.normalizeText(_titleController.text),
+      Validate.normalizeText(_descriptionController.text),
       imageFile,
       mainFile,
       userId: doc!.uploaderId,
     );
+
     if (mounted) {
       setState(() {
         isUpdating = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cập nhật tài liệu thành công!')),
+        const SnackBar(content: Text('Cập nhật tài liệu thành công!')),
       );
       Navigator.pop(context);
     }
@@ -100,34 +104,59 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload Document'),
-        leading: BackButton(),
+        title: const Text('Cập nhật tài liệu'),
+        leading: const BackButton(),
       ),
       body: Container(
-        color: const Color(0xFFF8F6D8),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Tiêu đề',
-                  border: OutlineInputBorder(),
-                ),
+
+              // Tiêu đề
+              CustomTextFormField(
+                label: 'Tiêu đề',
+                initialValue: _titleController.text,
+                onChanged: (value) {
+                  final normalized = Validate.normalizeText(value);
+                  _titleController.value = TextEditingValue(
+                    text: normalized,
+                    selection:
+                        TextSelection.collapsed(offset: normalized.length),
+                  );
+                },
+                onSaved: (value) =>
+                    _titleController.text = Validate.normalizeText(value ?? ''),
+                validator: (value) =>
+                    Validate.notEmpty(value, fieldName: 'Tiêu đề'),
               ),
+
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Mô tả',
-                  border: OutlineInputBorder(),
-                ),
+
+              // Mô tả
+              CustomTextFormField(
+                label: 'Mô tả',
+                initialValue: _descriptionController.text,
                 maxLines: 3,
+                onChanged: (value) {
+                  final normalized = Validate.normalizeText(value);
+                  _descriptionController.value = TextEditingValue(
+                    text: normalized,
+                    selection:
+                        TextSelection.collapsed(offset: normalized.length),
+                  );
+                },
+                onSaved: (value) => _descriptionController.text =
+                    Validate.normalizeText(value ?? ''),
+                validator: (value) =>
+                    Validate.notEmpty(value, fieldName: 'Mô tả'),
               ),
+
               const SizedBox(height: 24),
+
+              // Chọn ảnh
               Row(
                 children: [
                   ElevatedButton(
@@ -168,11 +197,14 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
                                   height: 40,
                                   fit: BoxFit.cover,
                                 )
-                              : SizedBox.shrink(),
+                              : const SizedBox.shrink(),
                     ),
                 ],
               ),
+
               const SizedBox(height: 16),
+
+              // Chọn file tài liệu
               Row(
                 children: [
                   ElevatedButton(
@@ -198,11 +230,14 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 32),
+
+              // Nút cập nhật
               Center(
                 child: ElevatedButton(
                   onPressed: isUpdating
-                      ? null // Disable button khi đang loading
+                      ? null
                       : () {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
@@ -220,7 +255,7 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
                     child: isUpdating
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: const [
                               SizedBox(
                                 width: 18,
                                 height: 18,
@@ -229,8 +264,8 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
                                   strokeWidth: 2,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              const Text('Đang cập nhật...'),
+                              SizedBox(width: 12),
+                              Text('Đang cập nhật...'),
                             ],
                           )
                         : const Text('Cập nhật'),

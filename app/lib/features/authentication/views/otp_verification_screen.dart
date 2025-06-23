@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/utils/validate.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
   final bool autoResend;
-  const OTPVerificationScreen(
-      {Key? key, required this.email, this.autoResend = false})
-      : super(key: key);
+  final void Function()?
+      onSuccess; // ✅ Callback sau khi xác thực OTP thành công
+
+  const OTPVerificationScreen({
+    Key? key,
+    required this.email,
+    this.autoResend = false,
+    this.onSuccess,
+  }) : super(key: key);
 
   @override
   State<OTPVerificationScreen> createState() => _OTPVerificationScreenState();
@@ -57,18 +62,22 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   }
 
   void _verifyOTP() async {
-    // TODO: Gọi API xác thực OTP ở đây
     final otp = _otpController.text.trim();
     final email = widget.email;
-    // Gửi email và otp lên server để xác thực
-    // Hiển thị thông báo thành công/thất bại
     final success = await context.read<AuthProvider>().verifyOTP(email, otp);
-    print("success: $success");
+
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Xác thực thành công!')),
       );
-      context.go('/login');
+
+      // Nếu có callback thì gọi
+      if (widget.onSuccess != null) {
+        widget.onSuccess!();
+      } else {
+        //Mặc định dùng cho quên mật khẩu
+        Navigator.pop(context, true);
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mã OTP không hợp lệ!')),
@@ -77,8 +86,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   }
 
   void _resendOTP() async {
-    // TODO: Gọi API gửi lại OTP ở đây
-    // Sau khi gửi lại thành công, reset lại thời gian đếm ngược
     setState(() {
       _secondsRemaining = 300;
     });
@@ -123,6 +130,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     );
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Xác thực OTP"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -158,14 +168,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Text('Thời gian còn lại: ${_formatTime(_secondsRemaining)}',
                   style: const TextStyle(color: Colors.red, fontSize: 20)),
               const SizedBox(height: 24),
-              // SizedBox(
-              //   width: double.infinity,
-              //   child: ElevatedButton(
-              //     onPressed: _secondsRemaining > 0 ? _verifyOTP : null,
-              //     child: const Text('Xác nhận'),
-              //   ),
-              // ),
-              const SizedBox(height: 5),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

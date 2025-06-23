@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../providers/document_share_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
   @override
@@ -21,10 +22,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   PlatformFile? mainFile;
 
   Future<void> _pickImage() async {
-    print('Avatar tapped');
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
-    print('pickedFile: $pickedFile');
     if (pickedFile != null) {
       setState(() {
         imageFile = PlatformFile(
@@ -32,7 +31,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
           path: pickedFile.path,
           size: 0,
         );
-        print("imageFile: ${imageFile?.path}");
       });
     }
   }
@@ -52,7 +50,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   Future<void> uploadDocument() async {
     final user = context.read<AuthProvider>().user;
 
-    // Kiểm tra ảnh
     if (imageFile?.path == null || imageFile!.path!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Vui lòng chọn ảnh')),
@@ -60,7 +57,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       return;
     }
 
-    // Kiểm tra file
     if (mainFile?.path == null || mainFile!.path!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Vui lòng chọn file tài liệu PDF')),
@@ -70,20 +66,22 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      DocumentShareProvider documentShareProvider =
+
+      final documentProvider =
           Provider.of<DocumentShareProvider>(context, listen: false);
-      await documentShareProvider.uploadDocument(
+
+      await documentProvider.uploadDocument(
         title: title!,
         description: description!,
-        uploaderId: user?.id ?? "",
+        uploaderId: user?.id ?? '',
         imageFile: imageFile,
         mainFile: mainFile,
       );
-      // Hiện thông báo thành công
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Upload thành công!')),
       );
-      // Reset form và các biến
+
       _formKey.currentState!.reset();
       setState(() {
         title = null;
@@ -99,9 +97,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            context.pop();
-          },
+          onPressed: () => context.pop(),
           icon: Icon(Icons.arrow_back),
         ),
         title: Text('Upload Document'),
@@ -115,21 +111,26 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Tiêu đề'),
-                onSaved: (value) => title = value,
-                validator: (value) => Validate.notEmpty(value),
+              CustomTextFormField(
+                label: 'Tiêu đề',
+                maxLines: 1,
+                onSaved: (value) => title = Validate.normalizeText(value ?? ''),
+                validator: (value) =>
+                    Validate.notEmpty(value, fieldName: 'Tiêu đề'),
               ),
               SizedBox(height: 16),
+
               // Description
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Mô tả'),
-                onSaved: (value) => description = value,
-                validator: (value) => Validate.notEmpty(value),
-                minLines: 3,
-                maxLines: null,
+              CustomTextFormField(
+                label: 'Mô tả',
+                maxLines: 3,
+                onSaved: (value) =>
+                    description = Validate.normalizeText(value ?? ''),
+                validator: (value) =>
+                    Validate.notEmpty(value, fieldName: 'Mô tả'),
               ),
               SizedBox(height: 16),
+
               // Image picker
               Row(
                 children: [
@@ -138,10 +139,12 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                     child: Text('Chọn ảnh'),
                   ),
                   SizedBox(width: 8),
-                  Text(
-                    imageFile?.name ?? 'Chưa chọn ảnh',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                  Expanded(
+                    child: Text(
+                      imageFile?.name ?? 'Chưa chọn ảnh',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
                 ],
               ),
@@ -156,6 +159,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                   ),
                 ),
               SizedBox(height: 16),
+
               // Main file picker
               Row(
                 children: [
@@ -174,6 +178,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                 ],
               ),
               SizedBox(height: 32),
+
               // Submit button
               Center(
                 child: Consumer<DocumentShareProvider>(

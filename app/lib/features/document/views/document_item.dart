@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../../../models/document.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+
 
 class DocumentItem extends StatelessWidget {
   final Document document;
@@ -26,13 +28,20 @@ class DocumentItem extends StatelessWidget {
   bool get isOwner => currentUserId == groupOwnerId;
 
   Future<bool> requestStoragePermission() async {
-    final statuses = await [
-      Permission.storage,
-      Permission.manageExternalStorage,
-    ].request();
+  if (Platform.isAndroid) {
+    final deviceInfo = DeviceInfoPlugin();
+    final androidInfo = await deviceInfo.androidInfo;
+    final sdkInt = androidInfo.version.sdkInt;
 
-    return statuses[Permission.storage]!.isGranted;
+    if (sdkInt >= 30) {
+      return await Permission.manageExternalStorage.request().isGranted;
+    } else {
+      return await Permission.storage.request().isGranted;
+    }
   }
+  return true; 
+}
+
 
   Future<void> _downloadPdf(BuildContext context) async {
     final url = document.mainFile;

@@ -21,11 +21,15 @@ router.post("/refresh-token", authController.refreshToken);
 // Change password route
 router.post("/change-password", authController.changePassword);
 
+router.post("/reset-password", authController.resetPassword);
+
 // Verify OTP route
 router.post("/verify-otp", authController.verifyOTP);
 
 // Resend OTP route
 router.post("/resend-otp", authController.resendOTP);
+
+router.post("/send-otp-email", authController.sendOTPEmail);
 
 // Update FCM token route
 router.post("/update-fcm-token", authController.updateFcmToken);
