@@ -13,9 +13,9 @@ function removeVietnameseTones(str) {
 
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
-  const parts = url.split('/');
-  const lastThree = parts.slice(-3).join('/');
-  return lastThree.replace(/\.(jpg|jpeg|png|webp|pdf)$/i, '');
+  const parts = url.split("/");
+  const lastThree = parts.slice(-3).join("/");
+  return lastThree.replace(/\.(jpg|jpeg|png|webp|pdf)$/i, "");
 };
 
 const documentController = {
@@ -51,9 +51,7 @@ const documentController = {
       const documents = await Document.find()
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 })
-        .populate('uploaderId', 'username')
-        .lean();
+        .sort({ createdAt: -1 });
 
       res.json({
         totalDocuments,
@@ -70,24 +68,27 @@ const documentController = {
     const { id } = req.params;
 
     try {
-      const document = await Document.findById(id)
-      .populate('uploaderId', 'username');
+      const document = await Document.findById(id).populate(
+        "uploaderId",
+        "username"
+      );
 
-    if (!document) return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
-    res.json(document);
+      if (!document)
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
+      res.json(document);
 
       const objectId = new mongoose.Types.ObjectId(id);
       const reports = await Report.find({ documentId: objectId });
-      const reportReasons = reports.map(r => r.reason);
+      const reportReasons = reports.map((r) => r.reason);
 
       res.json({
         ...document.toObject(),
         reportCount: reports.length,
-        reportReasons
+        reportReasons,
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Lỗi khi lấy thông tin tài liệu' });
+      res.status(500).json({ error: "Lỗi khi lấy thông tin tài liệu" });
     }
   },
 
@@ -154,27 +155,37 @@ const documentController = {
       let updateData = { ...req.body };
 
       if (req.files?.image?.[0]) {
-        const uploadResult = await cloudinary.uploader.upload(req.files.image[0].path, {
-          folder: "Groupify_MobileApp/img_document",
-          public_id: `${existingDocument.id}_${times}_imgdocument`,
-          overwrite: false,
-        });
+        const uploadResult = await cloudinary.uploader.upload(
+          req.files.image[0].path,
+          {
+            folder: "Groupify_MobileApp/img_document",
+            public_id: `${existingDocument.id}_${times}_imgdocument`,
+            overwrite: false,
+          }
+        );
         updateData.imgDocument = uploadResult.secure_url;
       }
 
       if (req.files?.mainFile?.[0]) {
-        const uploadResult = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
-          folder: "Groupify_MobileApp/file_document",
-          public_id: `${existingDocument.id}_${times}_filedocument`,
-          resource_type: "raw",
-          overwrite: false,
-        });
+        const uploadResult = await cloudinary.uploader.upload(
+          req.files.mainFile[0].path,
+          {
+            folder: "Groupify_MobileApp/file_document",
+            public_id: `${existingDocument.id}_${times}_filedocument`,
+            resource_type: "raw",
+            overwrite: false,
+          }
+        );
         updateData.mainFile = uploadResult.secure_url;
       }
 
-      const updateDocument = await Document.findByIdAndUpdate(req.params.id, updateData, {
-        new: true,
-      });
+      const updateDocument = await Document.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+        }
+      );
 
       res.json(updateDocument);
     } catch (error) {
@@ -195,18 +206,24 @@ const documentController = {
 
       const times = Date.now();
 
-      const imgUploadResult = await cloudinary.uploader.upload(req.files.image[0].path, {
-        folder: "Groupify_MobileApp/img_document",
-        public_id: `${uploaderId}_${times}_imgdocument`,
-        overwrite: false,
-      });
+      const imgUploadResult = await cloudinary.uploader.upload(
+        req.files.image[0].path,
+        {
+          folder: "Groupify_MobileApp/img_document",
+          public_id: `${uploaderId}_${times}_imgdocument`,
+          overwrite: false,
+        }
+      );
 
-      const fileUploadResult = await cloudinary.uploader.upload(req.files.mainFile[0].path, {
-        folder: "Groupify_MobileApp/file_document",
-        public_id: `${uploaderId}_${times}_filedocument`,
-        resource_type: "raw",
-        overwrite: false,
-      });
+      const fileUploadResult = await cloudinary.uploader.upload(
+        req.files.mainFile[0].path,
+        {
+          folder: "Groupify_MobileApp/file_document",
+          public_id: `${uploaderId}_${times}_filedocument`,
+          resource_type: "raw",
+          overwrite: false,
+        }
+      );
 
       const newDoc = new Document({
         groupId,
@@ -283,12 +300,12 @@ const documentController = {
     const documentId = req.params.id;
 
     if (!userId || !ratingValue) {
-      return res.status(400).json({ error: 'Thiếu thông tin đánh giá' });
+      return res.status(400).json({ error: "Thiếu thông tin đánh giá" });
     }
     try {
       const document = await Document.findById(documentId);
       if (!document) {
-        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       }
 
       const existingRatingIndex = document.ratings.findIndex(
@@ -302,10 +319,10 @@ const documentController = {
       }
 
       await document.save();
-      res.json({ message: 'Đánh giá thành công', document });
+      res.json({ message: "Đánh giá thành công", document });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Lỗi khi đánh giá tài liệu' });
+      res.status(500).json({ error: "Lỗi khi đánh giá tài liệu" });
     }
   },
 
@@ -315,13 +332,14 @@ const documentController = {
     try {
       const document = await Document.findById(documentId);
       if (!document) {
-        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       }
 
       const ratings = document.ratings || [];
 
       const totalRating = ratings.reduce((sum, r) => sum + r.value, 0);
-      const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
+      const averageRating =
+        ratings.length > 0 ? totalRating / ratings.length : 0;
 
       res.json({
         averageRating: averageRating.toFixed(1),
@@ -330,46 +348,46 @@ const documentController = {
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Lỗi khi lấy thông tin đánh giá' });
+      res.status(500).json({ error: "Lỗi khi lấy thông tin đánh giá" });
     }
   },
 
   addComment: async (req, res) => {
     const documentId = req.params.id;
     const { userId, content } = req.body;
-  
+
     if (!userId || !content) {
-      return res.status(400).json({ error: 'Thiếu thông tin bình luận' });
+      return res.status(400).json({ error: "Thiếu thông tin bình luận" });
     }
-  
+
     try {
       const document = await Document.findById(documentId);
       if (!document) {
-        return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       }
-  
+
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        return res.status(404).json({ error: "Không tìm thấy người dùng" });
       }
-  
+
       const comment = {
         userId,
-        username: user.username || 'Ẩn danh',
-        avatar: user.profilePicture || '',
+        username: user.username || "Ẩn danh",
+        avatar: user.profilePicture || "",
         content,
         createdAt: new Date(),
       };
-  
+
       document.comments.push(comment);
       await document.save();
-  
-      res.status(201).json({ message: 'Bình luận thành công', comment });
+
+      res.status(201).json({ message: "Bình luận thành công", comment });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Lỗi khi gửi bình luận' });
+      res.status(500).json({ error: "Lỗi khi gửi bình luận" });
     }
-  },  
+  },
 
   /*getComments: async (req, res) => {
     const documentId = req.params.id;
@@ -400,201 +418,218 @@ const documentController = {
     }
   } */
 
-    getComments: async (req, res) => {
-      const documentId = req.params.id;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = parseInt(req.query.skip) || 0;
-    
-      try {
-        const document = await Document.findById(documentId).select("comments");
-        if (!document) {
-          return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
-        }
-    
-        const totalComments = document.comments.length;
-    
-        // Lấy bình luận mới nhất trước
-        const paginatedComments = document.comments
-          .slice()
-          .reverse()
-          .slice(skip, skip + limit);
-    
-        // Bổ sung avatar và username nếu thiếu
-        const enrichedComments = await Promise.all(
-          paginatedComments.map(async (cmt) => {
-            if (cmt.username && cmt.avatar) return cmt;
-    
-            try {
-              const user = await User.findById(cmt.userId);
-              return {
-                ...cmt._doc, // nếu cmt là một document
-                username: user?.username || 'Ẩn danh',
-                avatar: user?.profilePicture || '',
-              };
-            } catch {
-              return {
-                ...cmt._doc,
-                username: 'Ẩn danh',
-                avatar: '',
-              };
-            }
-          })
-        );
-    
-        res.json({
-          comments: enrichedComments,
-          total: totalComments,
-          hasMore: skip + limit < totalComments,
-        });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Lỗi khi lấy bình luận' });
-      }
-    },
+  getComments: async (req, res) => {
+    const documentId = req.params.id;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = parseInt(req.query.skip) || 0;
 
-    deleteComment: async (req, res) => {
-      const { documentId, commentId } = req.params;
-      const userId = req.body.userId;
-    
-      if (!userId) {
-        return res.status(400).json({ error: 'Thiếu userId' });
+    try {
+      const document = await Document.findById(documentId).select("comments");
+      if (!document) {
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       }
-    
-      try {
-        const document = await Document.findById(documentId);
-        if (!document) {
-          return res.status(404).json({ error: 'Không tìm thấy tài liệu' });
-        }
-    
-        const comment = document.comments.find(
-          (c) => c._id.toString() === commentId
-        );
-    
-        if (!comment) {
-          return res.status(404).json({ error: 'Không tìm thấy bình luận' });
-        }
-    
-        if (comment.userId.toString() !== userId) {
-          return res.status(403).json({ error: 'Bạn không có quyền xóa bình luận này' });
-        }
-    
-        // Xoá comment bằng filter
-        document.comments = document.comments.filter(
-          (c) => c._id.toString() !== commentId
-        );
-    
-        await document.save();
-    
-        res.json({ message: 'Xóa bình luận thành công' });
-      } catch (error) {
-        console.error('Lỗi backend:', error);
-        res.status(500).json({ error: error.message || 'Lỗi khi xóa bình luận' });
-      }
-    },
-    getReportedDocuments: async (req, res) => {
-      try {
-        const reports = await Report.find()
-          .populate('reporterId', 'username')
-          .populate({
-            path: 'documentId',
-            populate: { path: 'uploaderId', select: 'username' },
-          })
-          .lean();
-  
-        const grouped = {};
-  
-        for (const report of reports) {
-          const doc = report.documentId;
-          if (!doc || !doc._id) continue;
-  
-          const docId = doc._id.toString();
-          if (!grouped[docId]) {
-            grouped[docId] = {
-              _id: doc._id,
-              groupId: doc.groupId || null,
-              title: doc.title || 'Không có tiêu đề',
-              description: doc.description || '',
-              imgDocument: doc.imgDocument || '',
-              mainFile: doc.mainFile || '',
-              uploaderId: doc.uploaderId?.username || 'Không rõ',
-              createdAt: doc.createdAt,
-              updatedAt: doc.updatedAt,
-              reportReasons: [],
-              reportCount: 0,
+
+      const totalComments = document.comments.length;
+
+      // Lấy bình luận mới nhất trước
+      const paginatedComments = document.comments
+        .slice()
+        .reverse()
+        .slice(skip, skip + limit);
+
+      // Bổ sung avatar và username nếu thiếu
+      const enrichedComments = await Promise.all(
+        paginatedComments.map(async (cmt) => {
+          if (cmt.username && cmt.avatar) return cmt;
+
+          try {
+            const user = await User.findById(cmt.userId);
+            return {
+              ...cmt._doc, // nếu cmt là một document
+              username: user?.username || "Ẩn danh",
+              avatar: user?.profilePicture || "",
+            };
+          } catch {
+            return {
+              ...cmt._doc,
+              username: "Ẩn danh",
+              avatar: "",
             };
           }
-  
-          grouped[docId].reportReasons.push({
-            reason: report.reason || 'Không có lý do',
-            reporter: report.reporterId?.username || 'Không rõ',
-            createdAt: report.createdAt,
-          });
-  
-          grouped[docId].reportCount += 1;
-        }
-  
-        res.status(200).json(Object.values(grouped));
-      } catch (err) {
-        console.error("Lỗi khi lấy báo cáo:", err);
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        })
+      );
+
+      res.json({
+        comments: enrichedComments,
+        total: totalComments,
+        hasMore: skip + limit < totalComments,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Lỗi khi lấy bình luận" });
+    }
+  },
+
+  deleteComment: async (req, res) => {
+    const { documentId, commentId } = req.params;
+    const userId = req.body.userId;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Thiếu userId" });
+    }
+
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       }
-    },
-  
-    reportDocument: async (req, res) => {
-      const { id } = req.params;
-      const reporterId = req.user?._id || req.body.reporterId;
-      const reason = req.body.reason?.trim();
-  
-      if (!reporterId || !reason) {
-        return res.status(400).json({ message: 'Thiếu người báo cáo hoặc lý do báo cáo' });
+
+      const comment = document.comments.find(
+        (c) => c._id.toString() === commentId
+      );
+
+      if (!comment) {
+        return res.status(404).json({ error: "Không tìm thấy bình luận" });
       }
-  
-      try {
-        const document = await Document.findById(id);
-        if (!document) {
-          return res.status(404).json({ message: 'Không tìm thấy tài liệu' });
+
+      if (comment.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ error: "Bạn không có quyền xóa bình luận này" });
+      }
+
+      // Xoá comment bằng filter
+      document.comments = document.comments.filter(
+        (c) => c._id.toString() !== commentId
+      );
+
+      await document.save();
+
+      res.json({ message: "Xóa bình luận thành công" });
+    } catch (error) {
+      console.error("Lỗi backend:", error);
+      res.status(500).json({ error: error.message || "Lỗi khi xóa bình luận" });
+    }
+  },
+  getReportedDocuments: async (req, res) => {
+    try {
+      const reports = await Report.find()
+        .populate("reporterId", "username")
+        .populate({
+          path: "documentId",
+          populate: { path: "uploaderId", select: "username" },
+        })
+        .lean();
+
+      const grouped = {};
+
+      for (const report of reports) {
+        const doc = report.documentId;
+        if (!doc || !doc._id) continue;
+
+        const docId = doc._id.toString();
+        if (!grouped[docId]) {
+          grouped[docId] = {
+            _id: doc._id,
+            groupId: doc.groupId || null,
+            title: doc.title || "Không có tiêu đề",
+            description: doc.description || "",
+            imgDocument: doc.imgDocument || "",
+            mainFile: doc.mainFile || "",
+            uploaderId: doc.uploaderId?.username || "Không rõ",
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+            reportReasons: [],
+            reportCount: 0,
+          };
         }
-  
-        const existed = await Report.findOne({ documentId: id, reporterId, reason });
-        if (existed) {
-          return res.status(400).json({ message: 'Bạn đã báo cáo tài liệu này với lý do này rồi.' });
-        }
-  
-        const newReport = await Report.create({ documentId: id, reporterId, reason });
-        const reportCount = await Report.countDocuments({ documentId: id });
-  
-        const reporterUser = await User.findById(reporterId).select('username');
-        const reporterUsername = reporterUser?.username || 'Không rõ';
-  
-        res.status(200).json({
-          message: 'Báo cáo thành công',
-          reportCount,
-          report: {
-            reason: newReport.reason,
-            reporter: reporterUsername,
-            createdAt: newReport.createdAt,
-          },
+
+        grouped[docId].reportReasons.push({
+          reason: report.reason || "Không có lý do",
+          reporter: report.reporterId?.username || "Không rõ",
+          createdAt: report.createdAt,
         });
-      } catch (error) {
-        console.error('❌ Lỗi khi báo cáo tài liệu:', error);
-        res.status(500).json({ message: 'Lỗi khi báo cáo tài liệu', detail: error.message });
+
+        grouped[docId].reportCount += 1;
       }
-    },
-      clearDocumentReports: async (req, res) => {
-        try {
-          const { id } = req.params;
-          const document = await Document.findById(id);
-          if (!document) return res.status(404).json({ message: 'Tài liệu không tồn tại' });
-    
-          await Report.deleteMany({ documentId: id });
-          document.reportCount = 0;
-          await document.save();
-    
-          res.json({ message: 'Đã xoá tất cả báo cáo của tài liệu' });
-        } catch (error) {
-          res.status(500).json({ message: 'Lỗi khi xoá báo cáo', detail: error });
-        }
-      },
+
+      res.status(200).json(Object.values(grouped));
+    } catch (err) {
+      console.error("Lỗi khi lấy báo cáo:", err);
+      res.status(500).json({ message: "Lỗi server", error: err.message });
+    }
+  },
+
+  reportDocument: async (req, res) => {
+    const { id } = req.params;
+    const reporterId = req.user?._id || req.body.reporterId;
+    const reason = req.body.reason?.trim();
+
+    if (!reporterId || !reason) {
+      return res
+        .status(400)
+        .json({ message: "Thiếu người báo cáo hoặc lý do báo cáo" });
+    }
+
+    try {
+      const document = await Document.findById(id);
+      if (!document) {
+        return res.status(404).json({ message: "Không tìm thấy tài liệu" });
+      }
+
+      const existed = await Report.findOne({
+        documentId: id,
+        reporterId,
+        reason,
+      });
+      if (existed) {
+        return res
+          .status(400)
+          .json({ message: "Bạn đã báo cáo tài liệu này với lý do này rồi." });
+      }
+
+      const newReport = await Report.create({
+        documentId: id,
+        reporterId,
+        reason,
+      });
+      const reportCount = await Report.countDocuments({ documentId: id });
+
+      const reporterUser = await User.findById(reporterId).select("username");
+      const reporterUsername = reporterUser?.username || "Không rõ";
+
+      res.status(200).json({
+        message: "Báo cáo thành công",
+        reportCount,
+        report: {
+          reason: newReport.reason,
+          reporter: reporterUsername,
+          createdAt: newReport.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error("❌ Lỗi khi báo cáo tài liệu:", error);
+      res
+        .status(500)
+        .json({ message: "Lỗi khi báo cáo tài liệu", detail: error.message });
+    }
+  },
+  clearDocumentReports: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const document = await Document.findById(id);
+      if (!document)
+        return res.status(404).json({ message: "Tài liệu không tồn tại" });
+
+      await Report.deleteMany({ documentId: id });
+      document.reportCount = 0;
+      await document.save();
+
+      res.json({ message: "Đã xoá tất cả báo cáo của tài liệu" });
+    } catch (error) {
+      res.status(500).json({ message: "Lỗi khi xoá báo cáo", detail: error });
+    }
+  },
 };
 
 module.exports = documentController;
