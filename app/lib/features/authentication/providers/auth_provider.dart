@@ -155,4 +155,26 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> sendOTPEmail(String email) async {
+    try {
+      final result = await authService.sendOTPEmail(email);
+      // So sánh chứa chuỗi hoặc chỉ cần không rỗng
+      return result.toLowerCase().contains('otp') &&
+          result.toLowerCase().contains('gửi');
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    try {
+      await authService.resetPassword(email, newPassword);
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
 }

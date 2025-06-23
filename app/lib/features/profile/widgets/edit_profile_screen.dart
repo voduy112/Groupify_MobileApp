@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../models/user.dart';
 import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -15,17 +16,17 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  String? name;
+  String? phone;
+  String? bio;
+
   File? _avatarImage;
   String? _avatarUrl;
   bool _isInitialized = false;
   User? _user;
   User? _userupdate;
   bool _isLoading = false;
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void didChangeDependencies() {
@@ -34,9 +35,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final user = GoRouterState.of(context).extra;
       if (user != null && user is User) {
         _user = user;
-        _nameController.text = user.username ?? '';
-        _phoneController.text = user.phoneNumber ?? '';
-        _bioController.text = user.bio ?? '';
+        name = user.username ?? '';
+        phone = user.phoneNumber ?? '';
+        bio = user.bio ?? '';
         _avatarUrl = user.profilePicture;
       }
       _isInitialized = true;
@@ -56,48 +57,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateUser() async {
     setState(() => _isLoading = true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    //Xóa khoảng trắng thừa
+    final normalizedName = Validate.normalizeText(name ?? '');
+    final normalizedPhone = Validate.normalizeText(phone ?? '');
+    final normalizedBio = Validate.normalizeText(bio ?? '');
+
     _userupdate = User(
       id: _user!.id,
-      username: _nameController.text,
-      phoneNumber: _phoneController.text,
+      username: normalizedName,
+      phoneNumber: normalizedPhone,
       profilePicture: _avatarImage != null ? _avatarImage!.path : _avatarUrl,
-      bio: _bioController.text,
+      bio: normalizedBio,
       email: _user!.email,
       refreshToken: _user!.refreshToken,
       accessToken: _user!.accessToken,
       fcmToken: _user!.fcmToken,
     );
+
     await authProvider.updateUser(
       _user!.id!,
       _userupdate!,
       avatarImage: _avatarImage,
     );
+
     setState(() {
       _user = _userupdate;
       _avatarUrl = _userupdate!.profilePicture;
       _avatarImage = null;
-      _nameController.text = _userupdate!.username ?? '';
-      _phoneController.text = _userupdate!.phoneNumber ?? '';
-      _bioController.text = _userupdate!.bio ?? '';
+      name = _userupdate!.username;
+      phone = _userupdate!.phoneNumber;
+      bio = _userupdate!.bio;
+      _isLoading = false;
     });
-    setState(() => _isLoading = false);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _bioController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chỉnh sửa hồ sơ'),
-      ),
+      appBar: AppBar(title: const Text('Chỉnh sửa hồ sơ')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -118,7 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Align(
                     alignment: Alignment.bottomRight,
                     child: Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
@@ -129,34 +127,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên',
-                  border: OutlineInputBorder(),
-                ),
+
+              // Tên
+              CustomTextFormField(
+                label: 'Tên',
+                initialValue: name,
+                onSaved: (value) => name = value,
                 validator: Validate.notEmpty,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Số điện thoại',
-                  border: OutlineInputBorder(),
-                ),
+
+              // SĐT
+              CustomTextFormField(
+                label: 'Số điện thoại',
                 keyboardType: TextInputType.phone,
+                initialValue: phone,
+                onSaved: (value) => phone = value,
                 validator: Validate.phone,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _bioController,
-                decoration: const InputDecoration(
-                  labelText: 'Bio',
-                  border: OutlineInputBorder(),
-                ),
+
+              // Bio
+              CustomTextFormField(
+                label: 'Bio',
+                initialValue: bio,
+                maxLines: 3,
+                onSaved: (value) => bio = value,
                 validator: Validate.notEmpty,
               ),
               const SizedBox(height: 32),
+
+              // Nút lưu
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -164,16 +165,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ? null
                       : () async {
                           if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
                             await _updateUser();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Đã lưu thông tin!')),
-                            );
-                            context.go('/profile');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Đã lưu thông tin!')),
+                              );
+                              context.go('/profile');
+                            }
                           }
                         },
                   child: _isLoading
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(

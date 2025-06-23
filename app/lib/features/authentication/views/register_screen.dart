@@ -205,9 +205,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => OTPVerificationScreen(
-                                      email: emailController.text),
+                                    email: emailController.text,
+                                    onSuccess: () {
+                                      context.go('/login');
+                                    },
+                                  ),
                                 ),
                               );
+
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(

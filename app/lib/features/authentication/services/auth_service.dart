@@ -119,4 +119,30 @@ class AuthService {
         data: {'userId': userId, 'fcmToken': fcmToken});
     return response.data;
   }
+
+  Future<void> resetPassword(String email, String newPassword) async {
+    try {
+      final response = await _dio.post('/api/auth/reset-password', data: {
+        'email': email,
+        'newPassword': newPassword,
+      });
+      if (response.statusCode == 200) {
+        return; // Thành công không trả gì đặc biệt
+      } else {
+        throw Exception('Failed to reset password');
+      }
+    } catch (e) {
+      throw Exception('Error resetting password: $e');
+    }
+  }
+  Future<String> sendOTPEmail(String email) async {
+    try {
+      final response =
+          await _dio.post('/api/auth/send-otp-email', data: {'email': email});
+      return response.data['message'];
+    } on DioError catch (e) {
+      return e.response?.data['message'] ?? 'Lỗi gửi OTP';
+    }
+  }
+
 }

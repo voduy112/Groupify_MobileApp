@@ -24,27 +24,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final email = _emailController.text.trim();
     if (email.isEmpty) return;
 
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OTPVerificationScreen(email: email),
-      ),
-    );
+    final sent = await context.read<AuthProvider>().sendOTPEmail(email);
 
     if (!mounted) return;
 
-    if (result == true) {
-      setState(() {
-        _otpVerified = true;
-      });
+    if (!sent) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xác thực OTP thành công!')),
+        const SnackBar(content: Text('Gửi OTP thất bại!')),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xác thực OTP thất bại hoặc bị hủy!')),
-      );
+      return;
     }
+
+    // Chuyển sang màn hình nhập OTP và truyền onSuccess callback
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OTPVerificationScreen(
+          email: email,
+          onSuccess: () {
+            if (!mounted) return;
+            setState(() {
+              _otpVerified = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Xác thực OTP thành công!')),
+            );
+            Navigator.pop(context); // Quay về màn hình quên mật khẩu
+          },
+        ),
+      ),
+    );
   }
 
   void _resetPassword() async {
@@ -54,7 +63,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (email.isEmpty || password.isEmpty) return;
 
     final success =
-        await context.read<AuthProvider>().changePassword(email, '', password);
+        await context.read<AuthProvider>().resetPassword(email, password);
 
     if (!mounted) return;
 
