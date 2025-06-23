@@ -122,6 +122,7 @@ const authController = {
 
       // Xoá refreshToken khỏi database
       await User.findByIdAndUpdate(userId, { refreshToken: null });
+      await User.findByIdAndUpdate(userId, { fcmToken: null });
 
       res.status(200).json({ message: "Logout successful" });
     } catch (error) {
@@ -181,20 +182,20 @@ const authController = {
   sendOTPEmail: async (req, res) => {
     try {
       const { email } = req.body;
-  
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
-  
+
       const user = await User.findOne({ email });
-  
+
       if (!user) {
         return res.status(404).json({ message: "Người dùng không tồn tại" });
       }
-  
+
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpires = Date.now() + 5 * 60 * 1000; // OTP hết hạn sau 5 phút
-  
+
       // Gửi email OTP
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -203,27 +204,27 @@ const authController = {
           pass: process.env.EMAIL_PASS,
         },
       });
-  
+
       const mailOptions = {
         from: `"Groupify App" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: "Mã OTP đặt lại mật khẩu",
         text: `Mã OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút.`,
       };
-  
+
       await transporter.sendMail(mailOptions);
-  
+
       // Cập nhật OTP và thời gian hết hạn vào user
       user.otp = otp;
       user.otpExpires = otpExpires;
       await user.save();
-  
+
       res.status(200).json({ message: "OTP đã được gửi tới email của bạn" });
     } catch (error) {
       console.error("Lỗi gửi OTP:", error);
       res.status(500).json({ message: "Lỗi gửi OTP", error });
     }
-  },  
+  },
   verifyOTP: async (req, res) => {
     try {
       const { email, otp } = req.body;
@@ -321,28 +322,28 @@ const authController = {
   resetPassword: async (req, res) => {
     try {
       const { email, newPassword } = req.body;
-  
+
       if (!email || !newPassword) {
         return res.status(400).json({ message: "Thiếu thông tin cần thiết" });
       }
-  
+
       const user = await User.findOne({ email });
-  
+
       if (!user) {
         return res.status(404).json({ message: "Người dùng không tồn tại" });
       }
-  
+
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
-  
+
       user.password = hashedPassword;
       await user.save();
-  
+
       return res.status(200).json({ message: "Đặt lại mật khẩu thành công" });
     } catch (error) {
       res.status(500).json({ message: "Lỗi đặt lại mật khẩu", error });
     }
-  },  
+  },
 };
 
 module.exports = authController;
