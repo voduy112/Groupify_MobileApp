@@ -61,7 +61,6 @@ dependencies:
   pinput: ^5.0.1
 
   shimmer: ^2.0.0
-  # flutter_keyboard_visibility: ^5.4.1
 
 dev_dependencies:
   flutter_test:
