@@ -1,6 +1,8 @@
 <template>
   <div class="p-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">📁 Group List</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+      📁 Group List
+    </h1>
 
     <div class="mb-6 max-w-md relative">
       <input
@@ -8,7 +10,7 @@
         type="text"
         placeholder="Search groups"
         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200 pr-10"
-      />
+      >
       <svg
         class="w-5 h-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
@@ -19,8 +21,17 @@
         stroke-linejoin="round"
         viewBox="0 0 24 24"
       >
-        <circle cx="11" cy="11" r="7" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <circle
+          cx="11"
+          cy="11"
+          r="7"
+        />
+        <line
+          x1="21"
+          y1="21"
+          x2="16.65"
+          y2="16.65"
+        />
       </svg>
     </div>
 
@@ -37,26 +48,28 @@
           :src="getGroupImage(group.imgGroup)"
           alt="Ảnh nhóm"
           class="w-full h-40 object-cover rounded-xl mb-4"
-        />
+        >
 
         <div class="flex items-start justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">{{ group.name }}</h2>
+          <h2 class="text-xl font-bold text-gray-800">
+            {{ group.name }}
+          </h2>
           <div class="space-x-2 text-sm">
             <button
-              @click="viewGroupMembers(group)"
               class="text-blue-600 hover:underline"
+              @click="viewGroupMembers(group)"
             >
               👁 Xem
             </button>
             <button
-              @click="openEditModal(group)"
               class="text-yellow-600 hover:underline"
+              @click="openEditModal(group)"
             >
               Sửa
             </button>
             <button
-              @click="confirmDelete(group._id)"
               class="text-red-600 hover:underline"
+              @click="confirmDelete(group._id)"
             >
               Xóa
             </button>
@@ -66,7 +79,6 @@
         <p class="text-left text-gray-700 font-medium mb-2">
           {{ group.description || "—" }}
         </p>
-
         <p class="text-left text-sm text-gray-600 mb-1">
           Tổng thành viên: {{ group.membersID?.length ?? 0 }}
         </p>
@@ -82,38 +94,45 @@
       </div>
     </div>
 
-    <div v-else class="text-gray-500 mt-4">Không tìm thấy nhóm nào.</div>
+    <div
+      v-else
+      class="text-gray-500 mt-4"
+    >
+      Không tìm thấy nhóm nào.
+    </div>
 
     <div
       v-if="selectedGroup"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
     >
       <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-        <h3 class="text-xl font-bold mb-4">Sửa nhóm</h3>
+        <h3 class="text-xl font-bold mb-4">
+          Sửa nhóm
+        </h3>
         <label class="block mb-2">
           <span class="text-gray-700">Tên nhóm</span>
           <input
             v-model="selectedGroup.name"
             class="w-full border p-2 rounded"
-          />
+          >
         </label>
         <label class="block mb-2">
           <span class="text-gray-700">Mô tả</span>
           <textarea
             v-model="selectedGroup.description"
             class="w-full border p-2 rounded"
-          ></textarea>
+          />
         </label>
         <div class="flex justify-end mt-4 space-x-2">
           <button
-            @click="selectedGroup = null"
             class="px-4 py-2 bg-gray-300 rounded"
+            @click="selectedGroup = null"
           >
             Hủy
           </button>
           <button
-            @click="saveGroup"
             class="px-4 py-2 bg-blue-600 text-white rounded"
+            @click="saveGroup"
           >
             Lưu
           </button>
@@ -139,17 +158,16 @@
             Không có thành viên.
           </li>
           <li
-            v-for="(member, index) in viewingGroup.membersID"
-            :key="index"
-            class="break-words hover:bg-gray-100 rounded px-1"
+            v-for="member in viewingGroup.membersID"
+            :key="member._id"
           >
-            {{ member.username || member }}
+            {{ member.username }}
           </li>
         </ul>
         <div class="text-right">
           <button
-            @click="viewingGroup = null"
             class="px-4 py-2 bg-gray-300 rounded"
+            @click="viewingGroup = null"
           >
             Đóng
           </button>
@@ -201,6 +219,18 @@ export default {
         this.groups = [];
       }
     },
+    async viewGroupMembers(group) {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/group/${group._id}`,
+        );
+        this.viewingGroup = res.data;
+      } catch (err) {
+        console.error("Không thể tải thành viên nhóm", err);
+        this.viewingGroup = null;
+      }
+    },
+
     formatDate(dateStr) {
       if (!dateStr) return "Không rõ";
       const d = new Date(dateStr);
@@ -245,9 +275,6 @@ export default {
         return "https://via.placeholder.com/400x200?text=No+Image";
       }
       return imgGroup;
-    },
-    viewGroupMembers(group) {
-      this.viewingGroup = group;
     },
   },
 };
