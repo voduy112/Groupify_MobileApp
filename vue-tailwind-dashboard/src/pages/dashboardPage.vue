@@ -1,27 +1,43 @@
 <template>
   <div class="p-4 bg-gray-50 min-h-screen">
     <div class="mb-4">
-      <h1 class="text-4xl font-semibold text-gray-800">📊 Tổng quan</h1>
+      <h1 class="text-4xl font-semibold text-gray-800">
+        📊 Tổng quan
+      </h1>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white shadow rounded-lg p-4">
-        <h2 class="text-lg font-medium text-gray-600 mb-2">📁 Tổng tài liệu</h2>
-        <p class="text-3xl font-bold text-blue-600">{{ documentCount }}</p>
+        <h2 class="text-lg font-medium text-gray-600 mb-2">
+          📁 Tổng tài liệu
+        </h2>
+        <p class="text-3xl font-bold text-blue-600">
+          {{ documentCount }}
+        </p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
-        <h2 class="text-lg font-medium text-gray-600 mb-2">👥 Người dùng</h2>
-        <p class="text-3xl font-bold text-green-600">{{ userCount }}</p>
+        <h2 class="text-lg font-medium text-gray-600 mb-2">
+          👥 Người dùng
+        </h2>
+        <p class="text-3xl font-bold text-green-600">
+          {{ userCount }}
+        </p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
         <h2 class="text-lg font-medium text-gray-600 mb-2">
           📅 Cập nhật hôm nay
         </h2>
-        <p class="text-3xl font-bold text-purple-600">{{ updateCount }}</p>
+        <p class="text-3xl font-bold text-purple-600">
+          {{ updateCount }}
+        </p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
-        <h2 class="text-lg font-medium text-gray-600 mb-2">🧑‍🤝‍🧑 Nhóm</h2>
-        <p class="text-3xl font-bold text-pink-600">{{ groupCount }}</p>
+        <h2 class="text-lg font-medium text-gray-600 mb-2">
+          🧑‍🤝‍🧑 Nhóm
+        </h2>
+        <p class="text-3xl font-bold text-pink-600">
+          {{ groupCount }}
+        </p>
       </div>
     </div>
 
@@ -36,7 +52,10 @@
       <div class="mb-6 flex space-x-6 items-center">
         <label class="flex items-center space-x-2">
           <span>Loại thống kê:</span>
-          <select v-model="selectedType" class="border rounded px-2 py-1">
+          <select
+            v-model="selectedType"
+            class="border rounded px-2 py-1"
+          >
             <option value="documents">Tài liệu</option>
             <option value="users">Người dùng</option>
             <option value="groups">Nhóm</option>
@@ -45,7 +64,10 @@
 
         <label class="flex items-center space-x-2">
           <span>Chọn tuần:</span>
-          <select v-model="selectedWeek" class="border rounded px-2 py-1">
+          <select
+            v-model="selectedWeek"
+            class="border rounded px-2 py-1"
+          >
             <option value="all">Tất cả 8 tuần</option>
             <option
               v-for="(label, index) in displayLabels"
@@ -59,7 +81,10 @@
       </div>
 
       <div style="height: 300px">
-        <canvas id="weeklyChart" class="w-full h-full"></canvas>
+        <canvas
+          id="weeklyChart"
+          class="w-full h-full"
+        />
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-6 p-4 max-w-7xl mx-auto">
-    <h1 class="text-2xl font-semibold text-gray-800 text-center">
+  <div class="p-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
       ⚠️ Reported Documents
     </h1>
 
@@ -10,7 +10,7 @@
         type="text"
         placeholder="Search by title..."
         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200 pr-10 text-sm text-gray-700 placeholder-gray-400 shadow-sm"
-      />
+      >
       <svg
         class="w-5 h-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
@@ -21,14 +21,33 @@
         stroke-linejoin="round"
         viewBox="0 0 24 24"
       >
-        <circle cx="11" cy="11" r="7" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <circle
+          cx="11"
+          cy="11"
+          r="7"
+        />
+        <line
+          x1="21"
+          y1="21"
+          x2="16.65"
+          y2="16.65"
+        />
       </svg>
     </div>
 
-    <div v-if="loading" class="text-gray-500 text-center">Loading...</div>
+    <div
+      v-if="loading"
+      class="text-gray-500 text-center"
+    >
+      Loading...
+    </div>
     <div v-else>
-      <div v-if="error" class="text-red-500 text-center">{{ error }}</div>
+      <div
+        v-if="error"
+        class="text-red-500 text-center"
+      >
+        {{ error }}
+      </div>
       <div
         v-else-if="filteredDocuments.length === 0"
         class="text-gray-500 text-center"
@@ -42,7 +61,9 @@
           :key="doc._id"
           class="bg-white rounded-xl shadow p-4 flex flex-col"
         >
-          <h2 class="text-lg font-bold text-gray-700">{{ doc.title }}</h2>
+          <h2 class="text-lg font-bold text-gray-700">
+            {{ doc.title }}
+          </h2>
           <p class="text-sm text-gray-600 line-clamp-3">
             {{ doc.description || "No description" }}
           </p>
@@ -52,7 +73,7 @@
             :src="doc.imgDocument"
             alt="Document Image"
             class="w-full h-40 object-cover rounded my-2"
-          />
+          >
 
           <a
             v-if="doc.mainFile"
@@ -75,8 +96,8 @@
 
           <div class="mt-4 flex gap-2">
             <button
-              @click="toggleReportDetails(doc)"
               class="text-blue-600 hover:underline text-sm"
+              @click="toggleReportDetails(doc)"
             >
               👁️
               {{
@@ -84,15 +105,15 @@
               }}
             </button>
             <button
-              @click="confirmDelete(doc._id)"
               class="text-red-600 hover:underline text-sm"
+              @click="confirmDelete(doc._id)"
             >
               🗑️ Delete
             </button>
             <button
               v-if="reportDetailsVisible[doc._id]"
-              @click="cancelReport(doc._id)"
               class="text-yellow-700 hover:underline text-sm"
+              @click="cancelReport(doc._id)"
             >
               ❌ Cancel Report
             </button>
@@ -126,7 +147,10 @@
               </div>
             </div>
 
-            <div v-else class="mt-2 text-gray-600">
+            <div
+              v-else
+              class="mt-2 text-gray-600"
+            >
               Không có lý do chi tiết nào.
             </div>
           </div>
@@ -152,9 +176,6 @@ export default {
       searchQuery: "",
     };
   },
-  created() {
-    this.fetchReportedDocuments();
-  },
   computed: {
     filteredDocuments() {
       const query = this.searchQuery.trim().toLowerCase();
@@ -163,6 +184,9 @@ export default {
         doc.title?.toLowerCase().includes(query),
       );
     },
+  },
+  created() {
+    this.fetchReportedDocuments();
   },
   methods: {
     async fetchReportedDocuments() {

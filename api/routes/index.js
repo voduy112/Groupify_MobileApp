@@ -9,9 +9,11 @@ const resultRoutes = require('./result');
 const chatgroupRoutes = require('./chatGroup');
 const requestRoutes = require('./grouprequest');
 const reportRoutes = require('./report');
-
+const adminRoutes = require('./admin');
 const InitRoutes = (app) => {
+
   app.use("/api/auth", authRoutes);
+  app.use("/api/admin", adminRoutes);
   app.use("/api/profile", profileRoutes);
   app.use("/api/document", documentRoutes);
   app.use("/api/group", groupRoutes);

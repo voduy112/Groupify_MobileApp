@@ -71,8 +71,8 @@ const groupController = {
     try {
       const group = await Group.findById(req.params.id).populate(
         "ownerId",
-        "username fcmToken"
-      );
+        "username fcmToken")
+        .populate("membersID", "username");
       if (!group) {
         return res.status(404).json({ error: "Không tìm thấy nhóm" });
       }
@@ -135,22 +135,28 @@ const groupController = {
   joinGroupByCode: async (req, res) => {
     try {
       const { groupId, inviteCode, userId } = req.body;
-
+  
       const group = await Group.findOne({ _id: groupId, inviteCode });
-
+  
       if (!group) {
         return res.status(404).json({ error: "INVALID_INVITE_CODE" });
       }
-
+  
       if (group.membersID.includes(userId)) {
         return res
           .status(400)
           .json({ error: "Người dùng đã tham gia nhóm này" });
       }
 
+  
       group.membersID.push(userId);
       await group.save();
-      return res.json(group);
+  
+      const updatedGroup = await Group.findById(group._id)
+        .populate("membersID", "username")
+        .populate("ownerId", "username");
+  
+      return res.json(updatedGroup);
     } catch (error) {
       return res.status(500).json({ error: "Lỗi khi tham gia nhóm" });
     }
@@ -274,7 +280,10 @@ const groupController = {
     try {
       const groups = await Group.find({
         $or: [{ ownerId: userId }, { membersID: userId }],
-      }).lean();
+      })
+      .populate("membersID", "username")
+      .populate("ownerId", "username");
+    
 
       res.json(groups);
     } catch (error) {
