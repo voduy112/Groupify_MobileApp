@@ -17,17 +17,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _password;
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // decoration: const BoxDecoration(
-        //   image: DecorationImage(
-        //     image: AssetImage('assets/images/background_login.jpg'),
-        //     fit: BoxFit.cover,
-        //   ),
-        // ),
         alignment: Alignment.center,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -57,25 +52,38 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00B4DB), Color(0xFF0083B0)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00B4DB), Color(0xFF0083B0)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.transparent,
-                      child: Icon(Icons.person, size: 50, color: Colors.white),
-                    ),
+                      ),
+                      if (_isLoading)
+                        const SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 5,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFFFD700)),
+                          ),
+                        ),
+                      const Icon(Icons.person, size: 50, color: Colors.white),
+                    ],
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -173,6 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: () async {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
+                              setState(() => _isLoading = true);
+
                               final authProvider = context.read<AuthProvider>();
                               final error = await authProvider.login(
                                 _email ?? '',
@@ -180,6 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context,
                               );
                               final user = authProvider.user;
+
+                              setState(() => _isLoading = false);
+
                               if (error == null && user != null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
