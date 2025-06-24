@@ -103,12 +103,12 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Dongle
+    - family: Inter
       fonts:
-        - asset: assets/fonts/Dongle-Regular.ttf
-        - asset: assets/fonts/Dongle-Bold.ttf
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Dongle-Light.ttf
+        - asset: assets/fonts/Inter-Light.ttf
           weight: 300
   assets:
     - assets/image/

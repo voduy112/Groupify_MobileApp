@@ -6,6 +6,7 @@ import '../../../models/user.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import '../../../features/profile/widgets/list_document_item.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User? user;
@@ -42,9 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: const Text('Trang cá nhân'),
+      appBar: CustomAppBar(
+        title: 'Trang cá nhân',
         actions: [
           if (user.id == authUser?.id)
             PopupMenuButton<String>(
@@ -60,7 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 }
               },
-              icon: const Icon(Icons.more_vert),
+              icon: const Icon(Icons.more_vert,
+                  color: Colors.white), // icon trắng
               itemBuilder: (context) => [
                 const PopupMenuItem<String>(
                   value: 'edit-profile',
@@ -80,8 +81,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: 'logout',
                   child: ListTile(
                     leading: Icon(Icons.logout, color: Colors.red),
-                    title:
-                        Text('Đăng xuất', style: TextStyle(color: Colors.red)),
+                    title: Text(
+                      'Đăng xuất',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ),
               ],

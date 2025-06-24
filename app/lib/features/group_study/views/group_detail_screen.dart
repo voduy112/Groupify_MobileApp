@@ -261,7 +261,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        "Chủ nhóm: $ownerName",
+                        "Trưởng nhóm: $ownerName",
                         style: TextStyle(fontSize: 24),
                       ),
                     ],
@@ -309,7 +309,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       Icons.person_add_alt_1,
                       color: Colors.blue,
                     ),
-                    label: const Text("Xin vào nhóm"),
+                    label: const Text("Tham gia nhóm"),
                     onPressed: () async {
                       final currentUser = context.read<AuthProvider>().user;
                       final provider = context.read<GroupRequestProvider>();

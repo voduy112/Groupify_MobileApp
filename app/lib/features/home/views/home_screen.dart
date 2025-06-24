@@ -12,6 +12,7 @@ import '../../group_study/providers/group_provider.dart';
 import 'notification_screen.dart';
 import '../../../services/notification/messaging_provider.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -57,12 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
         messagingProvider.notifications.where((n) => !n.isRead).length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Trang chủ'),
+      appBar: CustomAppBar(
+        title: 'Trang chủ',
         actions: [
           IconButton(
             onPressed: () async {
-              // Khi mở dialog, có thể fetch lại để đảm bảo dữ liệu mới nhất
               await messagingProvider.fetchAllNotification(currentUser!);
               await showDialog(
                 context: context,
@@ -72,12 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: NotificationScreen(userId: currentUser),
                 ),
               );
-              // Sau khi đóng dialog, fetch lại để cập nhật trạng thái đã đọc
               await messagingProvider.fetchAllNotification(currentUser);
             },
             icon: Stack(
               children: [
-                Icon(Icons.notifications),
+                const Icon(Icons.notifications, color: Colors.white),
                 if (unreadCount > 0)
                   Positioned(
                     right: 0,
@@ -85,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       width: 10,
                       height: 10,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.red,
                         shape: BoxShape.circle,
                       ),

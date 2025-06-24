@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
-import '../../../routers/app_router.dart';
 import 'create_group_screen.dart';
 import '../../../core/utils/session_expired_handler.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -33,7 +33,7 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Nhóm của bạn")),
+      appBar: CustomAppBar(title: "Nhóm của bạn"),
       body: Consumer<GroupProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
