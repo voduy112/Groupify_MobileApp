@@ -5,6 +5,7 @@ import '../../authentication/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../views/chat_user_card.dart';
 import 'chat_screen.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -51,8 +52,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (currentUser != null) {
       _currentPage = 1;
       context.read<ChatProvider>().resetChatList();
-      final hasMore =
-          await context
+      final hasMore = await context
           .read<ChatProvider>()
           .fetchChatListPage(currentUser.id!, page: _currentPage);
       setState(() {
@@ -97,7 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Trò chuyện")),
+      appBar: CustomAppBar(title: "Trò chuyện"),
       body: chatProvider.isLoading && _currentPage == 1
           ? const Center(child: CircularProgressIndicator())
           : chatProvider.error != null

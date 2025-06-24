@@ -7,7 +7,6 @@ import '../../../models/document.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-
 class DocumentItem extends StatelessWidget {
   final Document document;
   final VoidCallback? onTap;
@@ -28,20 +27,19 @@ class DocumentItem extends StatelessWidget {
   bool get isOwner => currentUserId == groupOwnerId;
 
   Future<bool> requestStoragePermission() async {
-  if (Platform.isAndroid) {
-    final deviceInfo = DeviceInfoPlugin();
-    final androidInfo = await deviceInfo.androidInfo;
-    final sdkInt = androidInfo.version.sdkInt;
+    if (Platform.isAndroid) {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      final sdkInt = androidInfo.version.sdkInt;
 
-    if (sdkInt >= 30) {
-      return await Permission.manageExternalStorage.request().isGranted;
-    } else {
-      return await Permission.storage.request().isGranted;
+      if (sdkInt >= 30) {
+        return await Permission.manageExternalStorage.request().isGranted;
+      } else {
+        return await Permission.storage.request().isGranted;
+      }
     }
+    return true;
   }
-  return true; 
-}
-
 
   Future<void> _downloadPdf(BuildContext context) async {
     final url = document.mainFile;
@@ -100,11 +98,12 @@ class DocumentItem extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: Colors.blue[200]!,
-            width: 1.5,
+            color: Colors.grey.shade300,
+            width: 1,
           ),
         ),
-        elevation: 2,
+        elevation: 3,
+        shadowColor: Colors.blue[200],
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Row(
@@ -177,24 +176,45 @@ class DocumentItem extends StatelessWidget {
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon:
-                        const Icon(Icons.download_rounded, color: Colors.blue),
-                    onPressed: () => _downloadPdf(context),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'download':
+                      _downloadPdf(context);
+                      break;
+                    case 'edit':
+                      if (onEdit != null) onEdit!();
+                      break;
+                    case 'delete':
+                      if (onDelete != null) onDelete!();
+                      break;
+                  }
+                },
+                icon: const Icon(Icons.more_vert, color: Colors.grey),
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'download',
+                    child: ListTile(
+                      leading: Icon(Icons.download_rounded, color: Colors.blue),
+                      title: Text('Tải xuống'),
+                    ),
                   ),
-                  if (isOwner) ...[
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.orange),
-                      onPressed: onEdit,
+                  if (isOwner)
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: ListTile(
+                        leading: Icon(Icons.edit, color: Colors.orange),
+                        title: Text('Chỉnh sửa'),
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: onDelete,
+                  if (isOwner)
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(Icons.delete, color: Colors.red),
+                        title: Text('Xoá'),
+                      ),
                     ),
-                  ],
                 ],
               ),
             ],

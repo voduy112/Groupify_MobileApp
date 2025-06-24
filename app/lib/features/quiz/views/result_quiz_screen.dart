@@ -128,18 +128,6 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, size: 18),
-                          label: const Text("Trở về"),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

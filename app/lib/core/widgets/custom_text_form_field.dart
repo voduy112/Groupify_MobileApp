@@ -34,26 +34,12 @@ class CustomTextFormField extends StatefulWidget {
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
   late FocusNode _focusNode;
   final _fieldKey = GlobalKey<FormFieldState>();
-  bool _touched = false;
+  bool _hasInput = false;
 
   @override
   void initState() {
     super.initState();
     _focusNode = FocusNode();
-
-    _focusNode.addListener(() {
-      if (_focusNode.hasFocus && !_touched) {
-        setState(() {
-          _touched = true;
-        });
-
-        Future.microtask(() {
-          if (mounted) {
-            _fieldKey.currentState?.validate();
-          }
-        });
-      }
-    });
   }
 
   @override
@@ -76,18 +62,24 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         suffixIcon: widget.suffixIcon,
       ),
       validator: (value) {
-        if (!_touched) return null;
+        final isEmpty = Validate.normalizeText(value ?? '').isEmpty;
+        // Chỉ validate nếu người dùng đã từng nhập gì đó (tức là có xóa thì mới bị lỗi)
+        if (!_hasInput || !isEmpty) return null;
+
         final v = widget.validator ??
             (value) => Validate.notEmpty(value,
                 fieldName: widget.fieldName ?? widget.label);
         return v(value);
       },
       onChanged: (value) {
-        if (!_touched) {
+        final normalized = Validate.normalizeText(value);
+
+        if (normalized.isNotEmpty && !_hasInput) {
           setState(() {
-            _touched = true;
+            _hasInput = true;
           });
         }
+
         widget.onChanged?.call(value);
         _fieldKey.currentState?.validate();
       },

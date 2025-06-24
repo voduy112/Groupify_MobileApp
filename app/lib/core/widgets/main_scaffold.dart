@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/home/views/home_screen.dart';
-import '../../features/group_study/views/group_study_screen.dart';
-import '../../features/chat/views/chat_screen.dart';
-import '../../features/profile/views/profile_screen.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -36,22 +31,63 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = getSelectedIndex();
+
     return Scaffold(
       body: child,
       bottomNavigationBar: SafeArea(
-        top: false, // tránh padding trên (chỉ cần tránh ở dưới)
-        child: ConvexAppBar(
-          backgroundColor: Color(0xFF305973),
-          items: List.generate(
-            _titles.length,
-            (i) => TabItem(icon: _icons[i]),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              top: BorderSide(
+                color: Colors.grey.shade300, // màu đường viền trên
+                width: 1, // độ dày viền
+              ),
+            ),
           ),
-          initialActiveIndex: selectedIndex,
-          onTap: (int index) {
-            if (index != selectedIndex) {
-              context.go(_routes[index]);
-            }
-          },
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_titles.length, (index) {
+              final isSelected = index == selectedIndex;
+              return GestureDetector(
+                onTap: () {
+                  if (!isSelected) context.go(_routes[index]);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Gạch đầu
+                    Container(
+                      height: 4,
+                      width: 24,
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? Color(0xFF0072ff) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Icon(
+                      _icons[index],
+                      color: isSelected ? Color(0xFF0072ff) : Colors.grey,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _titles[index],
+                      style: TextStyle(
+                        color: isSelected ? Color(0xFF0072ff) : Colors.grey,
+                        fontSize: 10,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );
