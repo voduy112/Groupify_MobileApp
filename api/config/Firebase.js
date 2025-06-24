@@ -1,5 +1,5 @@
 const admin = require("firebase-admin");
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT); // đường dẫn tới file bạn vừa tải
+const serviceAccount = require("./firebase-service-account.json"); // đường dẫn tới file bạn vừa tải
 
 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
 

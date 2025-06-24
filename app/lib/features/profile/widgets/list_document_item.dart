@@ -34,9 +34,11 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
           title: Text('Báo cáo cho "$docTitle"'),
+          backgroundColor: Colors.white,
           content: reports.isEmpty
               ? const Text("Không có báo cáo nào.")
               : SizedBox(
@@ -236,15 +238,15 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                               }
                             },
                           ),
-                          if (hasReports && !_seenReports.contains(docId))
-                            const Positioned(
-                              right: 6,
-                              top: 6,
-                              child: CircleAvatar(
-                                radius: 5,
-                                backgroundColor: Colors.red,
-                              ),
-                            ),
+                          // if (hasReports && !_seenReports.contains(docId))
+                          //   const Positioned(
+                          //     right: 6,
+                          //     top: 6,
+                          //     child: CircleAvatar(
+                          //       radius: 5,
+                          //       backgroundColor: Colors.red,
+                          //     ),
+                          //   ),
                         ],
                       );
                     },

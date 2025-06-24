@@ -44,7 +44,7 @@ class MainScaffold extends StatelessWidget {
           backgroundColor: Color(0xFF305973),
           items: List.generate(
             _titles.length,
-            (i) => TabItem(icon: _icons[i], title: _titles[i]),
+            (i) => TabItem(icon: _icons[i]),
           ),
           initialActiveIndex: selectedIndex,
           onTap: (int index) {
