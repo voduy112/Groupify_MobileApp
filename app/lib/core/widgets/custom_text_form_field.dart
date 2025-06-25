@@ -50,6 +50,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return TextFormField(
       key: _fieldKey,
       initialValue: widget.initialValue,
@@ -57,18 +59,23 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       maxLines: widget.maxLines,
+      style: textTheme.bodySmall?.copyWith(fontSize: 15),
       decoration: InputDecoration(
         labelText: widget.label,
+        labelStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
         suffixIcon: widget.suffixIcon,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       ),
       validator: (value) {
         final isEmpty = Validate.normalizeText(value ?? '').isEmpty;
-        // Chỉ validate nếu người dùng đã từng nhập gì đó (tức là có xóa thì mới bị lỗi)
         if (!_hasInput || !isEmpty) return null;
 
         final v = widget.validator ??
-            (value) => Validate.notEmpty(value,
-                fieldName: widget.fieldName ?? widget.label);
+            (value) => Validate.notEmpty(
+                  value,
+                  fieldName: widget.fieldName ?? widget.label,
+                );
         return v(value);
       },
       onChanged: (value) {

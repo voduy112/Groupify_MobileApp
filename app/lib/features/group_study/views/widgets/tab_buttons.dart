@@ -15,7 +15,7 @@ class TabButtons extends StatelessWidget {
     final primaryColor = const Color(0xFF0072ff);
 
     return Padding(
-      padding: const EdgeInsets.only(top: 15, bottom: 8),
+      padding: const EdgeInsets.only(top: 18, bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -47,14 +47,14 @@ class TabButtons extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: 13,
+                  size: 12,
                   color: Colors.grey[600],
                 ),
                 const SizedBox(width: 4),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.normal,
                     color: Colors.grey[800],
                   ),
@@ -65,12 +65,9 @@ class TabButtons extends StatelessWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               height: 3,
-              width: isSelected ? null : 0,
-              constraints: isSelected
-                  ? const BoxConstraints(minWidth: 100)
-                  : const BoxConstraints(maxWidth: 0),
+              width: isSelected ? 80 : 0, // hoặc 80, tuỳ giao diện
               decoration: BoxDecoration(
-                color: primaryColor,
+                color: isSelected ? primaryColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

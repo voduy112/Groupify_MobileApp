@@ -9,6 +9,7 @@ import '../providers/document_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
 import '../../../services/notification/messaging_provider.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class UploadDocumentScreen extends StatefulWidget {
   final String groupId;
@@ -114,7 +115,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
               Navigator.of(context).pop();
               if (onClose != null) onClose();
             },
-            child: Text("OK"),
+            child: const Text("OK"),
           ),
         ],
       ),
@@ -123,119 +124,158 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: Icon(Icons.arrow_back),
-        ),
-        title: Text('Upload Document'),
+    final textTheme = Theme.of(context).textTheme;
+
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
-      body: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              CustomTextFormField(
-                label: 'Tiêu đề',
-                fieldName: 'Tiêu đề',
-                onSaved: (value) => title = value,
-              ),
-              SizedBox(height: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
 
-              // Description
-              CustomTextFormField(
-                label: 'Mô tả',
-                fieldName: 'Mô tả',
-                maxLines: 3,
-                onSaved: (value) => description = value,
-              ),
-              SizedBox(height: 16),
-
-              // Image picker
-              Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F9FF),
+      appBar: const CustomAppBar(title: 'Tải tài liệu lên'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                    onPressed: _pickImage,
-                    child: Text('Chọn ảnh'),
+                  // Title
+                  CustomTextFormField(
+                    label: 'Tiêu đề',
+                    fieldName: 'Tiêu đề',
+                    onSaved: (value) => title = value,
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      imageFile?.name ?? 'Chưa chọn ảnh',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              if (imageFile?.path != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(imageFile!.path!),
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-              // Main file picker
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: pickMainFile,
-                    child: Text('Chọn file tài liệu'),
+                  // Description
+                  CustomTextFormField(
+                    label: 'Mô tả',
+                    fieldName: 'Mô tả',
+                    maxLines: 3,
+                    onSaved: (value) => description = value,
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      mainFile?.name ?? 'Chưa chọn file',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-              // Submit button
-              Center(
-                child: Consumer<DocumentProvider>(
-                  builder: (context, provider, child) {
-                    return ElevatedButton(
-                      onPressed: provider.isLoading ? null : uploadDocument,
-                      child: provider.isLoading
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
+                  // Image Picker
+                  Text(
+                    'Ảnh minh họa',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image_outlined, size: 20),
+                        label: const Text('Chọn ảnh'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          imageFile?.name ?? 'Chưa chọn ảnh',
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeIn,
+                    child: imageFile?.path != null
+                        ? Hero(
+                            tag: 'preview-image',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                File(imageFile!.path!),
+                                key: ValueKey(imageFile!.path),
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // File Picker
+                  Text(
+                    'File tài liệu (.pdf)',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
+                  ),
+
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: pickMainFile,
+                        icon: const Icon(Icons.upload_file_rounded, size: 20),
+                        label: const Text('Chọn file'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          mainFile?.name ?? 'Chưa chọn file',
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Submit
+                  Center(
+                    child: Consumer<DocumentProvider>(
+                      builder: (context, provider, child) {
+                        return ElevatedButton.icon(
+                          onPressed: provider.isLoading ? null : uploadDocument,
+                          icon: provider.isLoading
+                              ? const SizedBox(
                                   width: 18,
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     color: Colors.white,
                                     strokeWidth: 2,
                                   ),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Đang upload...'),
-                              ],
-                            )
-                          : Text('Upload'),
-                    );
-                  },
-                ),
+                                )
+                              : const Icon(Icons.cloud_upload_rounded),
+                          label: Text(
+                            provider.isLoading ? 'Đang upload...' : 'Tải lên',
+                          ),
+                          style: beautifulButtonStyle,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
