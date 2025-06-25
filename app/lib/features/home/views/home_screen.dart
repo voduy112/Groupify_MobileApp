@@ -1,4 +1,5 @@
 import 'package:app/features/document_share/providers/document_share_provider.dart';
+import 'package:app/features/home/widgets/home_search.dart';
 import 'package:app/features/home/widgets/list_group_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -58,59 +59,167 @@ class _HomeScreenState extends State<HomeScreen> {
         messagingProvider.notifications.where((n) => !n.isRead).length;
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Trang chủ',
-        actions: [
-          IconButton(
-            onPressed: () async {
-              await messagingProvider.fetchAllNotification(currentUser!);
-              await showDialog(
-                context: context,
-                useSafeArea: true,
-                barrierDismissible: true,
-                builder: (context) => Center(
-                  child: NotificationScreen(userId: currentUser),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Nền gradient lớn, bo góc dưới
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade400, Colors.blue.shade700],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              );
-              await messagingProvider.fetchAllNotification(currentUser);
-            },
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications, color: Colors.white),
-                if (unreadCount > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
+              padding:
+                  EdgeInsets.only(top: 36, left: 20, right: 20, bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // AppBar custom
+                  SafeArea(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Welcome back!",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              "Groupify",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Stack(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.notifications,
+                                color: Colors.white,
+                                size: 25,
+                              ),
+                              onPressed: () async {
+                                await messagingProvider
+                                    .fetchAllNotification(currentUser!);
+                                await showDialog(
+                                  context: context,
+                                  useSafeArea: true,
+                                  barrierDismissible: true,
+                                  builder: (context) => Center(
+                                    child:
+                                        NotificationScreen(userId: currentUser),
+                                  ),
+                                );
+                                await messagingProvider
+                                    .fetchAllNotification(currentUser);
+                              },
+                            ),
+                            if (unreadCount > 0)
+                              Positioned(
+                                right: 6,
+                                top: 6,
+                                child: Container(
+                                  padding: EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    unreadCount.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 18),
+                  // Ô tìm kiếm
+                  HomeSearch(),
+                ],
+              ),
+            ),
+            // Carousel (nổi lên nền trắng)
+            SizedBox(height: 22),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 0),
+              child: MyCarouselView(),
+            ),
+            // Tiêu đề và nút 'Xem thêm...' trên cùng một hàng
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TitleApp(title: 'Tài liệu', context: context),
+                  TextButton(
+                    onPressed: () {
+                      context.push('/home/show-all-document');
+                    },
+                    child: Text(
+                      'Xem thêm...',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.titleMedium?.color,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 80),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MyCarouselView(),
-              SizedBox(height: 15),
-              TitleApp(title: 'Tài liệu', context: context),
-              documentProvider.isLoading
-                  ? DocumentListShimmer()
-                  : ListDocumentItem(),
-              TitleApp(title: 'Nhóm', context: context),
-              groupProvider.isLoading ? GroupListShimmer() : ListGroupItem(),
-            ],
-          ),
+            // Danh sách tài liệu
+            documentProvider.isLoading
+                ? DocumentListShimmer()
+                : ListDocumentItem(),
+            // Hiển thị lại phần nhóm nhưng không có cuộn bên trong
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TitleApp(title: 'Nhóm', context: context),
+                  TextButton(
+                    onPressed: () {
+                      context.push('/home/show-all-group');
+                    },
+                    child: Text(
+                      'Xem thêm...',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.titleMedium?.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            groupProvider.isLoading ? GroupListShimmer() : ListGroupItem(),
+          ],
         ),
       ),
       floatingActionButton: SizedBox(
@@ -193,52 +302,44 @@ class DocumentListShimmer extends StatelessWidget {
 class GroupListShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 400,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
+    return SizedBox(
+      height: 220,
       child: ListView.builder(
+        scrollDirection: Axis.horizontal,
         itemCount: 4,
         itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 80,
+              width: 170,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
+              child: Column(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
-                    margin: const EdgeInsets.all(12),
+                    height: 120,
+                    width: 100,
+                    margin: const EdgeInsets.only(top: 10),
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 18,
-                          width: 120,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 14,
-                          width: 80,
-                          color: Colors.grey[300],
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 18,
+                    width: 100,
+                    color: Colors.grey[300],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 14,
+                    width: 80,
+                    color: Colors.grey[300],
                   ),
                 ],
               ),
