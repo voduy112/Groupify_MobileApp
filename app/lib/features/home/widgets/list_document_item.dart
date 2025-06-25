@@ -21,7 +21,7 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
         documents.length > 8 ? documents.sublist(0, 8) : documents;
 
     return SizedBox(
-      height: 220,
+      height: 190,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -80,8 +80,8 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
                         imageUrl: document.imgDocument ?? '',
-                        height: 120,
-                        width: 100,
+                        height: 110,
+                        width: 90,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
                           height: 120,
