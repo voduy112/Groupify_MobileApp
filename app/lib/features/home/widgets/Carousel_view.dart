@@ -37,13 +37,12 @@ class _MyCarouselViewState extends State<MyCarouselView> {
                 return Container(
                   margin: EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black12,
                         blurRadius: 8,
-                        offset: Offset(0, 2),
+                        offset: Offset(0, 1),
                       ),
                     ],
                   ),
