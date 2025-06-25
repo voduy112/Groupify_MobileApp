@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
@@ -85,12 +86,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Icon(Icons.person, size: 50, color: Colors.white),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Text(
                     'Chào mừng trở lại!',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                     textAlign: TextAlign.center,
                   ),
@@ -105,8 +107,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     obscureText: _obscurePassword,
+                    style: textTheme.bodySmall?.copyWith(fontSize: 15),
                     decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 12),
                       labelText: 'Mật khẩu',
+                      labelStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -140,15 +146,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               });
                             },
                           ),
-                          const Text('Nhớ tôi',
-                              style: TextStyle(color: Colors.black54)),
+                          const Text(
+                            'Nhớ tôi',
+                            style:
+                                TextStyle(color: Colors.black54, fontSize: 13),
+                          ),
                         ],
                       ),
                       TextButton(
                         onPressed: () => context.go('/forgot-password'),
                         child: const Text(
                           'Quên mật khẩu?',
-                          style: TextStyle(color: Color(0xFF0083B0)),
+                          style: TextStyle(
+                            color: Color(0xFF0083B0),
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ],
@@ -191,15 +203,25 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                               final user = authProvider.user;
 
+                              if (!mounted) return;
+
                               setState(() => _isLoading = false);
 
                               if (error == null && user != null) {
+                                if (!mounted) return;
+
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Đăng nhập thành công!'),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
+
+                                await Future.delayed(const Duration(
+                                    milliseconds:
+                                        300)); // <-- Cho phép SnackBar hiển thị
+
+                                if (!mounted) return;
                                 context.go('/home');
                               } else if (error != null &&
                                   error
@@ -227,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Đăng nhập',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.5,
                               ),
@@ -245,6 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         color: Color(0xFF0083B0),
                         fontWeight: FontWeight.w500,
+                        fontSize: 13,
                       ),
                     ),
                   ),

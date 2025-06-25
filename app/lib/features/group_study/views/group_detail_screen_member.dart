@@ -244,13 +244,14 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<AuthProvider>(context).user;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
           create: (context) {
-            final authProvider =
-                Provider.of<AuthProvider>(context, listen: false);
+            // final authProvider =
+            //     Provider.of<AuthProvider>(context, listen: false);
             return DocumentProvider(authProvider: authProvider)
               ..fetchDocumentsByGroupId(widget.groupId);
           },

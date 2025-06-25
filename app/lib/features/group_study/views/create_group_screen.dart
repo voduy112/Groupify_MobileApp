@@ -4,7 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
-import '../../../core/widgets/custom_text_form_field.dart'; // đường dẫn widget tùy chỉnh
+import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   @override
@@ -46,7 +47,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save(); // Save dữ liệu từ các field
+    _formKey.currentState!.save();
 
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context)
@@ -96,107 +97,144 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text('Tạo Nhóm Mới')),
-      body: Padding(
+      backgroundColor: const Color(0xFFF5F9FF),
+      appBar: CustomAppBar(title: "Tạo nhóm mới"),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              CustomTextFormField(
-                label: 'Tên nhóm',
-                fieldName: 'Tên nhóm',
-                initialValue: _nameController.text,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty)
-                    return 'Nhập tên nhóm';
-                  return null;
-                },
-                onSaved: (value) => _nameController.text = value ?? '',
-              ),
-              SizedBox(height: 12),
-              CustomTextFormField(
-                label: 'Môn học',
-                fieldName: 'Môn học',
-                initialValue: _subjectController.text,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty)
-                    return 'Nhập môn học';
-                  return null;
-                },
-                onSaved: (value) => _subjectController.text = value ?? '',
-              ),
-              SizedBox(height: 12),
-              Text('Mã mời', style: TextStyle(fontWeight: FontWeight.bold)),
-              Row(
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _inviteCodeController,
-                      readOnly: true,
-                    ),
+                  CustomTextFormField(
+                    label: 'Tên nhóm',
+                    fieldName: 'Tên nhóm',
+                    initialValue: _nameController.text,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nhập tên nhóm'
+                        : null,
+                    onSaved: (value) => _nameController.text = value ?? '',
                   ),
-                  IconButton(
-                    icon: Icon(Icons.refresh, color: Colors.blue),
-                    tooltip: 'Tạo mã mới',
-                    onPressed: () {
-                      setState(() {
-                        _inviteCodeController.text = _generateInviteCode();
-                      });
-                    },
+                  const SizedBox(height: 16),
+                  CustomTextFormField(
+                    label: 'Môn học',
+                    fieldName: 'Môn học',
+                    initialValue: _subjectController.text,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nhập môn học'
+                        : null,
+                    onSaved: (value) => _subjectController.text = value ?? '',
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Mã mời',
+                      style: textTheme.titleSmall?.copyWith(fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _inviteCodeController,
+                          readOnly: true,
+                          style: const TextStyle(fontSize: 13),
+                          decoration: const InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.blue),
+                        tooltip: 'Tạo mã mới',
+                        onPressed: () {
+                          setState(() {
+                            _inviteCodeController.text = _generateInviteCode();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextFormField(
+                    label: 'Mô tả',
+                    fieldName: 'Mô tả',
+                    initialValue: _descriptionController.text,
+                    maxLines: 3,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nhập mô tả'
+                        : null,
+                    onSaved: (value) =>
+                        _descriptionController.text = value ?? '',
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Ảnh nhóm',
+                      style: textTheme.titleSmall?.copyWith(fontSize: 13)),
+                  const SizedBox(height: 8),
+                  if (_uploadedImageUrl != null)
+                    Image.network(_uploadedImageUrl!, height: 150)
+                  else if (_selectedImage != null)
+                    Image.file(_selectedImage!, height: 150)
+                  else
+                    const Text(
+                      'Chưa chọn ảnh',
+                      style:
+                          TextStyle(fontStyle: FontStyle.italic, fontSize: 13),
+                    ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.image_outlined, size: 20),
+                    label: const Text('Chọn ảnh nhóm'),
+                    style: beautifulButtonStyle,
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: _isSubmitting ? null : _submit,
+                      icon: _isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.group_add_rounded),
+                      label: Text(_isSubmitting ? 'Đang tạo...' : 'Tạo nhóm'),
+                      style: beautifulButtonStyle,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(height: 12),
-              CustomTextFormField(
-                label: 'Mô tả',
-                fieldName: 'Mô tả',
-                initialValue: _descriptionController.text,
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty)
-                    return 'Nhập mô tả';
-                  return null;
-                },
-                onSaved: (value) => _descriptionController.text = value ?? '',
-              ),
-              SizedBox(height: 12),
-              if (_uploadedImageUrl != null) ...[
-                Text('Ảnh nhóm đã tải lên',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Image.network(_uploadedImageUrl!, height: 150),
-              ] else if (_selectedImage != null) ...[
-                Text('Ảnh nhóm đã chọn',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Image.file(_selectedImage!, height: 150),
-              ] else ...[
-                Text('Tải ảnh lên',
-                    style: TextStyle(
-                        fontStyle: FontStyle.italic, color: Colors.grey)),
-              ],
-              TextButton.icon(
-                icon: Icon(Icons.image),
-                label: Text('Chọn ảnh nhóm'),
-                onPressed: _pickImage,
-              ),
-              SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text('Tạo nhóm'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
