@@ -1,4 +1,5 @@
 import 'package:app/features/document_share/providers/document_share_provider.dart';
+import 'package:app/features/home/widgets/home_search.dart';
 import 'package:app/features/home/widgets/list_group_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -91,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "Good day for shopping",
+                              "Welcome back!",
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -99,10 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              Provider.of<AuthProvider>(context)
-                                      .user
-                                      ?.username ??
-                                  "",
+                              "Groupify",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -162,27 +160,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedBox(height: 18),
                   // Ô tìm kiếm
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.search, color: Colors.grey),
-                        hintText: "Search in Store",
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 22),
+                  HomeSearch(),
                 ],
               ),
             ),
             // Carousel (nổi lên nền trắng)
+            SizedBox(height: 22),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              padding: const EdgeInsets.symmetric(vertical: 0),
               child: MyCarouselView(),
             ),
             // Tiêu đề và nút 'Xem thêm...' trên cùng một hàng
@@ -199,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Xem thêm...',
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -225,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       'Xem thêm...',
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
