@@ -26,122 +26,88 @@ class _ListGroupItemState extends State<ListGroupItem> {
 
     print("groups: $groups");
 
-    return Container(
-      height: 400,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ListView.builder(
-        itemCount: groups.length + 1,
-        itemBuilder: (context, index) {
-          if (index == groups.length) {
-            return Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  context.go('/home/show-all-group');
-                },
-                child: const Text('Xem thêm'),
-              ),
-            );
-          }
+    // Hiển thị tối đa 4 nhóm đầu tiên
+    final displayGroups = groups.length > 4 ? groups.sublist(0, 4) : groups;
 
-          final group = groups[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => GroupDetailScreen(groupId: group.id!),
+    return Column(
+      children: [
+        ...displayGroups.map((group) => GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => GroupDetailScreen(groupId: group.id!),
+                  ),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.grey.shade200, width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-              );
-            },
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[300],
-                        child: CachedNetworkImage(
-                          imageUrl: group.imgGroup ?? '',
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            height: 120,
-                            width: 100,
-                            decoration: BoxDecoration(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          color: Colors.grey[300],
+                          child: CachedNetworkImage(
+                            imageUrl: group.imgGroup ?? '',
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
                               color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: Colors.grey,
-                                size: 40,
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            height: 120,
-                            width: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: Colors.grey,
-                                size: 30,
-                              ),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 32,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            group.name ?? 'Tên nhóm',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              group.name ?? 'Tên nhóm',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Môn: ${group.subject ?? 'Không xác định'}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        ],
+                            SizedBox(height: 4),
+                            Text(
+                              'Môn: ${group.subject ?? 'Không xác định'}',
+                              style: TextStyle(
+                                color: Colors.blueGrey[400],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
+            )),
+      ],
     );
   }
 }
