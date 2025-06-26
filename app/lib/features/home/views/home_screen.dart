@@ -236,8 +236,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           elevation: 8,
           child: Icon(
-            Icons.add,
-            size: 36,
+            Icons.insert_drive_file_outlined,
+            size: 30,
             color: Colors.blue.shade500,
           ),
         ),
