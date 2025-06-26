@@ -164,4 +164,13 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<List<User>> searchChat(String userId, String query) async {
+    try {
+      return await chatService.searchChat(userId, query);
+    } catch (e) {
+      print('Lỗi searchChatList: $e');
+      return [];
+    }
+  }
+
 }
