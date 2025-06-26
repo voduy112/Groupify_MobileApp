@@ -17,81 +17,95 @@ class GroupItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 8,
+        shadowColor: Colors.black.withOpacity(1),
         color: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: group.imgGroup ?? '',
-                  height: 60,
-                  width: 60,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    height: 120,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
-                        size: 40,
+                borderRadius: BorderRadius.circular(16),
+                child: group.imgGroup != null && group.imgGroup!.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: group.imgGroup!,
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 90,
+                          height: 90,
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 90,
+                          height: 90,
+                          color: Colors.grey.shade300,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
+                              size: 35,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        width: 90,
+                        height: 90,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child:
+                              Icon(Icons.groups, color: Colors.grey, size: 40),
+                        ),
                       ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    height: 120,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ),
               ),
-              const SizedBox(width: 12),
-              Flexible(
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       group.name ?? 'Tên nhóm',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF305973),
                       ),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                      maxLines: 2,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Môn: ${group.subject ?? 'Không xác định'}',
-                      style: const TextStyle(color: Colors.grey),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Text(
                       group.description ?? '',
-                      style: const TextStyle(fontSize: 14),
-                      maxLines: 2,
+                      style:
+                          const TextStyle(fontSize: 14, color: Colors.black87),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.people, size: 18, color: Colors.blue),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${group.membersID?.length ?? 0} thành viên',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
