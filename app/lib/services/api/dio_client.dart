@@ -7,7 +7,7 @@ class DioClient {
   static final Dio _dio = Dio(BaseOptions(
 
     baseUrl: 'https://groupifymobileapp-production.up.railway.app',
-    // baseUrl: 'http://192.168.1.114:5000',
+    //baseUrl: 'http://192.168.1.176:5000',
 
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),

@@ -55,6 +55,7 @@ class AuthProvider with ChangeNotifier {
             Provider.of<SocketProvider>(context, listen: false);
         socketProvider.connect(
           'https://groupifymobileapp-production.up.railway.app',
+          //'http://192.168.1.176:5000',
           queryParams: {'userId': _user!.id!},
           token: _user!.accessToken,
         );

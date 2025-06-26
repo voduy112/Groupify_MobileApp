@@ -67,4 +67,19 @@ class ChatService {
       throw Exception('Xóa cuộc trò chuyện thất bại');
     }
   }
+
+  Future<List<User>> searchChat(String userId, String query) async {
+    try {
+      final response = await _dio.get(
+        '/api/chat/search',
+        queryParameters: {'userId': userId, 'query': query},
+      );
+
+      final List data = response.data['chats'];
+      return data.map((json) => User.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Lỗi tìm kiếm danh sách chat: $e');
+    }
+  }
+
 }
