@@ -9,6 +9,7 @@ import '../../../features/quiz/providers/quiz_provider.dart';
 import '../providers/group_provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
+import 'package:flutter/services.dart';
 
 class GroupContentDetail extends StatefulWidget {
   final String groupId;
@@ -99,6 +100,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
     bool isSaving = false;
 
     showDialog(
+      barrierDismissible: true,
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -142,7 +144,7 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
             }
 
             return AlertDialog(
-              backgroundColor: Colors.lightBlue[50],
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
               title: const Center(
@@ -185,8 +187,8 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
                                               'assets/default_group.png')),
                                 ),
                                 Container(
-                                  width: 110,
-                                  height: 110,
+                                  width: 112,
+                                  height: 112,
                                   decoration: const BoxDecoration(
                                     color: Colors.black26,
                                     shape: BoxShape.circle,
@@ -264,6 +266,68 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
     );
   }
 
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.blueAccent, size: 22), // tăng size icon
+        const SizedBox(width: 12),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                  fontSize: 17, color: Colors.black), // tăng size chữ
+              children: [
+                TextSpan(
+                  text: "$label: ",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: value),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _inviteCodeRow(String label, String code) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(Icons.code, color: Colors.blueAccent, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                  fontSize: 17, color: Colors.black), // tăng size chữ
+              children: [
+                TextSpan(
+                  text: "$label: ",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: code),
+              ],
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.copy, size: 20, color: Colors.grey),
+          tooltip: "Sao chép mã",
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: code));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Đã sao chép mã mời")),
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -286,7 +350,6 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
 
     String ownerId =
         _group?.ownerId is String ? _group!.ownerId : _group!.ownerId['_id'];
-
     String ownerName = _group?.ownerId is Map<String, dynamic>
         ? (_group!.ownerId['username'] ?? 'Không rõ người dùng')
         : 'Không rõ người dùng';
@@ -295,127 +358,108 @@ class _GroupContentDetailState extends State<GroupContentDetail> {
     final quizCount = context.watch<QuizProvider>().count;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Nhóm ' '${_group!.name!}'),
-        actions: [
-          if (ownerId == widget.currentUserId)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _showEditDialog,
-            ),
-        ],
-      ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background:
+                      _group!.imgGroup != null && _group!.imgGroup!.isNotEmpty
+                          ? Image.network(
+                              _group!.imgGroup!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(color: Colors.grey[300]),
+                            )
+                          : Container(color: Colors.grey[300]),
+                ),
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.blueAccent),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+                actions: [
+                  if (ownerId == widget.currentUserId)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: IconButton(
+                          icon:
+                              const Icon(Icons.edit, color: Colors.blueAccent),
+                          onPressed: _showEditDialog,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 160)),
+            ],
+          ),
+          Positioned(
+            top: 200,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_group!.imgGroup != null)
-                    ClipRRect(
+                  Text(
+                    _group!.name ?? '',
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.white,
+                    elevation: 4,
+                    shadowColor: Colors.grey.withOpacity(0.4),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _group!.imgGroup!,
-                        height: 180,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 100),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _infoRow(Icons.description_outlined, "Mô tả",
+                              _group!.description ?? ''),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.person, "Chủ nhóm", ownerName),
+                          const SizedBox(height: 7),
+                          _inviteCodeRow("Mã mời", _group!.inviteCode!),
+                          const SizedBox(height: 7),
+                          _infoRow(Icons.group, "Thành viên",
+                              "${1 + (_group!.membersID?.length ?? 0)}"),
+                          const SizedBox(height: 14),
+                          _infoRow(
+                              Icons.description, "Số tài liệu", "$docCount"),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.quiz, "Số bộ câu hỏi", "$quizCount"),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.date_range, "Ngày tạo",
+                              formatDate(_group!.createDate)),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 16),
-                  // Mô tả
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.description_outlined,
-                        color: Colors.blueAccent,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "Mô tả: ${_group!.description ?? ''}",
-                          style: const TextStyle(fontSize: 24),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Chủ nhóm
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person,
-                        color: Colors.redAccent,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Chủ nhóm: $ownerName",
-                        style: TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.group,
-                        color: Colors.deepOrange,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Thành viên: ${1 + (_group!.membersID?.length ?? 0)}",
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.description,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Số tài liệu: $docCount",
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.quiz,
-                        color: Colors.lime,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Số bộ câu hỏi: $quizCount",
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.date_range,
-                        color: Colors.cyan,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Ngày tạo: ${formatDate(_group!.createDate)}",
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ],
                   ),
                 ],
               ),

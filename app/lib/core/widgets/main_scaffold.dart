@@ -77,45 +77,46 @@ class _MainScaffoldState extends State<MainScaffold> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: List.generate(_titles.length, (index) {
                           final isSelected = index == selectedIndex;
-                          return GestureDetector(
-                            onTap: () {
-                              if (!isSelected) context.go(_routes[index]);
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  height: 4,
-                                  width: 24,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Color(0xFF0072ff)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(2),
+                          return Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                if (!isSelected) context.go(_routes[index]);
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    height: 4,
+                                    width: 24,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color(0xFF0072ff)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Icon(
-                                  _icons[index],
-                                  color: isSelected
-                                      ? Color(0xFF0072ff)
-                                      : Colors.grey,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _titles[index],
-                                  style: TextStyle(
+                                  const SizedBox(height: 6),
+                                  Icon(
+                                    _icons[index],
                                     color: isSelected
-                                        ? Color(0xFF0072ff)
+                                        ? const Color(0xFF0072ff)
                                         : Colors.grey,
-                                    fontSize: 10,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _titles[index],
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? const Color(0xFF0072ff)
+                                          : Colors.grey,
+                                      fontSize: 10,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }),

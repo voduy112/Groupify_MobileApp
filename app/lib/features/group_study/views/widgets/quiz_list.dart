@@ -86,10 +86,13 @@ class QuizList extends StatelessWidget {
                 right: 16,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(204, 22, 94, 166),
-                    padding: const EdgeInsets.all(16),
-                    shape: const CircleBorder(),
-                    elevation: 4,
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.all(10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: const BorderSide(color: Colors.white12, width: 2),
+                    ),
+                    elevation: 8,
                   ),
                   onPressed: () {
                     Navigator.of(context)
@@ -106,7 +109,11 @@ class QuizList extends StatelessWidget {
                       }
                     });
                   },
-                  child: const Icon(Icons.add, color: Colors.white),
+                  child: Icon(
+                    Icons.add,
+                    size: 27,
+                    color: Colors.white,
+                  ),
                 ),
               ),
           ],
