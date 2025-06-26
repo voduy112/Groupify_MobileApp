@@ -66,7 +66,10 @@ const documentController = {
 
   getDocumentById: async (req, res) => {
     try {
-      const document = await Document.findById(req.params.id);
+      const document = await Document.findById(req.params.id).populate(
+        "uploaderId",
+        "username profilePicture"
+      );
       if (!document)
         return res.status(404).json({ error: "Không tìm thấy tài liệu" });
       res.json(document);
