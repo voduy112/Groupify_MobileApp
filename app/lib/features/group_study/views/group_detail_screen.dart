@@ -52,6 +52,91 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
   }
 
+  Future<void> _handleJoinRequest(BuildContext context) async {
+    final currentUser = context.read<AuthProvider>().user;
+    final provider = context.read<GroupRequestProvider>();
+
+    if (currentUser == null) {
+      _showAlert("Thông báo", "Bạn cần đăng nhập để xin vào nhóm");
+      return;
+    }
+
+    _showProcessingDialog("Đang gửi yêu cầu vào nhóm...");
+
+    bool success = false;
+    String errorMessage = "";
+    try {
+      success = await provider.sendRequest(widget.groupId, currentUser.id!);
+      MessagingProvider().sendJoinRequestNotification(
+          _group!.ownerId!['fcmToken']!,
+          currentUser.username!,
+          _group!.name!,
+          _group!.id!,
+          currentUser.id!);
+    } catch (e) {
+      errorMessage = e.toString();
+    }
+
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    _showAlert(
+      success ? "Thành công" : "Thất bại",
+      success
+          ? "Đã gửi yêu cầu vào nhóm thành công"
+          : (errorMessage.contains("isExist")
+              ? "Bạn đã gửi yêu cầu trước đó"
+              : "Gửi yêu cầu vào nhóm thất bại"),
+    );
+  }
+
+  void _showInviteCodeDialog(BuildContext context) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (contextDialog) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Nhập mã mời",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: "Nhập mã..."),
+            onSubmitted: (code) =>
+                _handleJoinGroupByCode(code.trim(), contextDialog),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Đóng"),
+              onPressed: () => Navigator.pop(contextDialog),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue, // Nền xanh dương
+                foregroundColor: Colors.white, // Chữ trắng
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text("Gửi"),
+              onPressed: () =>
+                  _handleJoinGroupByCode(controller.text.trim(), contextDialog),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleJoinGroupByCode(
       String code, BuildContext dialogContext) async {
     if (code.isEmpty || !mounted) return;
@@ -62,51 +147,17 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final groupProvider = context.read<GroupProvider>();
 
     if (user == null) {
-      if (!mounted) return;
-      showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (_) => const AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Colors.blue, width: 2),
-          ),
-          title: Text("Thông báo"),
-          content: Text("Bạn cần đăng nhập để tham gia nhóm"),
-        ),
-      );
+      _showAlert("Thông báo", "Bạn cần đăng nhập để tham gia nhóm");
       return;
     }
 
-    // Hiển thị dialog đang xử lý
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(color: Colors.blue, width: 2),
-        ),
-        title: Text("Đang xử lý"),
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text("Đang tham gia nhóm..."),
-          ],
-        ),
-      ),
-    );
+    _showProcessingDialog("Đang tham gia nhóm...");
 
     bool success = false;
     String? errorMessage;
     try {
-      success = await groupProvider.joinGroupByCode(
-        widget.groupId,
-        code,
-        user.id!,
-      );
+      success =
+          await groupProvider.joinGroupByCode(widget.groupId, code, user.id!);
     } catch (e) {
       errorMessage = e.toString();
     }
@@ -115,40 +166,61 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     Navigator.of(context, rootNavigator: true).pop();
 
     if (success) {
-      // Điều hướng đến màn hình GroupDetailScreenMember
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => GroupDetailScreenMember(groupId: widget.groupId),
         ),
       );
     } else {
-      // Hiển thị thông báo lỗi
-      if (!mounted) return;
-      showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Colors.blue, width: 2),
-          ),
-          title: const Text("Thất bại"),
-          content: Text(groupProvider.error?.contains("đã tham gia") == true
+      _showAlert(
+          "Thất bại",
+          groupProvider.error?.contains("đã tham gia") == true
               ? "Bạn đã ở trong nhóm này rồi"
               : groupProvider.error?.replaceFirst('Exception: ', '') ??
-                  "Lỗi khi tham gia nhóm"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-              },
-              child: const Text("Đóng"),
-            ),
+                  "Lỗi khi tham gia nhóm");
+    }
+  }
+
+  void _showAlert(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: const Text("Đóng"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _showProcessingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Colors.blue, width: 2),
+        ),
+        title: const Text("Đang xử lý"),
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(message),
           ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   String formatDate(String? isoString) {
@@ -156,6 +228,30 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final date = DateTime.tryParse(isoString);
     if (date == null) return '';
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.blueAccent, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 17, color: Colors.black),
+              children: [
+                TextSpan(
+                  text: "$label: ",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: value),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -184,277 +280,128 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Nhóm ' '${_group!.name!}')),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _group!.imgGroup != null
+                      ? CachedNetworkImage(
+                          imageUrl: _group!.imgGroup!,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              Container(color: Colors.grey[300]),
+                        )
+                      : Container(color: Colors.grey[300]),
+                ),
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.blueAccent),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 160)),
+            ],
+          ),
+          Positioned(
+            top: 200,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_group!.imgGroup != null)
-                    ClipRRect(
+                  Text(
+                    _group!.name ?? '',
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.white,
+                    elevation: 4,
+                    shadowColor: Colors.grey.withOpacity(0.4),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      child: CachedNetworkImage(
-                        imageUrl: _group!.imgGroup!,
-                        height: 180,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: 120,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 120,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 35,
-                            ),
-                          ),
-                        ),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _infoRow(Icons.description_outlined, "Mô tả",
+                              _group!.description ?? ''),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.person, "Trưởng nhóm", ownerName),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.group, "Thành viên",
+                              "${_group!.membersID?.length ?? 0}"),
+                          const SizedBox(height: 14),
+                          _infoRow(Icons.date_range, "Ngày tạo",
+                              formatDate(_group!.createDate)),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 20),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.description_outlined,
-                        color: Colors.blueAccent,
-                      ),
-                      const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          "Mô tả: ${_group!.description ?? ''}",
-                          style: const TextStyle(fontSize: 24),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.person_add_alt_1,
+                              color: Colors.white),
+                          label: const Text(
+                            "Tham gia nhóm",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () => _handleJoinRequest(context),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person,
-                        color: Colors.redAccent,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Trưởng nhóm: $ownerName",
-                        style: TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.group,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Thành viên: ${_group!.membersID?.length ?? 0}",
-                        style: TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.date_range,
-                        color: Colors.indigo,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Ngày tạo: ${formatDate(_group!.createDate)}",
-                        style: TextStyle(fontSize: 24),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.qr_code, color: Colors.white),
+                          label: const Text(
+                            "Mã mời",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () => _showInviteCodeDialog(context),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(
-                      Icons.person_add_alt_1,
-                      color: Colors.blue,
-                    ),
-                    label: const Text("Tham gia nhóm"),
-                    onPressed: () async {
-                      final currentUser = context.read<AuthProvider>().user;
-                      final provider = context.read<GroupRequestProvider>();
-
-                      if (currentUser == null) {
-                        showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: const BorderSide(
-                                  color: Colors.blue, width: 2),
-                            ),
-                            title: const Text("Thông báo"),
-                            content:
-                                const Text("Bạn cần đăng nhập để xin vào nhóm"),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("Đóng"),
-                              ),
-                            ],
-                          ),
-                        );
-                        return;
-                      }
-
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => const AlertDialog(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side:
-                                const BorderSide(color: Colors.blue, width: 2),
-                          ),
-                          title: Text("Đang xử lý"),
-                          content: Row(
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(width: 16),
-                              Text("Đang gửi yêu cầu vào nhóm..."),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      bool success = false;
-                      String errorMessage = "";
-                      try {
-                        success = await provider.sendRequest(
-                            widget.groupId, currentUser.id!);
-                        MessagingProvider().sendJoinRequestNotification(
-                            _group!.ownerId!['fcmToken']!,
-                            currentUser.username!,
-                            _group!.name!,
-                            _group!.id!,
-                            currentUser.id!);
-                      } catch (e) {
-                        errorMessage = e.toString();
-                      }
-
-                      if (!mounted) return;
-                      Navigator.of(context, rootNavigator: true).pop();
-
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => AlertDialog(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side:
-                                const BorderSide(color: Colors.blue, width: 2),
-                          ),
-                          title: Text(success ? "Thành công" : "Thất bại"),
-                          content: Text(success
-                              ? "Đã gửi yêu cầu vào nhóm thành công"
-                              : (errorMessage.contains("isExist")
-                                  ? "Bạn đã gửi yêu cầu trước đó"
-                                  : "Gửi yêu cầu vào nhóm thất bại")),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pop(),
-                              child: const Text("Đóng"),
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(
-                      Icons.qr_code,
-                      color: Colors.blue,
-                    ),
-                    label: const Text("Mã mời"),
-                    onPressed: () {
-                      showDialog(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (contextDialog) {
-                          final TextEditingController controller =
-                              TextEditingController();
-                          return AlertDialog(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: const BorderSide(
-                                  color: Colors.blue, width: 2),
-                            ),
-                            title: const Text("Nhập mã mời"),
-                            content: TextField(
-                              controller: controller,
-                              decoration: const InputDecoration(
-                                hintText: "Nhập mã...",
-                              ),
-                              onSubmitted: (code) => _handleJoinGroupByCode(
-                                  code.trim(), contextDialog),
-                            ),
-                            actions: [
-                              TextButton(
-                                child: const Text("Đóng"),
-                                onPressed: () => Navigator.pop(contextDialog),
-                              ),
-                              ElevatedButton(
-                                child: const Text("Gửi"),
-                                onPressed: () => _handleJoinGroupByCode(
-                                    controller.text.trim(), contextDialog),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
             ),
           ),
         ],
