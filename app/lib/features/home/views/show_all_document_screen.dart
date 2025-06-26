@@ -15,6 +15,7 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
   String _searchQuery = '';
   bool _isSearching = false;
   List<dynamic> _searchResults = [];
+  bool _showSearchBar = false;
 
   @override
   void initState() {
@@ -76,25 +77,103 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
     final showList = _searchQuery.isEmpty ? documents : _searchResults;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tất cả tài liệu'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        leading: _showSearchBar
+            ? Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Container(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios, color: Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          _showSearchBar = false;
+                          _searchController.clear();
+                          _searchQuery = '';
+                          _searchResults = [];
+                        });
+                      },
+                      tooltip: 'Thoát tìm kiếm',
+                    ),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(left: 12.0, bottom: 4),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.18),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.blue),
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: 'Quay lại',
+                    ),
+                  ),
+                ),
+              ),
+        title: _showSearchBar
+            ? Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Tìm kiếm tài liệu...',
+                    border: InputBorder.none,
+                    fillColor: Colors.grey.shade100,
+                    filled: true,
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+              )
+            : const Text('Tất cả tài liệu'),
+        actions: [
+          if (!_showSearchBar)
+            Container(
+              margin: const EdgeInsets.only(right: 10.0, bottom: 5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.search, color: Colors.blue),
+                tooltip: 'Tìm kiếm',
+                onPressed: () {
+                  setState(() {
+                    _showSearchBar = true;
+                  });
+                },
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Tìm kiếm tài liệu...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-              ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
           Expanded(
             child: _isSearching
                 ? Center(child: CircularProgressIndicator())
@@ -117,62 +196,65 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                             final doc = showList[index];
                             return Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
+                                  horizontal: 16, vertical: 10),
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(20),
                                 onTap: () {
                                   context.go('/home/document/${doc.id}',
                                       extra: {'from': 'show_all_document'});
                                 },
                                 child: Card(
-                                  elevation: 3,
+                                  color: Colors.white,
+                                  elevation: 8,
+                                  shadowColor: Colors.black.withOpacity(1),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16)),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(16),
-                                          bottomLeft: Radius.circular(16),
-                                        ),
-                                        child: CachedNetworkImage(
-                                          imageUrl: doc.imgDocument ?? '',
-                                          width: 100,
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) =>
-                                              Container(
-                                            width: 100,
-                                            height: 120,
-                                            color: Colors.grey.shade200,
-                                            child: const Center(
-                                              child: Icon(
-                                                  Icons
-                                                      .image_not_supported_outlined,
-                                                  color: Colors.grey,
-                                                  size: 40),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          child: CachedNetworkImage(
+                                            imageUrl: doc.imgDocument ?? '',
+                                            width: 90,
+                                            height: 110,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                Container(
+                                              width: 90,
+                                              height: 110,
+                                              color: Colors.grey.shade200,
+                                              child: const Center(
+                                                child: Icon(
+                                                    Icons
+                                                        .image_not_supported_outlined,
+                                                    color: Colors.grey,
+                                                    size: 40),
+                                              ),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    Container(
+                                              width: 90,
+                                              height: 110,
+                                              color: Colors.grey.shade200,
+                                              child: const Center(
+                                                child: Icon(
+                                                    Icons
+                                                        .image_not_supported_outlined,
+                                                    color: Colors.grey,
+                                                    size: 35),
+                                              ),
                                             ),
                                           ),
-                                          errorWidget: (context, url, error) =>
-                                              Container(
-                                            width: 100,
-                                            height: 120,
-                                            color: Colors.grey.shade200,
-                                            child: const Center(
-                                              child: Icon(
-                                                  Icons
-                                                      .image_not_supported_outlined,
-                                                  color: Colors.grey,
-                                                  size: 35),
-                                            ),
-                                          ),
                                         ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12.0),
+                                        const SizedBox(width: 16),
+                                        Expanded(
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -197,19 +279,14 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                                                 maxLines: 3,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 12),
                                               Row(
                                                 children: [
-                                                  const Icon(
-                                                      Icons.picture_as_pdf,
-                                                      size: 18,
-                                                      color: Colors.redAccent),
-                                                  const SizedBox(width: 4),
+                                                  const SizedBox(width: 6),
                                                   Text(
                                                     'Xem chi tiết',
                                                     style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .primaryColor,
+                                                      color: Colors.blue,
                                                       fontWeight:
                                                           FontWeight.w500,
                                                     ),
@@ -219,8 +296,8 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
                                             ],
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -233,28 +310,38 @@ class _ShowAllDocumentScreenState extends State<ShowAllDocumentScreen> {
           ),
         ],
       ),
-      floatingActionButton: Container(
-        height: 65,
-        width: 65,
-        margin: EdgeInsets.only(bottom: 20),
-        child: FloatingActionButton(
-          onPressed: () {
-            context.go('/home/upload-document');
-          },
-          backgroundColor: Colors.white10,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(color: Colors.white, width: 1),
-          ),
-          elevation: 8,
-          child: Icon(
-            Icons.add,
-            size: 36,
-            color: Colors.blue.shade500,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: Container(
+      //   height: 65,
+      //   width: 65,
+      //   margin: EdgeInsets.only(bottom: 20),
+      //   decoration: BoxDecoration(
+      //     boxShadow: [
+      //       BoxShadow(
+      //         color: Colors.black.withOpacity(0.25),
+      //         blurRadius: 12,
+      //         offset: Offset(0, 6),
+      //       ),
+      //     ],
+      //     borderRadius: BorderRadius.circular(18),
+      //   ),
+      //   child: FloatingActionButton(
+      //     onPressed: () {
+      //       context.go('/home/upload-document');
+      //     },
+      //     backgroundColor: Colors.white,
+      //     shape: RoundedRectangleBorder(
+      //       borderRadius: BorderRadius.circular(18),
+      //       side: BorderSide(color: Colors.white, width: 1),
+      //     ),
+      //     elevation: 8,
+      //     child: Icon(
+      //       Icons.add,
+      //       size: 36,
+      //       color: Colors.blue.shade500,
+      //     ),
+      //   ),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
