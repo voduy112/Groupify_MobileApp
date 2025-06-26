@@ -5,12 +5,9 @@ import 'package:flutter/material.dart';
 
 class DioClient {
   static final Dio _dio = Dio(BaseOptions(
-
     baseUrl: 'https://groupifymobileapp-production.up.railway.app',
-    //baseUrl: 'http://192.168.1.176:5000',
-
     connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
   ));
 
   static final FlutterSecureStorage _storage = const FlutterSecureStorage();
