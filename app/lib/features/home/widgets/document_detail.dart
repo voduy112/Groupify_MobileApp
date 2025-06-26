@@ -263,123 +263,213 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(document!.title ?? 'Chi tiết tài liệu'),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Navigator.of(context).pop(),
+              tooltip: 'Quay lại',
+            ),
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.report, color: Colors.red),
-            tooltip: 'Báo cáo',
-            onPressed: () {
-              _showReportDialog();
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              child: DocumentRatingInfo(documentId: widget.documentId),
+            ),
           ),
         ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (document!.imgDocument != null &&
-                document!.imgDocument!.isNotEmpty)
-              Center(
-                child: CachedNetworkImage(
-                  imageUrl: document!.imgDocument!,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    height: 120,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
-                        size: 40,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Ảnh nền
+          CachedNetworkImage(
+            imageUrl: document!.imgDocument ?? '',
+            height: 280,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          // Nội dung cuộn
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: 250), // Để nội dung xuống dưới ảnh
+                Container(
+                  height: 700,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(32)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
                       ),
-                    ),
+                    ],
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    height: double.infinity,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-            Row(children: [
-              const Icon(
-                Icons.title_sharp,
-                color: Colors.red,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  ('Tiêu đề: ' '${document!.title}') ?? 'Không có tiêu đề',
-                  style: TextStyle(fontSize: 24),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-              )
-            ]),
-            const SizedBox(height: 8),
-            Row(children: [
-              const Icon(
-                Icons.description_outlined,
-                color: Colors.green,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  ('Mô tả: ' '${document!.description}') ?? '',
-                  style: TextStyle(fontSize: 24),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
-                ),
-              )
-            ]),
-            const SizedBox(height: 8),
-            DocumentRatingInfo(documentId: widget.documentId),
-            const SizedBox(height: 16),
-            Center(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DocumentDetailScreenView(
-                                documentId: document!.id!),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              document!.title ?? '',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                          IconButton(
+                            icon: const Icon(Icons.report, color: Colors.red),
+                            tooltip: 'Báo cáo',
+                            onPressed: () {
+                              _showReportDialog();
+                            },
+                          ),
+                        ],
                       ),
-                      child: Text("READ")),
-                  ElevatedButton(
-                    onPressed: () {
-                      DocumentService().downloadPdf(context, document!);
-                    },
-                    child: Text("DOWNLOAD"),
+
+                      // Hiển thị thông tin người đăng
+                      const SizedBox(height: 16),
+                      Builder(
+                        builder: (context) {
+                          final uploader = document!.uploaderId;
+                          if (uploader is DocumentUploader) {
+                            return Row(
+                              children: [
+                                if (uploader.profilePicture != null &&
+                                    uploader.profilePicture!.isNotEmpty)
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundImage: CachedNetworkImageProvider(
+                                        uploader.profilePicture!),
+                                  ),
+                                if (uploader.profilePicture != null &&
+                                    uploader.profilePicture!.isNotEmpty)
+                                  SizedBox(width: 8),
+                                Text(
+                                  uploader.username ?? 'Người đăng',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else if (uploader is String) {
+                            return Text(
+                              uploader,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                              ),
+                            );
+                          } else {
+                            return SizedBox.shrink();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Mô tả: ",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        document!.description ?? '',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        DocumentDetailScreenView(
+                                            documentId: document!.id!),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.menu_book_rounded,
+                                  color: Colors.white),
+                              label: Text("Đọc",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 14),
+                                elevation: 2,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                DocumentService()
+                                    .downloadPdf(context, document!);
+                              },
+                              icon: Icon(Icons.download_rounded,
+                                  color: Colors.white),
+                              label: Text("Tải xuống",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 14),
+                                elevation: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )
-          ],
-        ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
