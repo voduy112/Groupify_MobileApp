@@ -19,6 +19,7 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
   bool _isSearching = false;
   List<dynamic> _searchResults = [];
   String? userId;
+  bool _showSearchBar = false;
 
   @override
   void initState() {
@@ -88,24 +89,103 @@ class _ShowAllGroupScreenState extends State<ShowAllGroupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tất cả nhóm'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        leading: _showSearchBar
+            ? Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Container(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios, color: Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          _showSearchBar = false;
+                          _searchController.clear();
+                          _searchQuery = '';
+                          _searchResults = [];
+                        });
+                      },
+                      tooltip: 'Thoát tìm kiếm',
+                    ),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(left: 12.0, bottom: 4),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.18),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.blue),
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: 'Quay lại',
+                    ),
+                  ),
+                ),
+              ),
+        title: _showSearchBar
+            ? Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Tìm kiếm nhóm...',
+                    border: InputBorder.none,
+                    fillColor: Colors.grey.shade100,
+                    filled: true,
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+              )
+            : const Text('Tất cả nhóm'),
+        actions: [
+          if (!_showSearchBar)
+            Container(
+              margin: const EdgeInsets.only(right: 10.0, bottom: 5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.search, color: Colors.blue),
+                tooltip: 'Tìm kiếm',
+                onPressed: () {
+                  setState(() {
+                    _showSearchBar = true;
+                  });
+                },
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Tìm kiếm nhóm...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-              ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
           const SizedBox(height: 5),
           Expanded(
             child: _isSearching
