@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               padding:
-                  EdgeInsets.only(top: 36, left: 20, right: 20, bottom: 32),
+                  EdgeInsets.only(top: 36, left: 20, right: 20, bottom: 15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -23,17 +23,17 @@ class GroupItem extends StatelessWidget {
         shadowColor: Colors.black.withOpacity(1),
         color: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(5),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: group.imgGroup != null && group.imgGroup!.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: group.imgGroup!,
-                        width: 90,
-                        height: 90,
+                        width: 70,
+                        height: 70,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
                           width: 90,
@@ -61,8 +61,8 @@ class GroupItem extends StatelessWidget {
                         ),
                       )
                     : Container(
-                        width: 90,
-                        height: 90,
+                        width: 70,
+                        height: 70,
                         color: Colors.grey.shade200,
                         child: const Center(
                           child:
@@ -74,6 +74,7 @@ class GroupItem extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       group.name ?? 'Tên nhóm',
@@ -90,7 +91,7 @@ class GroupItem extends StatelessWidget {
                       group.description ?? '',
                       style:
                           const TextStyle(fontSize: 14, color: Colors.black87),
-                      maxLines: 3,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 12),
