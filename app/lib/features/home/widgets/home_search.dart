@@ -50,7 +50,8 @@ class _HomeSearchState extends State<HomeSearch> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          height: 40,
+          padding: EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -62,13 +63,24 @@ class _HomeSearchState extends State<HomeSearch> {
               icon: Icon(Icons.search, color: Colors.grey),
               hintText: "Tìm tài liệu",
               border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 9),
+              suffixIcon: _controller.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.close, color: Colors.grey, size: 18),
+                      onPressed: () {
+                        _controller.clear();
+                        _onSearchChanged('');
+                        setState(() {}); // Cập nhật lại để ẩn icon X
+                      },
+                    )
+                  : null,
             ),
           ),
         ),
         const SizedBox(height: 6),
         if (_isSearching)
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 14.0),
             child: LinearProgressIndicator(),
           ),
         if (_hasSearched &&
