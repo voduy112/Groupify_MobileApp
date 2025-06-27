@@ -248,19 +248,14 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Chi tiết tài liệu')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
-
     if (document == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Chi tiết tài liệu')),
         body: const Center(child: Text('Không tìm thấy tài liệu')),
       );
     }
-
     return Scaffold(
       appBar: AppBar(
         leading: Padding(

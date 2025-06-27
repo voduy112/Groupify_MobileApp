@@ -13,17 +13,11 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  static const List<String> _titles = [
-    'Trang chủ',
-    'Nhóm',
-    'Trò chuyện',
-    'Trang cá nhân'
-  ];
   static const List<IconData> _icons = [
-    Icons.home,
-    Icons.group,
-    Icons.chat,
-    Icons.person
+    Icons.home_outlined,
+    Icons.group_outlined,
+    Icons.chat_outlined,
+    Icons.person_outline
   ];
   static const List<String> _routes = ['/home', '/group', '/chat', '/profile'];
 
@@ -75,7 +69,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: List.generate(_titles.length, (index) {
+                        children: List.generate(4, (index) {
                           final isSelected = index == selectedIndex;
                           return Expanded(
                             child: InkWell(
@@ -85,36 +79,36 @@ class _MainScaffoldState extends State<MainScaffold> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  // Container(
+                                  //   height: 4,
+                                  //   width: 24,
+                                  //   decoration: BoxDecoration(
+                                  //     color: isSelected
+                                  //         ? const Color(0xFF0072ff)
+                                  //         : Colors.transparent,
+                                  //     borderRadius: BorderRadius.circular(2),
+                                  //   ),
+                                  // ),
+                                  const SizedBox(height: 6),
                                   Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? const Color(0xFF0072ff)
-                                              .withOpacity(0.15)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                                    decoration: isSelected
+                                        ? BoxDecoration(
+                                            color: const Color(0x220072ff),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          )
+                                        : null,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
                                     child: Icon(
                                       _icons[index],
+
                                       color: isSelected
                                           ? const Color(0xFF0072ff)
                                           : Colors.grey,
-                                      size: 24,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    _titles[index],
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? const Color(0xFF0072ff)
-                                          : Colors.grey,
-                                      fontSize: 10,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
                                 ],
                               ),
                             ),
