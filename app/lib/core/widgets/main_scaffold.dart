@@ -86,21 +86,21 @@ class _MainScaffoldState extends State<MainScaffold> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    height: 4,
-                                    width: 24,
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? const Color(0xFF0072ff)
+                                              .withOpacity(0.15)
                                           : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(2),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Icon(
-                                    _icons[index],
-                                    color: isSelected
-                                        ? const Color(0xFF0072ff)
-                                        : Colors.grey,
+                                    child: Icon(
+                                      _icons[index],
+                                      color: isSelected
+                                          ? const Color(0xFF0072ff)
+                                          : Colors.grey,
+                                      size: 24,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
