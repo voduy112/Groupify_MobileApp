@@ -58,15 +58,22 @@ class DocumentList extends StatelessWidget {
                                   ),
                                 );
                               },
-                              onEdit: () {
-                                Navigator.push(
+                              onEdit: () async {
+                                final result = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
                                         EditDocumentScreen(document: document),
                                   ),
                                 );
-                              },
+
+                                if (result == true) {
+                                  // Nếu chỉnh sửa thành công => reload danh sách
+                                  context
+                                      .read<DocumentProvider>()
+                                      .fetchDocumentsByGroupId(groupId);
+                                }
+                              }, 
                               onDelete: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,

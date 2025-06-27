@@ -190,13 +190,12 @@ class DocumentService {
       rethrow;
     }
   }
-
-  Future<void> updateDocument(
+Future<void> updateDocument(
     String documentId,
     String title,
     String description,
-    dynamic image, // PlatformFile hoặc String
-    dynamic mainFile, // PlatformFile hoặc String
+    dynamic image,
+    dynamic mainFile,
   ) async {
     print("updateDocument");
     print("image: $image");
@@ -204,15 +203,19 @@ class DocumentService {
     print("documentId: $documentId");
     print("title: $title");
     print("description: $description");
+
     final Map<String, dynamic> data = {
       'title': title,
       'description': description,
     };
 
     if (image != null && image is PlatformFile && image.path != null) {
-      data['image'] =
-          await MultipartFile.fromFile(image.path!, filename: image.name);
+      data['image'] = await MultipartFile.fromFile(
+        image.path!,
+        filename: image.name,
+      );
     }
+
     if (mainFile != null && mainFile is PlatformFile && mainFile.path != null) {
       data['mainFile'] = await MultipartFile.fromFile(
         mainFile.path!,
@@ -220,7 +223,26 @@ class DocumentService {
         contentType: MediaType('application', 'pdf'),
       );
     }
+
+    final formData = FormData.fromMap(data);
+
+    final response = await _dio.put(
+      '/api/document/$documentId',
+      data: formData,
+      options: Options(
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Cập nhật thất bại: ${response.statusCode}");
+    }
+
+    print("✅ Đã cập nhật thành công: ${response.data}");
   }
+
 
   // Gửi rating cho tài liệu
   Future<void> rateDocument({

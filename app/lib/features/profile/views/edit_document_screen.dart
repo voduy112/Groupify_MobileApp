@@ -1,13 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../models/document.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:provider/provider.dart';
+
+import '../../../models/document.dart';
 import '../../../features/document_share/providers/document_share_provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
 import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class EditDocumentScreen extends StatefulWidget {
   const EditDocumentScreen({super.key});
@@ -17,9 +19,9 @@ class EditDocumentScreen extends StatefulWidget {
 }
 
 class _EditDocumentScreenState extends State<EditDocumentScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String? selectedImage;
   String? selectedFile;
@@ -75,11 +77,9 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
   }
 
   Future<void> updateDocument() async {
-    setState(() {
-      isUpdating = true;
-    });
+    setState(() => isUpdating = true);
+    final provider = context.read<DocumentShareProvider>();
 
-    final provider = Provider.of<DocumentShareProvider>(context, listen: false);
     await provider.updateDocument(
       doc!.id!,
       Validate.normalizeText(_titleController.text),
@@ -90,189 +90,206 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
     );
 
     if (mounted) {
-      setState(() {
-        isUpdating = false;
-      });
+      setState(() => isUpdating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cập nhật tài liệu thành công!')),
       );
-      Navigator.pop(context);
+      context.pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật tài liệu'),
-        leading: const BackButton(),
+    final textTheme = Theme.of(context).textTheme;
+
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              const SizedBox(height: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
 
-              // Tiêu đề
-              CustomTextFormField(
-                label: 'Tiêu đề',
-                initialValue: _titleController.text,
-                onChanged: (value) {
-                  final normalized = Validate.normalizeText(value);
-                  _titleController.value = TextEditingValue(
-                    text: normalized,
-                    selection:
-                        TextSelection.collapsed(offset: normalized.length),
-                  );
-                },
-                onSaved: (value) =>
-                    _titleController.text = Validate.normalizeText(value ?? ''),
-                validator: (value) =>
-                    Validate.notEmpty(value, fieldName: 'Tiêu đề'),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Mô tả
-              CustomTextFormField(
-                label: 'Mô tả',
-                initialValue: _descriptionController.text,
-                maxLines: 3,
-                onChanged: (value) {
-                  final normalized = Validate.normalizeText(value);
-                  _descriptionController.value = TextEditingValue(
-                    text: normalized,
-                    selection:
-                        TextSelection.collapsed(offset: normalized.length),
-                  );
-                },
-                onSaved: (value) => _descriptionController.text =
-                    Validate.normalizeText(value ?? ''),
-                validator: (value) =>
-                    Validate.notEmpty(value, fieldName: 'Mô tả'),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Chọn ảnh
-              Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F9FF),
+      appBar: const CustomAppBar(title: 'Cập nhật tài liệu'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                    onPressed: _pickImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                    ),
-                    child: const Text('Chọn ảnh'),
+                  // Tiêu đề
+                  CustomTextFormField(
+                    label: 'Tiêu đề',
+                    initialValue: _titleController.text,
+                    onChanged: (value) {
+                      final normalized = Validate.normalizeText(value);
+                      _titleController.value = TextEditingValue(
+                        text: normalized,
+                        selection:
+                            TextSelection.collapsed(offset: normalized.length),
+                      );
+                    },
+                    onSaved: (value) => _titleController.text =
+                        Validate.normalizeText(value ?? ''),
+                    validator: (value) =>
+                        Validate.notEmpty(value, fieldName: 'Tiêu đề'),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      imageFile?.name ??
-                          (selectedImage != null && selectedImage!.isNotEmpty
-                              ? 'Đã có ảnh'
-                              : 'Chưa chọn ảnh'),
-                      style: const TextStyle(fontSize: 13),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                  if ((imageFile?.path ?? selectedImage)?.isNotEmpty == true)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: (imageFile != null && imageFile!.path != null)
-                          ? Image.file(
-                              File(imageFile!.path!),
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            )
-                          : (selectedImage != null && selectedImage!.isNotEmpty)
-                              ? Image.network(
-                                  selectedImage!,
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                )
-                              : const SizedBox.shrink(),
-                    ),
-                ],
-              ),
+                  const SizedBox(height: 20),
 
-              const SizedBox(height: 16),
-
-              // Chọn file tài liệu
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: pickMainFile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                    ),
-                    child: const Text('Chọn file tài liệu'),
+                  // Mô tả
+                  CustomTextFormField(
+                    label: 'Mô tả',
+                    initialValue: _descriptionController.text,
+                    maxLines: 3,
+                    onChanged: (value) {
+                      final normalized = Validate.normalizeText(value);
+                      _descriptionController.value = TextEditingValue(
+                        text: normalized,
+                        selection:
+                            TextSelection.collapsed(offset: normalized.length),
+                      );
+                    },
+                    onSaved: (value) => _descriptionController.text =
+                        Validate.normalizeText(value ?? ''),
+                    validator: (value) =>
+                        Validate.notEmpty(value, fieldName: 'Mô tả'),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      mainFile?.name ??
-                          (selectedFile != null && selectedFile!.isNotEmpty
-                              ? selectedFile!.split('/').last
-                              : 'Chưa chọn file'),
-                      style: const TextStyle(fontSize: 13),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
+                  const SizedBox(height: 24),
 
-              const SizedBox(height: 32),
-
-              // Nút cập nhật
-              Center(
-                child: ElevatedButton(
-                  onPressed: isUpdating
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            updateDocument();
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black87,
-                    foregroundColor: Colors.white,
-                    elevation: 4,
+                  // Image Picker
+                  Text(
+                    'Ảnh minh họa',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
                   ),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                    child: isUpdating
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image_outlined, size: 20),
+                        label: const Text('Chọn ảnh'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          imageFile?.name ??
+                              (selectedImage != null &&
+                                      selectedImage!.isNotEmpty
+                                  ? 'Đã có ảnh'
+                                  : 'Chưa chọn ảnh'),
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child:
+                        (imageFile?.path ?? selectedImage)?.isNotEmpty == true
+                            ? Hero(
+                                tag: 'preview-image',
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: imageFile?.path != null
+                                      ? Image.file(
+                                          File(imageFile!.path!),
+                                          key: ValueKey(imageFile!.path),
+                                          height: 160,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          selectedImage!,
+                                          key: ValueKey(selectedImage),
+                                          height: 160,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
-                              ),
-                              SizedBox(width: 12),
-                              Text('Đang cập nhật...'),
-                            ],
-                          )
-                        : const Text('Cập nhật'),
+                              )
+                            : const SizedBox.shrink(),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // File Picker
+                  Text(
+                    'File tài liệu (.pdf)',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: pickMainFile,
+                        icon: const Icon(Icons.upload_file_rounded, size: 20),
+                        label: const Text('Chọn file'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          mainFile?.name ??
+                              (selectedFile != null && selectedFile!.isNotEmpty
+                                  ? selectedFile!.split('/').last
+                                  : 'Chưa chọn file'),
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Submit button
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: isUpdating
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                updateDocument();
+                              }
+                            },
+                      icon: isUpdating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.save),
+                      label: Text(
+                        isUpdating ? 'Đang cập nhật...' : 'Cập nhật',
+                      ),
+                      style: beautifulButtonStyle,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

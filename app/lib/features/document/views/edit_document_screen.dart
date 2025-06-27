@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/document_provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/widgets/custom_appbar.dart';
 import '../../../models/document.dart';
 
 class EditDocumentScreen extends StatefulWidget {
@@ -64,7 +65,7 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
       final provider = context.read<DocumentProvider>();
 
       try {
-        await provider.updateDocument(
+        final success = await provider.updateDocument(
           widget.document.id!,
           title,
           description,
@@ -72,9 +73,15 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
           mainFile,
           groupId: widget.document.groupId,
         );
-        _showDialog("Thành công", "Cập nhật tài liệu thành công", onClose: () {
-          context.pop(true);
-        });
+
+        if (success) {
+          _showDialog("Thành công", "Cập nhật tài liệu thành công",
+              onClose: () {
+            context.pop(true);
+          });
+        } else {
+          _showDialog("Thất bại", "Không thể cập nhật tài liệu.");
+        }
       } catch (e) {
         _showDialog("Thất bại", "Cập nhật tài liệu thất bại");
       }
@@ -99,7 +106,7 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
               Navigator.of(context).pop();
               if (onClose != null) onClose();
             },
-            child: Text("OK"),
+            child: const Text("OK"),
           ),
         ],
       ),
@@ -108,120 +115,172 @@ class _EditDocumentScreenState extends State<EditDocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chỉnh sửa tài liệu'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+    final textTheme = Theme.of(context).textTheme;
+
+    final beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
-      body: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Tiêu đề
-              CustomTextFormField(
-                label: 'Tiêu đề',
-                fieldName: 'Tiêu đề',
-                initialValue: title,
-                onSaved: (value) => title = value ?? '',
-              ),
-              SizedBox(height: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
 
-              /// Mô tả
-              CustomTextFormField(
-                label: 'Mô tả',
-                fieldName: 'Mô tả',
-                initialValue: description,
-                maxLines: 3,
-                onSaved: (value) => description = value ?? '',
-              ),
-              SizedBox(height: 16),
-
-              /// Chọn ảnh
-              Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F9FF),
+      appBar: const CustomAppBar(title: 'Chỉnh sửa tài liệu'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                    onPressed: _pickImage,
-                    child: Text('Chọn ảnh'),
+                  // Tiêu đề
+                  CustomTextFormField(
+                    label: 'Tiêu đề',
+                    fieldName: 'Tiêu đề',
+                    initialValue: title,
+                    onSaved: (value) => title = value ?? '',
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      imageFile?.name ??
-                          (widget.document.imgDocument?.split('/').last ??
-                              'Không có ảnh'),
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 20),
+
+                  // Mô tả
+                  CustomTextFormField(
+                    label: 'Mô tả',
+                    fieldName: 'Mô tả',
+                    initialValue: description,
+                    maxLines: 3,
+                    onSaved: (value) => description = value ?? '',
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Chọn ảnh
+                  Text(
+                    'Ảnh minh họa',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.image_outlined, size: 20),
+                        label: const Text('Chọn ảnh'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          imageFile?.name ??
+                              (widget.document.imgDocument?.split('/').last ??
+                                  'Không có ảnh'),
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeIn,
+                    child: imageFile?.path != null
+                        ? Hero(
+                            tag: 'preview-image',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                File(imageFile!.path!),
+                                key: ValueKey(imageFile!.path),
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                        : (widget.document.imgDocument != null &&
+                                widget.document.imgDocument!.isNotEmpty)
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  widget.document.imgDocument!,
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Chọn file PDF
+                  Text(
+                    'File tài liệu (.pdf)',
+                    style: textTheme.titleSmall?.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: pickMainFile,
+                        icon: const Icon(Icons.upload_file_rounded, size: 20),
+                        label: const Text('Chọn file'),
+                        style: beautifulButtonStyle,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          mainFile?.name ??
+                              (widget.document.mainFile?.split('/').last ??
+                                  'Không có file'),
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelLarge?.copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Nút cập nhật
+                  Center(
+                    child: Consumer<DocumentProvider>(
+                      builder: (context, provider, _) => ElevatedButton.icon(
+                        onPressed: provider.isLoading ? null : updateDocument,
+                        icon: provider.isLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          provider.isLoading ? 'Đang cập nhật...' : 'Cập nhật',
+                        ),
+                        style: beautifulButtonStyle,
+                      ),
                     ),
                   ),
                 ],
               ),
-              if (imageFile?.path != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(imageFile!.path!),
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              else if (widget.document.imgDocument != null &&
-                  widget.document.imgDocument!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      widget.document.imgDocument!,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              SizedBox(height: 16),
-
-              /// Chọn file PDF
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: pickMainFile,
-                    child: Text('Chọn file tài liệu'),
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      mainFile?.name ??
-                          (widget.document.mainFile?.split('/').last ??
-                              'Không có file'),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 32),
-
-              /// Nút cập nhật
-              Center(
-                child: Consumer<DocumentProvider>(
-                  builder: (context, provider, _) => ElevatedButton(
-                    onPressed: provider.isLoading ? null : updateDocument,
-                    child: provider.isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text('Cập nhật'),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

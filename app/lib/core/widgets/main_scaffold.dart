@@ -102,6 +102,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                                         horizontal: 16, vertical: 8),
                                     child: Icon(
                                       _icons[index],
+
                                       color: isSelected
                                           ? const Color(0xFF0072ff)
                                           : Colors.grey,
