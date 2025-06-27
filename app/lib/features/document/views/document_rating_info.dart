@@ -54,23 +54,17 @@ class _DocumentRatingInfoState extends State<DocumentRatingInfo> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.rate_review_outlined,
-                  color: Colors.amber,
-                ),
-                const SizedBox(width: 8),
-                const Text("Đánh giá: ", style: TextStyle(fontSize: 24)),
                 Text(
                   averageRating.toStringAsFixed(1),
                   style: const TextStyle(
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                   ),
                 ),
                 const SizedBox(width: 4),
                 const Icon(Icons.star, color: Colors.orange, size: 20),
-                const SizedBox(width: 10),
-                const Icon(Icons.chevron_right),
+                const Icon(Icons.chevron_right, color: Colors.black),
               ],
             ),
           ],

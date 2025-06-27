@@ -61,6 +61,8 @@ dependencies:
   pinput: ^5.0.1
 
   shimmer: ^2.0.0
+
+  device_info_plus: ^11.3.0
   # flutter_keyboard_visibility: ^5.4.1
 
 dev_dependencies:
@@ -101,12 +103,12 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Dongle
+    - family: Inter
       fonts:
-        - asset: assets/fonts/Dongle-Regular.ttf
-        - asset: assets/fonts/Dongle-Bold.ttf
+        - asset: assets/fonts/Inter-Regular.otf
+        - asset: assets/fonts/Inter-Bold.otf
           weight: 700
-        - asset: assets/fonts/Dongle-Light.ttf
+        - asset: assets/fonts/Inter-Light.otf
           weight: 300
   assets:
     - assets/image/

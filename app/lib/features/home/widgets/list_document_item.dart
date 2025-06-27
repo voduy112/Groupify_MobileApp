@@ -17,29 +17,17 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
   @override
   Widget build(BuildContext context) {
     final documents = context.watch<DocumentShareProvider>().documents;
+    final displayDocuments =
+        documents.length > 8 ? documents.sublist(0, 8) : documents;
 
     return SizedBox(
-      height: 220,
+      height: 190,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: (documents.length > 6 ? 6 : documents.length) + 1,
+        itemCount: displayDocuments.length,
         itemBuilder: (context, index) {
-          if (index == (documents.length > 6 ? 6 : documents.length)) {
-            return Container(
-              width: 120,
-              margin: const EdgeInsets.only(right: 16),
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  context.go('/home/show-all-document');
-                },
-                child: const Text('Xem thêm...'),
-              ),
-            );
-          }
-
-          final document = documents[index];
+          final document = displayDocuments[index];
           return GestureDetector(
             onTap: () {
               context.go('/home/document/${document.id}');
@@ -92,8 +80,8 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
                         imageUrl: document.imgDocument ?? '',
-                        height: 120,
-                        width: 100,
+                        height: 110,
+                        width: 90,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
                           height: 120,

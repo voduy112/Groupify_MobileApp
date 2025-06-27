@@ -58,15 +58,22 @@ class DocumentList extends StatelessWidget {
                                   ),
                                 );
                               },
-                              onEdit: () {
-                                Navigator.push(
+                              onEdit: () async {
+                                final result = await Navigator.push<bool>(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
                                         EditDocumentScreen(document: document),
                                   ),
                                 );
-                              },
+
+                                if (result == true) {
+                                  // Nếu chỉnh sửa thành công => reload danh sách
+                                  context
+                                      .read<DocumentProvider>()
+                                      .fetchDocumentsByGroupId(groupId);
+                                }
+                              }, 
                               onDelete: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,
@@ -108,7 +115,7 @@ class DocumentList extends StatelessWidget {
                 right: 16,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
                     padding: const EdgeInsets.all(10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -133,8 +140,8 @@ class DocumentList extends StatelessWidget {
                   },
                   child: Icon(
                     Icons.add,
-                    size: 36,
-                    color: Colors.blue.shade500,
+                    size: 27,
+                    color: Colors.white,
                   ),
                 ),
               ),

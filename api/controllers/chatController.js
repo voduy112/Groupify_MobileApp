@@ -1,7 +1,81 @@
 const Message = require ("../models/Message");
 const User = require ("../models/User");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+
+const removeVietnameseTones = (str) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+};
 
 const chatController = {
+  searchChat: async (req, res) => {
+    try {
+      const { userId, query = "", page = 1, limit = 10 } = req.query;
+  
+      const userObjectId = new ObjectId(userId);
+  
+      const messages = await Message.find({
+        $or: [
+          { fromUserId: userObjectId },
+          { toUserId: userObjectId }
+        ]
+      })
+        .sort({ timestamp: -1 })
+        .populate("fromUserId", "username profilePicture email phoneNumber")
+        .populate("toUserId", "username profilePicture email phoneNumber");
+  
+      const usersMap = new Map();
+  
+      messages.forEach((msg) => {
+        const from = msg.fromUserId;
+        const to = msg.toUserId;
+        if (!from || !to) return;
+  
+        const isSender = from._id.toString() === userId;
+        const otherUser = isSender ? to : from;
+  
+        if (!usersMap.has(otherUser._id.toString())) {
+          usersMap.set(otherUser._id.toString(), {
+            _id: otherUser._id,
+            username: otherUser.username,
+            profilePicture: otherUser.profilePicture || "",
+            lastMessage: msg.message,
+            isSender: isSender
+          });
+        }
+      });
+  
+      let allChats = Array.from(usersMap.values());
+  
+      const q = removeVietnameseTones(query).toLowerCase();
+  
+      if (q) {
+        allChats = allChats.filter((user) => {
+          const name = removeVietnameseTones(user.username || "").toLowerCase();
+          return name.includes(q);
+        });
+      }
+  
+      const totalChats = allChats.length;
+      const totalPages = Math.ceil(totalChats / limit);
+      const paginatedChats = allChats.slice((page - 1) * limit, page * limit);
+  
+      res.json({
+        totalChats,
+        totalPages,
+        currentPage: Number(page),
+        chats: paginatedChats,
+      });
+    } catch (error) {
+      console.error("Lỗi tìm kiếm chat:", error);
+      res.status(500).json({ error: "Lỗi khi tìm kiếm danh sách trò chuyện" });
+    }
+  },
+  
     sendMessage : async (req, res) => {
         try {
             const {fromUserId, toUserId, message} = req.body;
@@ -33,48 +107,8 @@ const chatController = {
             res.status(500).json({error: "Lỗi khi lấy tin nhắn"});
         }
     },
-    /*getChatList : async (req, res) => {
-        try {
-          const { userId } = req.params;
-      
-          const messages = await Message.find({
-            $or: [
-              { fromUserId: userId },
-              { toUserId: userId }
-            ]
-          })
-          .populate('fromUserId', 'username profilePicture email phoneNumber')
-          .populate('toUserId', 'username profilePicture email phoneNumber');
-      
-          const usersMap = new Map();
-      
-          messages.forEach(msg => {
-            const from = msg.fromUserId;
-            const to = msg.toUserId;
-      
-            if (!from || !to || !from._id || !to._id) return;
-      
-            const isSender = from._id.toString() === userId;
-            const otherUser = isSender ? to : from;
-      
-            // Thêm cả người gửi lẫn người nhận nếu khác userId
-            if (otherUser && otherUser._id.toString() !== userId) {
-              usersMap.set(otherUser._id.toString(), {
-                _id: otherUser._id,
-                username: otherUser.username,
-                profilePicture: otherUser.profilePicture || ''
-              });
-            }
-          });
-      
-          res.json(Array.from(usersMap.values()));
-        } catch (error) {
-          console.error("Lỗi getChatList:", error);
-          res.status(500).json({ error: error.message || "Lỗi khi lấy danh sách trò chuyện" });
-        }
-      },  */
-
-      getChatList: async (req, res) => {
+    
+    getChatList: async (req, res) => {
         try {
           const { userId } = req.params;
           const page = parseInt(req.query.page) || 1;

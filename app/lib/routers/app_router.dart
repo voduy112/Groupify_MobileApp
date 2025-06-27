@@ -30,7 +30,6 @@ final GoRouter appRouter = GoRouter(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
-
     GoRoute(
       path: '/register',
       builder: (context, state) => RegisterScreen(),
@@ -49,12 +48,11 @@ final GoRouter appRouter = GoRouter(
               builder: (context, state) {
                 final groupId = state.pathParameters['id']!;
                 return GroupDetailScreen(
-                  key: ValueKey(groupId), 
+                  key: ValueKey(groupId),
                   groupId: groupId,
                 );
               },
             ),
-
             GoRoute(
               path: '/show-all-document',
               builder: (context, state) => ShowAllDocumentScreen(),

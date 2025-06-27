@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../models/quiz.dart';
 import '../../quiz/views/edit_quiz_screen.dart';
-import '../../quiz/providers/quiz_provider.dart'; // Thêm
+import '../../quiz/providers/quiz_provider.dart';
 
 class QuizItem extends StatelessWidget {
   final Quiz quiz;
@@ -56,15 +56,16 @@ class QuizItem extends StatelessWidget {
       onTap: onTap,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        color: Colors.white,
+        elevation: 3,
+        shadowColor: Colors.blue[200],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: Colors.blue[200]!,
-            width: 1.5,
+            color: Colors.grey.shade300,
+            width: 1,
           ),
         ),
-        elevation: 1,
-        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -72,24 +73,19 @@ class QuizItem extends StatelessWidget {
             children: [
               // Icon đại diện quiz
               Container(
-                width: 60,
-                height: 60,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.blue[300]!,
-                    width: 1,
-                  ),
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.quiz,
-                  size: 32,
+                  size: 26,
                   color: Colors.blue[700],
                 ),
               ),
-
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
 
               // Nội dung quiz
               Expanded(
@@ -99,7 +95,7 @@ class QuizItem extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title + mô tả + ngày tạo
+                        // Text
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,28 +103,28 @@ class QuizItem extends StatelessWidget {
                               Text(
                                 quiz.title,
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
                                   color: Colors.blue[900],
                                 ),
-                                overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
                                 quiz.description,
                                 style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
+                                  fontSize: 13,
+                                  color: Colors.black54,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
                                 'Ngày tạo: ${formatDate(quiz.createdAt)}',
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -136,27 +132,40 @@ class QuizItem extends StatelessWidget {
                           ),
                         ),
 
-                        // Nếu là owner → Hiện icon edit + delete
                         if (isOwner)
-                          Row(
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditQuizScreen(quizId: quiz.id),
-                                    ),
-                                  );
-                                },
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        EditQuizScreen(quizId: quiz.id),
+                                  ),
+                                );
+                              } else if (value == 'delete') {
+                                _confirmDelete(context);
+                              }
+                            },
+                            icon:
+                                const Icon(Icons.more_vert, color: Colors.grey),
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              const PopupMenuItem<String>(
+                                value: 'edit',
+                                child: ListTile(
+                                  leading:
+                                      Icon(Icons.edit, color: Colors.orange),
+                                  title: Text('Chỉnh sửa'),
+                                ),
                               ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _confirmDelete(context),
+                              const PopupMenuItem<String>(
+                                value: 'delete',
+                                child: ListTile(
+                                  leading:
+                                      Icon(Icons.delete, color: Colors.red),
+                                  title: Text('Xoá'),
+                                ),
                               ),
                             ],
                           ),

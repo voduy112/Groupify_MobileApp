@@ -110,7 +110,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(); 
+                Navigator.of(dialogContext).pop();
               },
               child: const Text('Đóng'),
             ),
@@ -151,9 +151,15 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
               final question = quiz.questions[index];
 
               return Card(
-                margin: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Colors.white,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -161,16 +167,20 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                         'Câu ${index + 1}: ${question.text}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 25,
+                          fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 12),
                       ...List.generate(question.answers.length, (i) {
                         final answer = question.answers[i];
                         return RadioListTile<int>(
                           value: i,
                           groupValue: selectedAnswers[index],
-                          title: Text(answer.text),
+                          title: Text(
+                            answer.text,
+                            style: const TextStyle(
+                                fontSize: 15), // giảm cỡ chữ đáp án
+                          ),
                           onChanged: (val) {
                             setState(() {
                               selectedAnswers[index] = val!;
@@ -190,10 +200,12 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                 : () {
                     _submitQuiz(quiz);
                   },
-            icon: const Icon(Icons.send),
-            label: provider.isSubmitting
-                ? const Text('Đang gửi...')
-                : const Text('Nộp bài'),
+            icon: const Icon(Icons.send, color: Colors.white),
+            label: Text(
+              provider.isSubmitting ? 'Đang gửi...' : 'Nộp bài',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.blue, // màu xanh dương
           ),
         );
       },

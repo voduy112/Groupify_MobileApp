@@ -244,13 +244,14 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<AuthProvider>(context).user;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
           create: (context) {
-            final authProvider =
-                Provider.of<AuthProvider>(context, listen: false);
+            // final authProvider =
+            //     Provider.of<AuthProvider>(context, listen: false);
             return DocumentProvider(authProvider: authProvider)
               ..fetchDocumentsByGroupId(widget.groupId);
           },
@@ -291,114 +292,74 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
                   }
                 },
               ),
-        body: Stack(
-          children: [
-            Stack(
-              children: [
-                GroupHeader(
-                  isLoading: _isLoading,
-                  error: _error,
-                  group: _group,
-                ),
-                Positioned(
-                  top: 36,
-                  right: 16,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          isMuted
-                              ? Icons.notifications_off
-                              : Icons.notifications,
-                          color: Colors.white,
-                        ),
-                        onPressed: () async {
-                          final userId = currentUser?.id;
-                          if (userId == null || _group == null) return;
-
-                          setState(() {
-                            isMuted = !isMuted;
-                          });
-
-                          final messagingProvider =
-                              Provider.of<MessagingProvider>(context,
-                                  listen: false);
-
-                          if (isMuted) {
-                            await messagingProvider.muteGroup(
-                                _group!.id!, userId);
-                          } else {
-                            await messagingProvider.unmuteGroup(
-                                _group!.id!, userId);
-                          }
-                        },
-                      ),
-
-                      if (_group != null &&
-                          _group!.ownerId != null &&
-                          _group!.ownerId!['_id'] == currentUser?.id)
-
-                        IconButton(
-                          icon:
-                              const Icon(Icons.group_add, color: Colors.white),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) => SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.7,
-                                child: RequestListWidget(groupId: _group!.id!),
-                              ),
-                            );
-                          },
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.menu, color: Colors.white),
-                        onPressed: () {
-                          _scaffoldKey.currentState?.openEndDrawer();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Color(0xFF0072ff),
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Text(
+            _group?.name ?? 'Chi tiết nhóm',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
-            DraggableScrollableSheet(
-              initialChildSize: 0.75,
-              minChildSize: 0.75,
-              maxChildSize: 0.96,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 10),
-                    ],
-                  ),
-                  child: Column(
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                isMuted ? Icons.notifications_off : Icons.notifications,
+                color: Colors.white,
+              ),
+              onPressed: () async {
+                final userId = currentUser?.id;
+                if (userId == null || _group == null) return;
+
+                setState(() => isMuted = !isMuted);
+                final messagingProvider =
+                    Provider.of<MessagingProvider>(context, listen: false);
+                isMuted
+                    ? await messagingProvider.muteGroup(_group!.id!, userId)
+                    : await messagingProvider.unmuteGroup(_group!.id!, userId);
+              },
+            ),
+            if (_group?.ownerId?['_id'] == currentUser?.id)
+              IconButton(
+                icon: const Icon(Icons.group_add, color: Colors.white),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: RequestListWidget(groupId: _group!.id!),
+                    ),
+                  );
+                },
+              ),
+            IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text('Lỗi: $_error'))
+                : Column(
                     children: [
-                      const SizedBox(height: 12),
                       TabButtons(
                         selectedTab: _selectedTab,
                         onTabSelected: (tab) {
                           setState(() => _selectedTab = tab);
                         },
                       ),
-                      const SizedBox(height: 8),
+                      const Divider(height: 1),
                       Expanded(
-                        child: _buildTabContent(scrollController),
+                        child: _buildTabContent(ScrollController()),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

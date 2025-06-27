@@ -192,21 +192,48 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateDocument(String documentId, String title,
-      String description, dynamic image, dynamic mainFile,
-      {String? groupId}) async {
-    await _documentService.updateDocument(
-      documentId,
-      title,
-      description,
-      image,
-      mainFile,
-    );
-    if (groupId != null) {
-      await fetchDocumentsByGroupId(groupId);
-    }
+  Future<bool> updateDocument(
+    String documentId,
+    String title,
+    String description,
+    dynamic image,
+    dynamic mainFile, {
+    String? groupId,
+  }) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      await _documentService.updateDocument(
+        documentId,
+        title,
+        description,
+        image,
+        mainFile,
+      );
+
+      if (groupId != null) {
+        await fetchDocumentsByGroupId(groupId);
+      } else {
+        // Nếu không có groupId, cập nhật local list luôn (nếu cần)
+        final index = _documents.indexWhere((d) => d.id == documentId);
+        if (index != -1) {
+          _documents[index] = await _documentService.getDocument(documentId);
+        }
+      }
+
+      return true;
+    } catch (e) {
+      _error = 'Lỗi khi cập nhật tài liệu: $e';
+      print(_error);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
+
 
   Future<void> fetchRatingOfDocument(String documentId) async {
     try {

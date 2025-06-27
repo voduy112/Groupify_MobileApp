@@ -41,6 +41,7 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5), // nền xám nhẹ
       appBar: AppBar(title: const Text('Kết quả làm bài')),
       body: Consumer<QuizProvider>(
         builder: (context, provider, _) {
@@ -57,7 +58,7 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
                             ? const Center(
                                 child: Text(
                                   "Bạn chưa làm bộ câu hỏi này",
-                                  style: TextStyle(fontSize: 30),
+                                  style: TextStyle(fontSize: 20),
                                 ),
                               )
                             : ListView.separated(
@@ -68,19 +69,58 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
                                 itemBuilder: (context, index) {
                                   final result = results[index];
                                   return Card(
+                                    color: Colors.white,
+                                    elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                          color: Colors.grey.shade300),
                                     ),
-                                    elevation: 4,
                                     child: ListTile(
                                       leading: const Icon(
                                         Icons.assignment_turned_in,
                                         color: Colors.green,
                                       ),
-                                      title: Text(
-                                          "Điểm: ${result.score ?? 'N/A'}"),
-                                      subtitle: Text(
-                                        "Làm bài lúc: ${formatDateTime(result.testAt)}",
+                                      title: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            WidgetSpan(
+                                              child: Icon(Icons.emoji_events,
+                                                  color: Colors.orange,
+                                                  size: 18),
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                            ),
+                                            const WidgetSpan(
+                                                child: SizedBox(width: 6)),
+                                            TextSpan(
+                                              text:
+                                                  "Điểm: ${result.score ?? 'N/A'}",
+                                              style:
+                                                  const TextStyle(fontSize: 16),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      subtitle: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            WidgetSpan(
+                                              child: Icon(Icons.access_time,
+                                                  size: 16, color: Colors.grey),
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                            ),
+                                            const WidgetSpan(
+                                                child: SizedBox(width: 6)),
+                                            TextSpan(
+                                              text:
+                                                  "Làm bài lúc: ${formatDateTime(result.testAt)}",
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );
@@ -88,59 +128,49 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
                               ),
               ),
 
-              // Nút bên dưới
+              // Nút "Làm bài"
               SafeArea(
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
                           .copyWith(bottom: 30),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => QuizDetailScreen(
-                                  quizId: widget.quizId,
-                                  userId: widget.userId,
-                                ),
-                              ),
-                            ).then((_) {
-                              final quizProvider = Provider.of<QuizProvider>(
-                                  context,
-                                  listen: false);
-                              quizProvider.fetchResultsByQuizIdAndUserId(
+                  child: Center(
+                    child: SizedBox(
+                      width: 180,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => QuizDetailScreen(
                                 quizId: widget.quizId,
                                 userId: widget.userId,
-                              );
-                            });
-                          },
-                          icon: const Icon(Icons.play_arrow, size: 18),
-                          label: const Text("Làm bài"),
-                          style: ElevatedButton.styleFrom(
-                            shape: StadiumBorder(),
-                            backgroundColor:
-                                const Color.fromARGB(255, 39, 161, 213),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
+                              ),
+                            ),
+                          ).then((_) {
+                            final quizProvider = Provider.of<QuizProvider>(
+                                context,
+                                listen: false);
+                            quizProvider.fetchResultsByQuizIdAndUserId(
+                              quizId: widget.quizId,
+                              userId: widget.userId,
+                            );
+                          });
+                        },
+                        icon: const Icon(Icons.play_arrow,
+                            size: 20, color: Colors.white),
+                        label: const Text(
+                          "Làm bài",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          shape: const StadiumBorder(),
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          textStyle: const TextStyle(fontSize: 15),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, size: 18),
-                          label: const Text("Trở về"),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

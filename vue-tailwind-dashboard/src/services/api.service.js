@@ -12,6 +12,10 @@ export default {
     return apiClient.get("/admin/users");
   },
 
+  updateUser(userId, userData) {
+    return apiClient.put(`/admin/users/${userId}`, userData);
+  },
+
   updateUserRole(userId, role) {
     return apiClient.put(`/admin/users/${userId}`, { role });
   },

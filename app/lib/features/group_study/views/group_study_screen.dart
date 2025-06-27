@@ -4,10 +4,11 @@ import 'package:provider/provider.dart';
 import '../providers/group_provider.dart';
 import 'group_item.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
-import '../../../routers/app_router.dart';
 import 'create_group_screen.dart';
 import '../../../core/utils/session_expired_handler.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../core/widgets/custom_appbar.dart';
+import './search_group_screen.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -33,7 +34,31 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Nhóm của bạn")),
+      appBar: CustomAppBar(
+        title: "Nhóm của bạn",
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            tooltip: 'Tìm kiếm nhóm',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchGroupScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            tooltip: 'Tạo nhóm mới',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CreateGroupScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Consumer<GroupProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -105,30 +130,6 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
             },
           );
         },
-      ),
-      floatingActionButton: SizedBox(
-        height: 65,
-        width: 65,
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => CreateGroupScreen()),
-            );
-          },
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(color: Colors.white, width: 1),
-          ),
-          elevation: 8,
-          child: Icon(
-            Icons.add,
-            size: 36,
-            color: Colors.blue.shade500,
-          ),
-          tooltip: 'Tạo nhóm mới',
-        ),
       ),
     );
   }

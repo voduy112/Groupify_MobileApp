@@ -54,7 +54,8 @@ class AuthProvider with ChangeNotifier {
         final socketProvider =
             Provider.of<SocketProvider>(context, listen: false);
         socketProvider.connect(
-          'http://192.168.1.174:5000',
+          'https://groupifymobileapp-production.up.railway.app',
+          //'http://192.168.1.176:5000',
           queryParams: {'userId': _user!.id!},
           token: _user!.accessToken,
         );
@@ -149,6 +150,28 @@ class AuthProvider with ChangeNotifier {
     try {
       await authService.changePassword(email, oldPassword, newPassword);
 
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> sendOTPEmail(String email) async {
+    try {
+      final result = await authService.sendOTPEmail(email);
+      // So sánh chứa chuỗi hoặc chỉ cần không rỗng
+      return result.toLowerCase().contains('otp') &&
+          result.toLowerCase().contains('gửi');
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email, String newPassword) async {
+    try {
+      await authService.resetPassword(email, newPassword);
       return true;
     } catch (e) {
       _error = e.toString();

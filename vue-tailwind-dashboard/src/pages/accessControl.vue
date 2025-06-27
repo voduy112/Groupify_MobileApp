@@ -16,11 +16,13 @@
           <h1 class="text-2xl font-semibold text-gray-800">
             🔐 Access Control
           </h1>
-          <p class="text-sm text-gray-500">Quản lý quyền truy cập cho Admin</p>
+          <p class="text-sm text-gray-500">
+            Quản lý quyền truy cập cho Admin
+          </p>
         </div>
         <button
-          @click="logout"
           class="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
+          @click="logout"
         >
           Đăng xuất
         </button>
@@ -28,7 +30,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
         <div class="p-4 bg-gray-50 rounded-lg border">
-          👤 Xin chào: <span class="font-semibold">{{ user.name }}</span>
+          👤 Xin chào: <span class="font-semibold">{{ user.username }}</span>
         </div>
         <div class="p-4 bg-gray-50 rounded-lg border">
           🛡️ Vai trò:
@@ -39,7 +41,9 @@
       <div
         class="p-5 bg-blue-50 border border-blue-200 rounded-xl text-blue-800"
       >
-        <h2 class="text-base font-medium mb-2">📂 Quản lý nhóm</h2>
+        <h2 class="text-base font-medium mb-2">
+          📂 Quản lý nhóm
+        </h2>
         <p class="text-sm mb-2">
           Bạn có thể xem, tạo và chỉnh sửa nhóm người dùng.
         </p>
@@ -56,7 +60,9 @@
       v-else
       class="bg-white border border-gray-200 rounded-2xl shadow-md p-10 text-center text-gray-700"
     >
-      <h2 class="text-xl font-semibold mb-2">🚫 Truy cập bị từ chối</h2>
+      <h2 class="text-xl font-semibold mb-2">
+        🚫 Truy cập bị từ chối
+      </h2>
       <p class="mb-4 text-sm text-gray-500">
         Trang này chỉ dành cho người có quyền admin. Vui lòng đăng nhập lại.
       </p>

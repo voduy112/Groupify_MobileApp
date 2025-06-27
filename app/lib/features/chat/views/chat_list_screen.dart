@@ -5,6 +5,7 @@ import '../../authentication/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../views/chat_user_card.dart';
 import 'chat_screen.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -23,6 +24,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   int _currentPage = 1;
   bool _hasMore = true;
   bool _isLoadingMore = false;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -38,11 +40,28 @@ class _ChatListScreenState extends State<ChatListScreen> {
       }
     });
 
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
+    _searchController.addListener(() async {
+      final query = _searchController.text.trim();
+      final currentUser = context.read<AuthProvider>().user;
+
+      if (query.isEmpty) {
+        setState(() {
+          _isSearching = false;
+        });
         _filterUsers();
-      });
+        return;
+      }
+
+      if (currentUser != null) {
+        final results = await context
+            .read<ChatProvider>()
+            .searchChat(currentUser.id!, query);
+
+        setState(() {
+          _isSearching = true;
+          _filteredUsers = results;
+        });
+      }
     });
   }
 
@@ -51,8 +70,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (currentUser != null) {
       _currentPage = 1;
       context.read<ChatProvider>().resetChatList();
-      final hasMore =
-          await context
+      final hasMore = await context
           .read<ChatProvider>()
           .fetchChatListPage(currentUser.id!, page: _currentPage);
       setState(() {
@@ -97,7 +115,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Trò chuyện")),
+      appBar: CustomAppBar(title: "Trò chuyện"),
       body: chatProvider.isLoading && _currentPage == 1
           ? const Center(child: CircularProgressIndicator())
           : chatProvider.error != null
@@ -126,7 +144,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ),
                     ),
                     Expanded(
-                      child: _filteredUsers.isEmpty
+                      child: (_isSearching
+                                  ? _filteredUsers
+                                  : chatProvider.chatUsers)
+                              .isEmpty
                           ? const Center(
                               child: Text(
                                 'Không tìm thấy người dùng!',
@@ -137,11 +158,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           : ListView.builder(
                               controller: _scrollController,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: _filteredUsers.length +
-                                  (_isLoadingMore ? 1 : 0),
+                              itemCount: (_isSearching
+                                      ? _filteredUsers.length
+                                      : chatProvider.chatUsers.length) +
+                                  (_isLoadingMore && !_isSearching ? 1 : 0),
                               itemBuilder: (context, index) {
                                 if (_isLoadingMore &&
-                                    index == _filteredUsers.length) {
+                                    !_isSearching &&
+                                    index == chatProvider.chatUsers.length) {
                                   return const Padding(
                                     padding: EdgeInsets.all(16.0),
                                     child: Center(
@@ -149,9 +173,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   );
                                 }
 
-                                final user = _filteredUsers[index];
+                                final user = _isSearching
+                                    ? _filteredUsers[index]
+                                    : chatProvider.chatUsers[index];
                                 final lastMessages =
                                     chatProvider.lastMsgs[user.id] ?? '';
+
                                 return Container(
                                   margin: const EdgeInsets.symmetric(
                                       vertical: 6, horizontal: 12),
@@ -181,6 +208,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                             .read<ChatProvider>()
                                             .deleteChatWithUser(
                                                 currentUserId, user.id!);
+                                        if (_isSearching) {
+                                          _searchController.text =
+                                              ''; // reset search
+                                        }
                                         _filterUsers();
                                       }
                                     },

@@ -12,46 +12,66 @@ class TabButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = const Color(0xFF0072ff);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Container(
-        color: const Color(0xFFF0F0F0), // Nền của khu vực Tab Buttons
-        child: Row(
-          children: [
-            _buildTabButton(Icons.upload_file, 'Tài liệu', 'documents'),
-            _buildTabButton(Icons.chat_bubble_outline, 'Trò chuyện', 'chat'),
-            _buildTabButton(Icons.quiz_outlined, 'Bộ câu hỏi', 'quiz'),
-          ],
-        ),
+      padding: const EdgeInsets.only(top: 18, bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildTabButton(
+              Icons.upload_file, 'Tài liệu', 'documents', primaryColor),
+          _buildTabButton(
+              Icons.chat_bubble_outline, 'Trò chuyện', 'chat', primaryColor),
+          _buildTabButton(
+              Icons.quiz_outlined, 'Bộ câu hỏi', 'quiz', primaryColor),
+        ],
       ),
     );
   }
 
-  Widget _buildTabButton(IconData icon, String label, String key) {
+  Widget _buildTabButton(
+      IconData icon, String label, String key, Color primaryColor) {
     final isSelected = selectedTab == key;
-    return Expanded(
-      child: ElevatedButton.icon(
-        icon: Icon(
-          icon,
-          size: 20,
-          color: isSelected
-              ? Colors.white
-              : const Color.fromARGB(204, 22, 94, 166),
-        ),
-        label: Text(label),
-        onPressed: () => onTabSelected(key),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected
-              ? const Color.fromARGB(204, 22, 94, 166)
-              : const Color(0xFFF8F8F8), // xám rất nhạt khi không chọn
-          foregroundColor: isSelected ? Colors.white : Colors.black87,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-          elevation: isSelected ? 2 : 0,
-          shadowColor:
-              isSelected ? Colors.black.withOpacity(0.2) : Colors.transparent,
+
+    return InkWell(
+      onTap: () => onTabSelected(key),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 12,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 3,
+              width: isSelected ? 80 : 0, // hoặc 80, tuỳ giao diện
+              decoration: BoxDecoration(
+                color: isSelected ? primaryColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
         ),
       ),
     );
