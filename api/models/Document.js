@@ -7,11 +7,13 @@ const documentSchema = new mongoose.Schema({
   },
   title: {
     type: String,
-    required: true, 
+    required: true,
+    trim: true
   },
   description: {
     type: String,
-    required: true, 
+    required: true,
+    trim: true
   },
   uploaderId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -27,8 +29,8 @@ const documentSchema = new mongoose.Schema({
     default: 'file.pdf'
   },
 
-  
-  ratings: [ 
+
+  ratings: [
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -44,7 +46,7 @@ const documentSchema = new mongoose.Schema({
     }
   ],
 
- 
+
   comments: [
     {
       _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
@@ -60,18 +62,13 @@ const documentSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  reportReasons: [
-    {
-      reason: { type: String, required: true },
-      reporter: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-      },
-      createdAt: { type: Date, default: Date.now }
-    }
-  ]
 
-}, { timestamps: true }); 
+
+  deleted: {
+    type: Boolean,
+    default: false
+  }
+
+}, { timestamps: true });
 
 module.exports = mongoose.model('Document', documentSchema);
