@@ -12,6 +12,8 @@ class CustomTextFormField extends StatefulWidget {
   final int maxLines;
   final Widget? suffixIcon;
   final Function(String)? onChanged;
+  final bool? obscureText;
+  final VoidCallback? onToggleObscure;
 
   const CustomTextFormField({
     super.key,
@@ -25,6 +27,8 @@ class CustomTextFormField extends StatefulWidget {
     this.maxLines = 1,
     this.suffixIcon,
     this.onChanged,
+    this.obscureText,
+    this.onToggleObscure,
   });
 
   @override
@@ -60,12 +64,45 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       textInputAction: widget.textInputAction,
       maxLines: widget.maxLines,
       style: textTheme.bodySmall?.copyWith(fontSize: 15),
+      obscureText: widget.obscureText ?? false,
       decoration: InputDecoration(
         labelText: widget.label,
-        labelStyle: textTheme.labelLarge?.copyWith(fontSize: 15),
-        suffixIcon: widget.suffixIcon,
+        labelStyle:
+            textTheme.labelLarge?.copyWith(fontSize: 15, color: Colors.grey),
+        suffixIcon: widget.onToggleObscure != null
+            ? IconButton(
+                icon: Icon(
+                  widget.obscureText == true
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                ),
+                onPressed: widget.onToggleObscure,
+              )
+            : widget.suffixIcon,
         contentPadding:
             const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF0083B0), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+        ),
       ),
       validator: (value) {
         final normalized = Validate.normalizeText(value ?? '');
