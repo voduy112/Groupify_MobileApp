@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/quiz.dart';
 import '../providers/quiz_provider.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class QuizDetailScreen extends StatefulWidget {
   final String quizId;
@@ -144,7 +145,7 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text(quiz.title)),
+          appBar: CustomAppBar(title: quiz.title),
           body: ListView.builder(
             itemCount: quiz.questions.length,
             itemBuilder: (context, index) {
