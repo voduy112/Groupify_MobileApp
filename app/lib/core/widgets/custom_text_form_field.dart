@@ -104,20 +104,23 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
         ),
       ),
-      validator: widget.validator ??
-          (value) => Validate.notEmpty(
-                value,
-                fieldName: widget.fieldName ?? widget.label,
-              ),
+      validator: (value) {
+        final normalized = Validate.normalizeText(value ?? '');
+        if (widget.validator != null) {
+          return widget.validator!(normalized);
+        }
+        return Validate.notEmpty(
+          normalized,
+          fieldName: widget.fieldName ?? widget.label,
+        );
+      },
       onChanged: (value) {
         final normalized = Validate.normalizeText(value);
-
         if (normalized.isNotEmpty && !_hasInput) {
           setState(() {
             _hasInput = true;
           });
         }
-
         widget.onChanged?.call(value);
         _fieldKey.currentState?.validate();
       },

@@ -121,79 +121,81 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(90),
-        child: Container(
-          padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 8),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
           ),
-          child: Row(
-            children: [
-              if (_isSearchMode)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    setState(() {
-                      _isSearchMode = false;
-                      _searchController.clear();
-                      _searchQuery = '';
-                      _isSearching = false;
-                      _filterUsers();
-                    });
-                  },
-                ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: _isSearchMode
-                    ? Container(
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _isSearchMode
+                ? Container(
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Center(
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          hintText: 'Tìm kiếm',
+                          hintStyle:
+                              TextStyle(fontSize: 14, color: Colors.grey),
+                          border: InputBorder.none,
+                          isCollapsed: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          prefixIcon: Icon(Icons.search, size: 20),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Center(
-                          child: TextField(
-                            controller: _searchController,
-                            autofocus: true,
-                            style: const TextStyle(color: Colors.black),
-                            decoration: const InputDecoration(
-                              hintText: 'Tìm kiếm',
-                              hintStyle:
-                                  TextStyle(fontSize: 14, color: Colors.grey),
-                              border: InputBorder.none,
-                              isCollapsed: true,
-                              contentPadding:
-                                  EdgeInsets.symmetric(vertical: 10),
-                              prefixIcon: Icon(Icons.search, size: 20),
-                            ),
-                          ),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Trò chuyện',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.search, color: Colors.white),
-                            onPressed: () {
-                              setState(() {
-                                _isSearchMode = true;
-                              });
-                            },
-                          ),
-                        ],
                       ),
-              ),
-            ],
+                    ),
+                  )
+                : const Text(
+                    'Trò chuyện',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
+          centerTitle: false,
+          actions: [
+            if (_isSearchMode)
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () {
+                  setState(() {
+                    _isSearchMode = false;
+                    _searchController.clear();
+                    _searchQuery = '';
+                    _isSearching = false;
+                    _filterUsers();
+                  });
+                },
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () {
+                  setState(() {
+                    _isSearchMode = true;
+                  });
+                },
+              ),
+          ],
         ),
       ),
       body: chatProvider.isLoading && _currentPage == 1
