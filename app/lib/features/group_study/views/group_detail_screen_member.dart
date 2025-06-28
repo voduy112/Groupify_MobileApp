@@ -294,7 +294,15 @@ class _GroupDetailScreenMemberState extends State<GroupDetailScreenMember> {
               ),
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Color(0xFF0072ff),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           iconTheme: const IconThemeData(color: Colors.white),
           title: Text(
             _group?.name ?? 'Chi tiết nhóm',
