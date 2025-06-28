@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../features/authentication/views/otp_verification_screen.dart';
 import '../../../features/authentication/providers/auth_provider.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -81,8 +82,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
     return Scaffold(
-      appBar: AppBar(title: const Text('Quên mật khẩu')),
+      appBar: CustomAppBar(title: 'Quên mật khẩu'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -97,6 +112,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 16),
               if (!_otpVerified)
                 ElevatedButton(
+                  style: beautifulButtonStyle,
                   onPressed: _goToOTPVerification,
                   child: const Text('Gửi mã OTP'),
                 ),
@@ -120,6 +136,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
+                  style: beautifulButtonStyle,
                   onPressed: _resetPassword,
                   child: const Text('Đổi mật khẩu'),
                 ),
@@ -128,7 +145,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               TextButton.icon(
                 onPressed: () => context.go('/login'),
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Quay về đăng nhập'),
+                label: const Text(
+                  'Quay về đăng nhập',
+                  style: TextStyle(color: Colors.blue),
+                ),
               ),
             ],
           ),
