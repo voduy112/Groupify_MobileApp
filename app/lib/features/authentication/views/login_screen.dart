@@ -96,11 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center, // canh giữa dọc
+                  mainAxisSize: MainAxisSize.max,
                   children: [
                     const SizedBox(height: 4),
                     ShaderMask(
@@ -119,8 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Chào mừng trở lại!',
                         style: textTheme.headlineSmall?.copyWith(
-                          color: Colors
-                              .white, // màu này không quan trọng, sẽ bị che bởi shader
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -145,7 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Mật khẩu',
                         labelStyle:
                             textTheme.labelLarge?.copyWith(fontSize: 15),
-                        // prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -203,8 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: Container(
-                        height: 56,
+                      height: 56,
+                      child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           gradient: const LinearGradient(
@@ -228,8 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: _isLoading
                                 ? const Center(
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white),
                                   )
                                 : const Center(
                                     child: Text(

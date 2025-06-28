@@ -25,6 +25,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   bool _hasMore = true;
   bool _isLoadingMore = false;
   bool _isSearching = false;
+  bool _isSearchMode = false;
 
   @override
   void initState() {
@@ -43,6 +44,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _searchController.addListener(() async {
       final query = _searchController.text.trim();
       final currentUser = context.read<AuthProvider>().user;
+
+      setState(() {
+        _searchQuery = query;
+      });
 
       if (query.isEmpty) {
         setState(() {
@@ -115,34 +120,109 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
-      appBar: CustomAppBar(title: "Trò chuyện"),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(90),
+        child: Container(
+          padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 8),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Row(
+            children: [
+              if (_isSearchMode)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _isSearchMode = false;
+                      _searchController.clear();
+                      _searchQuery = '';
+                      _isSearching = false;
+                      _filterUsers();
+                    });
+                  },
+                ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _isSearchMode
+                    ? Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Center(
+                          child: TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            style: const TextStyle(color: Colors.black),
+                            decoration: const InputDecoration(
+                              hintText: 'Tìm kiếm',
+                              hintStyle:
+                                  TextStyle(fontSize: 14, color: Colors.grey),
+                              border: InputBorder.none,
+                              isCollapsed: true,
+                              contentPadding:
+                                  EdgeInsets.symmetric(vertical: 10),
+                              prefixIcon: Icon(Icons.search, size: 20),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Trò chuyện',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.search, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                _isSearchMode = true;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: chatProvider.isLoading && _currentPage == 1
           ? const Center(child: CircularProgressIndicator())
           : chatProvider.error != null
               ? Center(child: Text('Lỗi: ${chatProvider.error}'))
               : Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Tìm kiếm',
-                          prefixIcon: const Icon(Icons.search),
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 16),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide(
-                              color: Theme.of(context).primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    //   child: TextField(
+                    //     controller: _searchController,
+                    //     decoration: InputDecoration(
+                    //       labelText: 'Tìm kiếm',
+                    //       prefixIcon: const Icon(Icons.search),
+                    //       contentPadding: const EdgeInsets.symmetric(
+                    //           vertical: 10, horizontal: 16),
+                    //       border: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(30),
+                    //       ),
+                    //       focusedBorder: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(30),
+                    //         borderSide: BorderSide(
+                    //           color: Theme.of(context).primaryColor,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     Expanded(
                       child: (_isSearching
                                   ? _filteredUsers
