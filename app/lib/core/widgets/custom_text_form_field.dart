@@ -68,25 +68,22 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       ),
       validator: (value) {
-        final isEmpty = Validate.normalizeText(value ?? '').isEmpty;
-        if (!_hasInput || !isEmpty) return null;
-
-        final v = widget.validator ??
-            (value) => Validate.notEmpty(
-                  value,
-                  fieldName: widget.fieldName ?? widget.label,
-                );
-        return v(value);
+        final normalized = Validate.normalizeText(value ?? '');
+        if (widget.validator != null) {
+          return widget.validator!(normalized);
+        }
+        return Validate.notEmpty(
+          normalized,
+          fieldName: widget.fieldName ?? widget.label,
+        );
       },
       onChanged: (value) {
         final normalized = Validate.normalizeText(value);
-
         if (normalized.isNotEmpty && !_hasInput) {
           setState(() {
             _hasInput = true;
           });
         }
-
         widget.onChanged?.call(value);
         _fieldKey.currentState?.validate();
       },
