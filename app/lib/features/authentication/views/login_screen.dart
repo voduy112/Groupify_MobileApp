@@ -137,35 +137,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       onSaved: (value) => _email = value,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      obscureText: _obscurePassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 12),
-                        labelText: 'Mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      keyboardType: TextInputType.visiblePassword,
+                    CustomTextFormField(
+                      label: 'Mật khẩu',
+                      fieldName: 'Mật khẩu',
                       validator: Validate.password,
                       onSaved: (value) => _password = value,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      obscureText: _obscurePassword,
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                     const SizedBox(height: 12),
                     Row(
