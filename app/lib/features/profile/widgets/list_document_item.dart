@@ -14,10 +14,12 @@ class ListDocumentItem extends StatefulWidget {
     super.key,
     required this.documents,
     required this.userId,
+    required this.currentUserId,
   });
 
   final List<Document> documents;
   final String userId;
+  final String currentUserId;
 
   @override
   State<ListDocumentItem> createState() => _ListDocumentItemState();
@@ -29,8 +31,8 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
 
   void _showReportSummaryDialog(BuildContext context, List<Report> reports,
       String docTitle, String docId) {
-    _seenReports.add(docId); // Đánh dấu đã xem
-    setState(() {}); // Cập nhật UI
+    _seenReports.add(docId);
+    setState(() {});
 
     showDialog(
       context: context,
@@ -80,6 +82,48 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
     );
   }
 
+  Future<void> _handleMenuAction(
+      BuildContext context, String value, Document doc) async {
+    final docId = doc.id!;
+    switch (value) {
+      case 'edit':
+        context.go('/profile/document/edit/$docId', extra: doc);
+        break;
+      case 'delete':
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Xác nhận xóa'),
+            content: Text('Bạn có chắc muốn xóa "${doc.title}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Xóa'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true) {
+          final provider =
+              Provider.of<DocumentShareProvider>(context, listen: false);
+          await provider.deleteDocument(docId, userId: widget.userId);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Đã xóa tài liệu "${doc.title}"')),
+          );
+        }
+        break;
+      case 'report':
+        final rawReports = await _reportFutures[docId];
+        final reports = rawReports is List<Report> ? rawReports : <Report>[];
+        _showReportSummaryDialog(context, reports, doc.title ?? '', docId);
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.documents.isEmpty) {
@@ -99,163 +143,120 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
               .then((_) =>
                   Provider.of<ReportProvider>(context, listen: false).reports);
 
-          return Dismissible(
-            key: ValueKey(docId),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(Icons.delete, color: Colors.white),
+          return Card(
+            color: Colors.white,
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey.shade300, width: 1),
             ),
-            onDismissed: (direction) async {
-              final provider =
-                  Provider.of<DocumentShareProvider>(context, listen: false);
-              await provider.deleteDocument(docId, userId: widget.userId);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Đã xóa tài liệu "${doc.title}"')),
-              );
-            },
-            child: ListTile(
-              title: Text(doc.title ?? ''),
-              subtitle: Text(doc.description ?? ''),
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: doc.imgDocument != null && doc.imgDocument!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: doc.imgDocument!,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: 120,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 120,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 35,
-                            ),
-                          ),
-                        ),
-                      )
-                    : Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[300],
-                        child: Icon(Icons.image,
-                            size: 32, color: Colors.grey[700]),
-                      ),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+            elevation: 3,
+            shadowColor: Colors.blue[200],
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    tooltip: 'Sửa',
-                    onPressed: () {
-                      context.go('/profile/document/edit/$docId', extra: doc);
-                    },
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child:
+                        doc.imgDocument != null && doc.imgDocument!.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: doc.imgDocument!,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: Colors.grey,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: Colors.grey,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.grey[300],
+                                child: Icon(Icons.image,
+                                    size: 32, color: Colors.grey[700]),
+                              ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'Xóa',
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Xác nhận xóa'),
-                          content: Text('Bạn có chắc muốn xóa "${doc.title}"?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Hủy'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Xóa'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirm == true) {
-                        final provider = Provider.of<DocumentShareProvider>(
-                            context,
-                            listen: false);
-                        await provider.deleteDocument(docId,
-                            userId: widget.userId);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Đã xóa tài liệu "${doc.title}"')),
-                        );
-                      }
-                    },
-                  ),
-                  FutureBuilder<List<Report>>(
-                    future: _reportFutures[docId],
-                    builder: (context, snapshot) {
-                      final hasReports =
-                          snapshot.connectionState == ConnectionState.done &&
-                              snapshot.hasData &&
-                              snapshot.data!.isNotEmpty;
-
-                      return Stack(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        context.push('/home/document/$docId', extra: doc);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.flag,
-                                color: Colors.orangeAccent),
-                            tooltip: 'Xem báo cáo',
-                            onPressed: () {
-                              if (snapshot.hasData) {
-                                _showReportSummaryDialog(context,
-                                    snapshot.data!, doc.title ?? '', docId);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text("Đang tải dữ liệu báo cáo...")),
-                                );
-                              }
-                            },
+                          Text(
+                            doc.title ?? 'Tên tài liệu',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                          // if (hasReports && !_seenReports.contains(docId))
-                          //   const Positioned(
-                          //     right: 6,
-                          //     top: 6,
-                          //     child: CircleAvatar(
-                          //       radius: 5,
-                          //       backgroundColor: Colors.red,
-                          //     ),
-                          //   ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Mô tả: ${doc.description ?? 'Không xác định'}',
+                            style: const TextStyle(color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
+                  if (widget.currentUserId == widget.userId)
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        _handleMenuAction(context, value, doc);
+                      },
+                      icon: const Icon(Icons.more_vert, color: Colors.grey),
+                      itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Text('Chỉnh sửa'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text('Xoá'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'report',
+                          child: Text('Xem báo cáo'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
-              onTap: () {
-                context.push('/home/document/$docId', extra: doc);
-              },
             ),
           );
         },

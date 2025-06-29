@@ -24,6 +24,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _phoneFocusNode = FocusNode();
+  final _phoneFieldKey = GlobalKey<FormFieldState<String>>();
 
   bool isLoading = false;
   bool _obscurePassword = true;
@@ -53,6 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
         _emailFieldKey.currentState?.validate();
       });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _emailFocusNode.addListener(() {
+      if (!_emailFocusNode.hasFocus) {
+        _emailFieldKey.currentState?.validate();
+      }
+    });
+
+    _phoneFocusNode.addListener(() {
+      if (!_phoneFocusNode.hasFocus) {
+        _phoneFieldKey.currentState?.validate();
+      }
     });
   }
 
@@ -144,16 +164,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 16),
                     CustomTextFormField(
                       key: _emailFieldKey,
+                      focusNode: _emailFocusNode,
                       label: 'Email',
                       fieldName: 'Email',
                       keyboardType: TextInputType.emailAddress,
                       onChanged: _checkEmail,
                       validator: (value) {
-                        final emailError = Validate.email(value);
-                        if (emailError != null) return emailError;
+                        final normalized = Validate.normalizeText(value ?? '');
+
+                        final emptyError =
+                            Validate.notEmpty(normalized, fieldName: 'Email');
+                        if (emptyError != null) return emptyError;
+
+                        if (!_emailFocusNode.hasFocus &&
+                            Validate.email(normalized) != null) {
+                          return 'Email không hợp lệ';
+                        }
+
                         if (_emailState == EmailValidationState.unavailable) {
                           return 'Email đã tồn tại';
                         }
+
                         return null;
                       },
                       onSaved: (val) => emailController.text = val ?? '',
@@ -161,10 +192,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     CustomTextFormField(
+                      key: _phoneFieldKey,
+                      focusNode: _phoneFocusNode,
                       label: 'Số điện thoại',
                       fieldName: 'Số điện thoại',
                       keyboardType: TextInputType.phone,
-                      validator: Validate.phone,
+                      validator: (value) {
+                        final normalized = Validate.normalizeText(value ?? '');
+
+                        final emptyError = Validate.notEmpty(normalized,
+                            fieldName: 'Số điện thoại');
+                        if (emptyError != null) return emptyError;
+
+                        if (!_phoneFocusNode.hasFocus &&
+                            Validate.phone(normalized) != null) {
+                          return 'Số điện thoại không hợp lệ';
+                        }
+
+                        return null;
+                      },
                       onSaved: (val) => phoneController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
@@ -172,6 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: passwordController,
                       obscureText: _obscurePassword,
                       style: textTheme.bodySmall?.copyWith(fontSize: 15),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: InputDecoration(
                         labelText: 'Mật khẩu',
                         labelStyle:
@@ -198,6 +245,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
                       style: textTheme.bodySmall?.copyWith(fontSize: 15),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       decoration: InputDecoration(
                         labelText: 'Nhập lại mật khẩu',
                         labelStyle:
