@@ -9,6 +9,7 @@ import '../../../core/utils/session_expired_handler.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import './search_group_screen.dart';
+import '../../../core/widgets/shimmer.dart';
 
 class GroupStudyScreen extends StatefulWidget {
   const GroupStudyScreen({super.key});
@@ -62,54 +63,7 @@ class _GroupStudyScreenState extends State<GroupStudyScreen> {
       body: Consumer<GroupProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
-            return ListView.builder(
-              itemCount: provider.groups.length,
-              itemBuilder: (context, index) => Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 20,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              height: 14,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+            return const GroupListShimmer();
           } else if (provider.error != null) {
             handleSessionExpired(context, provider.error);
             return Center(child: Text('Lỗi: ${provider.error}'));
