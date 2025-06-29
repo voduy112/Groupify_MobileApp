@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 class DioClient {
   static final Dio _dio = Dio(BaseOptions(
     baseUrl: 'https://groupifymobileapp-production.up.railway.app',
+    //baseUrl: 'http://172.16.130.60:5000',
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 15),
   ));
