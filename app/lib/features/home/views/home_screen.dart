@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
+      /*floatingActionButton: SizedBox(
         height: 65,
         width: 65,
         child: FloatingActionButton(
@@ -240,6 +240,15 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.blue.shade500,
           ),
         ),
+      ),*/
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/home/upload-document');
+        },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.insert_drive_file_outlined),
+        shape: const CircleBorder(), // Bo tròn
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

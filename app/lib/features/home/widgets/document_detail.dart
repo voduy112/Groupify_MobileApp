@@ -288,6 +288,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded, color: Colors.white),
+            iconSize: 32, // Tăng kích thước icon (mặc định là 24)
             tooltip: 'Tải xuống',
             onPressed: () {
               DocumentService().downloadPdf(context, document!);
@@ -296,6 +297,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           if (!isOwner)
             IconButton(
               icon: const Icon(Icons.report, color: Colors.white),
+              iconSize: 32, // Tăng kích thước icon
               tooltip: 'Báo cáo',
               onPressed: _showReportDialog,
             ),
@@ -438,43 +440,67 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Text(
                         document!.description ?? '',
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
                         ),
                       ),
+                      const SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Divider(height: 20, thickness: 1),
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Text(
-                                provider.averageRating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
+                          InkWell(
+                            onTap: comments.length <= 1
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => DocumentRatingScreen(
+                                            documentId: widget.documentId),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      provider.averageRating.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.star,
+                                        color: Colors.amber, size: 18),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Đánh giá & Bình luận',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.star,
-                                  color: Colors.amber, size: 18),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Đánh giá & Bình luận',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                                if (comments.length <= 1)
+                                  const Icon(Icons.chevron_right,
+                                      size: 24, color: Colors.grey),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           ...comments.take(2).map((cmt) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
