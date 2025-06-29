@@ -256,6 +256,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         body: const Center(child: Text('Không tìm thấy tài liệu')),
       );
     }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.user?.id;
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -334,13 +336,17 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                               maxLines: 2,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.report, color: Colors.red),
-                            tooltip: 'Báo cáo',
-                            onPressed: () {
-                              _showReportDialog();
-                            },
-                          ),
+                          if ((document!.uploaderId is String &&
+                                  document!.uploaderId != userId) ||
+                              (document!.uploaderId is DocumentUploader &&
+                                  document!.uploaderId.id != userId))
+                            IconButton(
+                              icon: const Icon(Icons.report, color: Colors.red),
+                              tooltip: 'Báo cáo',
+                              onPressed: () {
+                                _showReportDialog();
+                              },
+                            ),
                         ],
                       ),
 
