@@ -270,6 +270,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         body: const Center(child: Text('Không tìm thấy tài liệu')),
       );
     }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.user?.id;
     return Scaffold(
       appBar: AppBar(
         leading: Padding(

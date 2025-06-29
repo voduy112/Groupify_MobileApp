@@ -4,6 +4,7 @@ import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../../../core/utils/validate.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
@@ -130,9 +131,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Xác thực OTP"),
-      ),
+      appBar: CustomAppBar(title: 'Xác thực OTP', showBack: false),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -146,7 +145,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Text(widget.email,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 25,
+                      fontSize: 20,
                       color: Colors.black)),
               const SizedBox(height: 24),
               Pinput(
@@ -173,9 +172,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 child: ElevatedButton(
                   onPressed: _secondsRemaining <= 240 ? _resendOTP : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color(0xFF0072ff),
                   ),
-                  child: const Text('Gửi lại OTP'),
+                  child: const Text('Gửi lại OTP',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
                 ),
               ),
             ],

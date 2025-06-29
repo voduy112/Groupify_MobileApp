@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
 import 'package:intl/intl.dart';
 import 'quiz_detail_screen.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class ResultQuizScreen extends StatefulWidget {
   final String quizId;
@@ -40,9 +41,24 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // nền xám nhẹ
-      appBar: AppBar(title: const Text('Kết quả làm bài')),
+      appBar: CustomAppBar(title: 'Kết quả làm bài'),
       body: Consumer<QuizProvider>(
         builder: (context, provider, _) {
           final results = provider.userResults;
@@ -163,12 +179,7 @@ class _ResultQuizScreenState extends State<ResultQuizScreen> {
                           "Làm bài",
                           style: TextStyle(color: Colors.white),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          textStyle: const TextStyle(fontSize: 15),
-                        ),
+                        style: beautifulButtonStyle,
                       ),
                     ),
                   ),

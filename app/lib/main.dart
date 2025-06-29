@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
       title: 'Groupify',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      darkTheme: AppTheme.darkTheme, 
       themeMode: ThemeMode.system,
       builder: (context, child) {
         return AppBackground(child: child!);

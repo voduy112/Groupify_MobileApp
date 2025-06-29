@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class EditableAnswer {
   String text;
@@ -223,8 +224,23 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<QuizProvider>(context);
 
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text('Chỉnh sửa Quiz')),
+      appBar: CustomAppBar(title: 'Chỉnh sửa Quiz'),
       body: provider.isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -249,6 +265,7 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                     ),
                     SizedBox(height: 16),
                     ElevatedButton(
+                      style: beautifulButtonStyle,
                       onPressed: provider.isUpdatingQuiz ? null : _saveQuizInfo,
                       child: provider.isUpdatingQuiz
                           ? CircularProgressIndicator()
@@ -256,6 +273,7 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                     ),
                     SizedBox(height: 16),
                     ElevatedButton(
+                      style: beautifulButtonStyle,
                       onPressed: () {
                         setState(() {
                           _showQuestions = !_showQuestions;
@@ -360,6 +378,7 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                                 }),
                                 SizedBox(height: 8),
                                 ElevatedButton(
+                                  style: beautifulButtonStyle,
                                   onPressed: () => _addAnswer(qIndex),
                                   child: Text('Thêm đáp án'),
                                 ),
@@ -373,6 +392,7 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
+                              style: beautifulButtonStyle,
                               onPressed: _addQuestion,
                               child: Text('Thêm câu hỏi'),
                             ),
@@ -380,6 +400,7 @@ class _EditQuizScreenState extends State<EditQuizScreen> {
                           SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
+                              style: beautifulButtonStyle,
                               onPressed: provider.isUpdatingQuestions
                                   ? null
                                   : _saveQuestions,

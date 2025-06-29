@@ -96,11 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center, // canh giữa dọc
+                  mainAxisSize: MainAxisSize.max,
                   children: [
                     const SizedBox(height: 4),
                     ShaderMask(
@@ -119,8 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Chào mừng trở lại!',
                         style: textTheme.headlineSmall?.copyWith(
-                          color: Colors
-                              .white, // màu này không quan trọng, sẽ bị che bởi shader
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -136,36 +137,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       onSaved: (value) => _email = value,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      obscureText: _obscurePassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 12),
-                        labelText: 'Mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        // prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      keyboardType: TextInputType.visiblePassword,
+                    CustomTextFormField(
+                      label: 'Mật khẩu',
+                      fieldName: 'Mật khẩu',
                       validator: Validate.password,
                       onSaved: (value) => _password = value,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      obscureText: _obscurePassword,
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -203,8 +185,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: Container(
-                        height: 56,
+                      height: 56,
+                      child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           gradient: const LinearGradient(
@@ -228,8 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: _isLoading
                                 ? const Center(
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white),
                                   )
                                 : const Center(
                                     child: Text(

@@ -51,81 +51,72 @@ class ChatUserCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
           decoration: BoxDecoration(
             color: Colors.white,
-            border: const Border(
-              bottom: BorderSide(color: Colors.grey, width: 0.2),
-            ),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 6),
               ),
             ],
-            borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            children: [
-              ClipOval(
-                child: (user.profilePicture != null &&
-                        user.profilePicture!.isNotEmpty)
-                    ? CachedNetworkImage(
-                        imageUrl: user.profilePicture!,
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          width: 56,
-                          height: 56,
-                          color: Colors.grey[300],
-                          child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2)),
-                        ),
-                        errorWidget: (context, url, error) => CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.blue.shade100,
-                          child: Text(
-                            user.username![0].toUpperCase(),
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      )
-                    : CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.blue.shade100,
-                        child: Text(
-                          user.username![0].toUpperCase(),
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: (user.profilePicture != null &&
+                      user.profilePicture!.isNotEmpty)
+                  ? CachedNetworkImage(
+                      imageUrl: user.profilePicture!,
+                      width: 45,
+                      height: 45,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 45,
+                        height: 45,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
+                      errorWidget: (context, url, error) =>
+                          _fallbackAvatar(user),
+                    )
+                  : _fallbackAvatar(user),
+            ),
+            title: Text(
+              user.username ?? '',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.username!,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 24),
-                    ),
-                    Text(
-                      lastMsg,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.grey, fontSize: 20),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right),
-            ],
+            ),
+            subtitle: Text(
+              lastMsg,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _fallbackAvatar(User user) {
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: Colors.blue.shade300,
+      child: Text(
+        user.username![0].toUpperCase(),
+        style: const TextStyle(
+            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
