@@ -66,24 +66,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const PopupMenuItem<String>(
                   value: 'edit-profile',
                   child: ListTile(
-                    leading: Icon(Icons.edit),
                     title: Text('Chỉnh sửa profile'),
                   ),
                 ),
                 const PopupMenuItem<String>(
                   value: 'change-password',
                   child: ListTile(
-                    leading: Icon(Icons.lock),
                     title: Text('Đổi mật khẩu'),
                   ),
                 ),
                 const PopupMenuItem<String>(
                   value: 'logout',
                   child: ListTile(
-                    leading: Icon(Icons.logout, color: Colors.red),
                     title: Text(
                       'Đăng xuất',
-                      style: TextStyle(color: Colors.red),
                     ),
                   ),
                 ),
@@ -100,11 +96,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 // Khung thông tin
                 Container(
-                  margin: const EdgeInsets.only(top: 60),
+                  margin: const EdgeInsets.only(top: 60, left: 16, right: 16),
                   padding: const EdgeInsets.only(
                       top: 80, left: 20, right: 20, bottom: 20),
                   width: double.infinity,
                   decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.blue, // Màu viền xanh
+                      width: 1,
+                    ),
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: const [
@@ -127,15 +127,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       InfoRow(
-                          icon: Icons.phone,
-                          text: user.phoneNumber ?? 'Chưa có số điện thoại'),
+                        icon: Icons.phone,
+                        text: user.phoneNumber ?? 'Chưa có số điện thoại',
+                      ),
                       const SizedBox(height: 8),
                       InfoRow(
-                          icon: Icons.email_outlined,
-                          text: user.email ?? 'Chưa có email'),
+                        icon: Icons.email_outlined,
+                        text: user.email ?? 'Chưa có email',
+                      ),
                       const SizedBox(height: 8),
                       if (user.bio != null && user.bio!.isNotEmpty)
-                        InfoRow(icon: Icons.info_outline, text: user.bio!),
+                        InfoRow(
+                          icon: Icons.info_outline,
+                          text: user.bio!,
+                        ),
                     ],
                   ),
                 ),
@@ -199,7 +204,7 @@ class InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 22, color: Colors.blue),
+            style: const TextStyle(fontSize: 18, color: Colors.blue),
           ),
         ),
       ],

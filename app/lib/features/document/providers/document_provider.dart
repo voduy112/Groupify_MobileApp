@@ -243,15 +243,29 @@ class DocumentProvider extends ChangeNotifier {
 
       final userId = currentUserId;
 
-      final ratings = data['ratings'] as List<dynamic>;
-      final userRating = ratings.firstWhere(
-        (r) => r['userId'] == userId,
-        orElse: () => null,
-      );
+      final ratings = data['ratings'];
+      if (ratings != null && ratings is List) {
+        final userRating = ratings.firstWhere(
+          (r) => r['userId'] == userId,
+          orElse: () => null,
+        );
+        _userRatedValue = userRating != null
+            ? double.tryParse(userRating['value'].toString()) ?? 0.0
+            : null;
+      } else {
+        _userRatedValue = null;
+      }
 
-      _userRatedValue = userRating != null
+
+      final counts = data['ratingCounts'] as Map<String, dynamic>? ?? {};
+      _ratingCounts = {
+        for (var entry in counts.entries)
+          int.tryParse(entry.key) ?? 0: entry.value as int
+      };
+
+      /*_userRatedValue = userRating != null
           ? double.tryParse(userRating['value'].toString()) ?? 0.0
-          : null;
+          : null;*/
 
       _error = null;
     } catch (e) {
@@ -280,15 +294,17 @@ class DocumentProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> addComment(String documentId, String content) async {
+  Future<bool> addComment(String documentId, String content,
+      {double? rating}) async {
     try {
       await _documentService.sendComment(
         documentId: documentId,
         content: content,
         userId: currentUserId,
+        rating: rating, // Gửi rating nếu có
       );
 
-      // Tự giả định comment vừa gửi sẽ nằm đầu danh sách
+      // Lấy bình luận mới nhất để chèn vào đầu danh sách
       final latestComments =
           await _documentService.getComments(documentId, skip: 0, limit: 1);
       final newComment = latestComments['comments'].first;
@@ -304,6 +320,7 @@ class DocumentProvider extends ChangeNotifier {
       return false;
     }
   }
+
 
   Future<void> fetchComments(String documentId,
       {int skip = 0, int limit = 10}) async {
@@ -346,12 +363,17 @@ class DocumentProvider extends ChangeNotifier {
         commentId: commentId,
         userId: currentUserId,
       );
+
+      // Xoá khỏi danh sách local
       comments[documentId]?.removeWhere((cmt) => cmt['_id'] == commentId);
 
       if (commentsTotal.containsKey(documentId)) {
         commentsTotal[documentId] =
             (commentsTotal[documentId]! - 1).clamp(0, double.infinity).toInt();
       }
+
+      // Sau khi xoá bình luận, cập nhật lại rating
+      await fetchRatingOfDocument(documentId);
 
       notifyListeners();
       return true;
@@ -361,4 +383,8 @@ class DocumentProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Map<int, int> _ratingCounts = {}; // biến private để lưu dữ liệu
+  Map<int, int> get ratingCounts => _ratingCounts; // getter public
+
 }
