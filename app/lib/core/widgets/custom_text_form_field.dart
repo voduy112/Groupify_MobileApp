@@ -14,6 +14,8 @@ class CustomTextFormField extends StatefulWidget {
   final Function(String)? onChanged;
   final bool? obscureText;
   final VoidCallback? onToggleObscure;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
   const CustomTextFormField({
     super.key,
@@ -29,6 +31,8 @@ class CustomTextFormField extends StatefulWidget {
     this.onChanged,
     this.obscureText,
     this.onToggleObscure,
+    this.focusNode,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -43,12 +47,20 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
+    _focusNode = widget.focusNode ?? FocusNode();
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _fieldKey.currentState?.validate();
+      }
+    });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     super.dispose();
   }
 
@@ -63,8 +75,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       maxLines: widget.maxLines,
-      style: textTheme.bodySmall?.copyWith(fontSize: 15),
       obscureText: widget.obscureText ?? false,
+      style: textTheme.bodySmall?.copyWith(fontSize: 15),
       decoration: InputDecoration(
         labelText: widget.label,
         labelStyle:
@@ -127,10 +139,15 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       onSaved: (value) =>
           widget.onSaved?.call(Validate.normalizeText(value ?? '')),
       onFieldSubmitted: (value) {
-        if (Validate.normalizeText(value).isEmpty) {
-          FocusScope.of(context).unfocus();
+        if (widget.onFieldSubmitted != null) {
+          widget.onFieldSubmitted!(value);
         } else {
-          FocusScope.of(context).nextFocus();
+          // Mặc định: nếu là ô cuối, đóng bàn phím. Nếu không, focus sang ô tiếp theo.
+          if (widget.textInputAction == TextInputAction.done) {
+            FocusScope.of(context).unfocus();
+          } else {
+            FocusScope.of(context).nextFocus();
+          }
         }
       },
     );

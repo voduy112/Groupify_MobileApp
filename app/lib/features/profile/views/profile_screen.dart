@@ -181,6 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ListDocumentItem(
               documents: documentShareProvider.userDocuments[user.id!] ?? [],
               userId: user.id!,
+              currentUserId: authUser?.id ?? '',
             ),
           ],
         ),
