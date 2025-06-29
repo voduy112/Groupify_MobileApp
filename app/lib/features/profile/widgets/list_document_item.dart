@@ -166,91 +166,68 @@ class _ListDocumentItemState extends State<ListDocumentItem> {
                             size: 32, color: Colors.grey[700]),
                       ),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    tooltip: 'Sửa',
-                    onPressed: () {
-                      context.go('/profile/document/edit/$docId', extra: doc);
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'Xóa',
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Xác nhận xóa'),
-                          content: Text('Bạn có chắc muốn xóa "${doc.title}"?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Hủy'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Xóa'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirm == true) {
-                        final provider = Provider.of<DocumentShareProvider>(
-                            context,
-                            listen: false);
-                        await provider.deleteDocument(docId,
-                            userId: widget.userId);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Đã xóa tài liệu "${doc.title}"')),
-                        );
-                      }
-                    },
-                  ),
-                  FutureBuilder<List<Report>>(
-                    future: _reportFutures[docId],
-                    builder: (context, snapshot) {
-                      final hasReports =
-                          snapshot.connectionState == ConnectionState.done &&
-                              snapshot.hasData &&
-                              snapshot.data!.isNotEmpty;
-
-                      return Stack(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.flag,
-                                color: Colors.orangeAccent),
-                            tooltip: 'Xem báo cáo',
-                            onPressed: () {
-                              if (snapshot.hasData) {
-                                _showReportSummaryDialog(context,
-                                    snapshot.data!, doc.title ?? '', docId);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text("Đang tải dữ liệu báo cáo...")),
-                                );
-                              }
-                            },
+              trailing: PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    context.go('/profile/document/edit/$docId', extra: doc);
+                  } else if (value == 'delete') {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Xác nhận xóa'),
+                        content: Text('Bạn có chắc muốn xóa "${doc.title}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Hủy'),
                           ),
-                          // if (hasReports && !_seenReports.contains(docId))
-                          //   const Positioned(
-                          //     right: 6,
-                          //     top: 6,
-                          //     child: CircleAvatar(
-                          //       radius: 5,
-                          //       backgroundColor: Colors.red,
-                          //     ),
-                          //   ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('Xóa'),
+                          ),
                         ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      final provider = Provider.of<DocumentShareProvider>(
+                          context,
+                          listen: false);
+                      await provider.deleteDocument(docId,
+                          userId: widget.userId);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Đã xóa tài liệu "${doc.title}"')),
                       );
-                    },
-                  ),
+                    }
+                  } else if (value == 'report') {
+                    final reports = await _reportFutures[docId];
+                    if (reports != null) {
+                      _showReportSummaryDialog(
+                          context, reports, doc.title ?? '', docId);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Đang tải dữ liệu báo cáo...")),
+                      );
+                    }
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                      value: 'edit',
+                      child: ListTile(
+                          leading: Icon(Icons.edit), title: Text('Sửa'))),
+                  const PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                          leading: Icon(Icons.delete), title: Text('Xóa'))),
+                  const PopupMenuItem(
+                      value: 'report',
+                      child: ListTile(
+                          leading: Icon(Icons.flag),
+                          title: Text('Xem báo cáo'))),
                 ],
               ),
               onTap: () {
