@@ -1,3 +1,4 @@
+import 'package:app/models/document.dart';
 import 'package:flutter/material.dart';
 import '../../../models/report.dart';
 import '../services/report_service.dart';
@@ -102,10 +103,19 @@ class ReportProvider extends ChangeNotifier {
     try {
       final document = await documentservice.getDocumentById(documentId);
       if (document == null) return false;
-      return document.uploaderId == userId;
+
+      final uploader = document.uploaderId;
+      if (uploader is String) {
+        return uploader == userId;
+      } else if (uploader is DocumentUploader) {
+        return uploader.id == userId;
+      }
+
+      return false;
     } catch (e) {
       print('Lỗi khi kiểm tra chủ sở hữu: $e');
       return false;
     }
   }
+
 }

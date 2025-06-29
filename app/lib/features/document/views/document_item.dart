@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import '../../../models/document.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+
+import '../providers/document_provider.dart';
 
 class DocumentItem extends StatelessWidget {
   final Document document;
@@ -224,3 +228,5 @@ class DocumentItem extends StatelessWidget {
     );
   }
 }
+
+

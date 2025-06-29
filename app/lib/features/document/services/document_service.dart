@@ -281,12 +281,14 @@ Future<void> updateDocument(
     required String documentId,
     required String userId,
     required String content,
+    double? rating,
   }) async {
     final response = await _dio.post(
       '/api/document/$documentId/comments',
       data: {
         'userId': userId,
         'content': content,
+        if (rating != null) 'rating': rating,
       },
     );
 

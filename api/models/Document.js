@@ -52,6 +52,7 @@ const documentSchema = new mongoose.Schema({
       _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
       userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
       username: { type: String },
+      rating: Number,
       avatar: { type: String },
       content: { type: String, required: true },
       createdAt: { type: Date, default: Date.now }

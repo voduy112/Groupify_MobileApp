@@ -323,15 +323,26 @@ const documentController = {
 
       const ratings = document.ratings || [];
 
-      const totalRating = ratings.reduce((sum, r) => sum + r.value, 0);
-      const averageRating =
-        ratings.length > 0 ? totalRating / ratings.length : 0;
+      const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      let totalRating = 0;
+
+      for (const r of ratings) {
+        const value = Math.round(r.value);
+        if (ratingCounts[value] !== undefined) {
+          ratingCounts[value]++;
+          totalRating += r.value;
+        }
+      }
+
+      const averageRating = ratings.length > 0 ? totalRating / ratings.length : 0;
 
       res.json({
         averageRating: averageRating.toFixed(1),
         totalRatings: ratings.length,
-        ratings,
+        ratingCounts,
+        ratings
       });
+
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Lỗi khi lấy thông tin đánh giá" });
@@ -340,7 +351,7 @@ const documentController = {
 
   addComment: async (req, res) => {
     const documentId = req.params.id;
-    const { userId, content } = req.body;
+    const { userId, content, rating } = req.body;
 
     if (!userId || !content) {
       return res.status(400).json({ error: "Thiếu thông tin bình luận" });
@@ -361,6 +372,7 @@ const documentController = {
         userId,
         username: user.username || "Ẩn danh",
         avatar: user.profilePicture || "",
+        rating: rating || 0, 
         content,
         createdAt: new Date(),
       };
@@ -487,6 +499,11 @@ const documentController = {
       // Xoá comment bằng filter
       document.comments = document.comments.filter(
         (c) => c._id.toString() !== commentId
+      );
+        
+      //xoa rating
+      document.ratings = document.ratings.filter(
+        (r) => r.userId.toString() !== userId
       );
 
       await document.save();
