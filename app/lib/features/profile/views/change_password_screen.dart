@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../features/authentication/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../features/authentication/providers/auth_provider.dart';
+import '../../../core/widgets/custom_appbar.dart';
+import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/utils/validate.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -14,135 +18,140 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _oldPasswordController = TextEditingController();
-
   final _newPasswordController = TextEditingController();
-
   final _confirmPasswordController = TextEditingController();
 
   bool _obscureOld = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
 
+  bool _isLoading = false;
+
   Future<void> _changePassword() async {
-    final oldPassword = _oldPasswordController.text;
-    final newPassword = _newPasswordController.text;
-    final confirmPassword = _confirmPasswordController.text;
+    final oldPassword = _oldPasswordController.text.trim();
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
     if (newPassword != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Mật khẩu mới và xác nhận mật khẩu không khớp')),
+        const SnackBar(content: Text('Mật khẩu mới và xác nhận không khớp')),
       );
       return;
     }
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final authProvider = context.read<AuthProvider>();
     try {
+      setState(() => _isLoading = true);
+
       await authProvider.changePassword(
-        authProvider.user!.email!,
+        authProvider.user?.email ?? '',
         oldPassword,
         newPassword,
       );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Đổi mật khẩu thành công, vui lòng đăng nhập lại.')),
+          content: Text('Đổi mật khẩu thành công, vui lòng đăng nhập lại.'),
+        ),
       );
       await Future.delayed(const Duration(seconds: 2));
       await authProvider.logout(context);
-      context.go('/login');
+      if (mounted) context.go('/login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Đổi mật khẩu thất bại: $e')),
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đổi mật khẩu'),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _oldPasswordController,
-                  obscureText: _obscureOld,
-                  decoration: InputDecoration(
-                    labelText: 'Mật khẩu cũ',
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureOld
-                          ? Icons.visibility_off
-                          : Icons.visibility),
-                      onPressed: () {
-                        setState(() {
-                          _obscureOld = !_obscureOld;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập mật khẩu cũ';
+      appBar: CustomAppBar(
+        title: 'Đổi mật khẩu',
+        actions: [
+          IconButton(
+            onPressed: _isLoading
+                ? null
+                : () {
+                    if (_formKey.currentState!.validate()) {
+                      _changePassword();
                     }
-                    return null;
+                  },
+            icon: _isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, color: Colors.white, size: 28),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              CustomTextFormField(
+                label: 'Mật khẩu cũ',
+                fieldName: 'Mật khẩu cũ',
+                obscureText: _obscureOld,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureOld ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscureOld = !_obscureOld);
                   },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: _obscureNew,
-                  decoration: InputDecoration(
-                    labelText: 'Mật khẩu mới',
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureNew
-                          ? Icons.visibility_off
-                          : Icons.visibility),
-                      onPressed: () {
-                        setState(() {
-                          _obscureNew = !_obscureNew;
-                        });
-                      },
-                    ),
+                validator: Validate.notEmpty,
+              ),
+              const SizedBox(height: 16),
+              CustomTextFormField(
+                label: 'Mật khẩu mới',
+                fieldName: 'Mật khẩu mới',
+                obscureText: _obscureNew,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureNew ? Icons.visibility_off : Icons.visibility,
                   ),
+                  onPressed: () {
+                    setState(() => _obscureNew = !_obscureNew);
+                  },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirm,
-                  decoration: InputDecoration(
-                    labelText: 'Nhập lại mật khẩu mới',
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirm
-                          ? Icons.visibility_off
-                          : Icons.visibility),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirm = !_obscureConfirm;
-                        });
-                      },
-                    ),
+                validator: Validate.password,
+              ),
+              const SizedBox(height: 16),
+              CustomTextFormField(
+                label: 'Nhập lại mật khẩu mới',
+                fieldName: 'Nhập lại mật khẩu mới',
+                obscureText: _obscureConfirm,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirm ? Icons.visibility_off : Icons.visibility,
                   ),
+                  onPressed: () {
+                    setState(() => _obscureConfirm = !_obscureConfirm);
+                  },
                 ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        await _changePassword();
-                      }
-                    },
-                    child: const Text('Đổi mật khẩu'),
-                  ),
-                ),
-              ],
-            ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập lại mật khẩu mới';
+                  }
+                  if (value != _newPasswordController.text) {
+                    return 'Mật khẩu không khớp';
+                  }
+                  return null;
+                },
+              ),
+            ],
           ),
         ),
       ),

@@ -105,7 +105,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Colors.blue, width: 2),
         ),
         title: Text(title),
         content: Text(content),
@@ -143,7 +142,32 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9FF),
-      appBar: const CustomAppBar(title: 'Tải tài liệu lên'),
+      appBar: CustomAppBar(
+        title: 'Tải tài liệu lên',
+        actions: [
+          Consumer<DocumentProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: provider.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                onPressed: provider.isLoading ? null : uploadDocument,
+              );
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Card(
@@ -155,7 +179,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
             padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
+              // autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -248,31 +272,6 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                     ],
                   ),
                   const SizedBox(height: 32),
-
-                  // Submit
-                  Center(
-                    child: Consumer<DocumentProvider>(
-                      builder: (context, provider, child) {
-                        return ElevatedButton.icon(
-                          onPressed: provider.isLoading ? null : uploadDocument,
-                          icon: provider.isLoading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.cloud_upload_rounded),
-                          label: Text(
-                            provider.isLoading ? 'Đang upload...' : 'Tải lên',
-                          ),
-                          style: beautifulButtonStyle,
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),

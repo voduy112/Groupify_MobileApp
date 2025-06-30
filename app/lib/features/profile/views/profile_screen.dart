@@ -43,145 +43,179 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Trang cá nhân',
-        actions: [
-          if (user.id == authUser?.id)
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'edit-profile') {
-                  context.go('/profile/edit', extra: user);
-                } else if (value == 'change-password') {
-                  context.go('/profile/change-password');
-                } else if (value == 'logout') {
-                  await context.read<AuthProvider>().logout(context);
-                  if (context.read<AuthProvider>().user == null) {
-                    context.go('/login');
-                  }
-                }
-              },
-              icon: const Icon(Icons.more_vert,
-                  color: Colors.white), // icon trắng
-              itemBuilder: (context) => [
-                const PopupMenuItem<String>(
-                  value: 'edit-profile',
-                  child: ListTile(
-                    title: Text('Chỉnh sửa profile'),
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'change-password',
-                  child: ListTile(
-                    title: Text('Đổi mật khẩu'),
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: ListTile(
-                    title: Text(
-                      'Đăng xuất',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 32),
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Khung thông tin
-                Container(
-                  margin: const EdgeInsets.only(top: 60, left: 16, right: 16),
-                  padding: const EdgeInsets.only(
-                      top: 80, left: 20, right: 20, bottom: 20),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue, // Màu viền xanh
-                      width: 1,
-                    ),
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
+            // Nền gradient xanh có bo góc dưới
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF0072ff),
+                    Color.fromARGB(255, 92, 184, 241),
+                    Color(0xFF81D4FA),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+              ),
+              padding: const EdgeInsets.only(
+                  top: 40, left: 24, right: 24, bottom: 32),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        user.username ?? '',
-                        style: const TextStyle(
-                          fontSize: 36,
+                      const Text(
+                        'Trang cá nhân',
+                        style: TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      InfoRow(
-                        icon: Icons.phone,
-                        text: user.phoneNumber ?? 'Chưa có số điện thoại',
+                      PopupMenuButton<String>(
+                        onSelected: (value) async {
+                          if (value == 'edit-profile') {
+                            context.go('/profile/edit', extra: user);
+                          } else if (value == 'change-password') {
+                            context.go('/profile/change-password');
+                          } else if (value == 'logout') {
+                            await context.read<AuthProvider>().logout(context);
+                            if (context.read<AuthProvider>().user == null) {
+                              context.go('/login');
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.settings, color: Colors.white),
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'edit-profile',
+                            child: Text('Chỉnh sửa hồ sơ'),
+                          ),
+                          PopupMenuItem(
+                            value: 'change-password',
+                            child: Text('Đổi mật khẩu'),
+                          ),
+                          PopupMenuItem(
+                            value: 'logout',
+                            child: Text('Đăng xuất'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      InfoRow(
-                        icon: Icons.email_outlined,
-                        text: user.email ?? 'Chưa có email',
-                      ),
-                      const SizedBox(height: 8),
-                      if (user.bio != null && user.bio!.isNotEmpty)
-                        InfoRow(
-                          icon: Icons.info_outline,
-                          text: user.bio!,
-                        ),
                     ],
                   ),
-                ),
-
-                // Avatar cắt ngang
-                Positioned(
-                  top: 0,
-                  left: MediaQuery.of(context).size.width / 2 - 60,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage: user.profilePicture != null &&
-                            user.profilePicture!.isNotEmpty
-                        ? NetworkImage(user.profilePicture!)
-                        : null,
-                    child: user.profilePicture == null ||
-                            user.profilePicture!.isEmpty
-                        ? Text(
-                            user.username?.isNotEmpty == true
-                                ? user.username![0].toUpperCase()
-                                : '',
-                            style: const TextStyle(fontSize: 40),
-                          )
-                        : null,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(2), // độ dày viền
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white, // Màu viền (ví dụ: trắng)
+                        width: 2, // Độ dày viền
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.white,
+                      backgroundImage: user.profilePicture != null &&
+                              user.profilePicture!.isNotEmpty
+                          ? NetworkImage(user.profilePicture!)
+                          : null,
+                      child: user.profilePicture == null ||
+                              user.profilePicture!.isEmpty
+                          ? Text(
+                              user.username?.isNotEmpty == true
+                                  ? user.username![0].toUpperCase()
+                                  : '',
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0288D1),
+                              ),
+                            )
+                          : null,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Text(
+                    user.username ?? '',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Thông tin cá nhân',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InfoRow(
+                    icon: Icons.phone_android,
+                    text: user.phoneNumber ?? 'Chưa có số điện thoại',
+                    fontSize: 15,
+                    iconColor: Colors.white,
+                    textColor: Colors.white,
+                  ),
+                  const SizedBox(height: 12),
+                  InfoRow(
+                    icon: Icons.email_outlined,
+                    text: user.email ?? 'Chưa có email',
+                    fontSize: 15,
+                    iconColor: Colors.white,
+                    textColor: Colors.white,
+                  ),
+                  const SizedBox(height: 12),
+                  if (user.bio != null && user.bio!.isNotEmpty)
+                    InfoRow(
+                      icon: Icons.info_outline,
+                      text: user.bio!,
+                      fontSize: 15,
+                      iconColor: Colors.white,
+                      textColor: Colors.white,
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(
-              height: 40,
-            ),
-            TitleApp(
-                title: 'Tài liệu của ' '${user.username}', context: context),
-            const Divider(
-              endIndent: 16,
-              indent: 16,
-            ),
-            ListDocumentItem(
-              documents: documentShareProvider.userDocuments[user.id!] ?? [],
-              userId: user.id!,
-              currentUserId: authUser?.id ?? '',
+
+            // Phần nội dung tài liệu (màu trắng)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tài liệu của ${user.username}:',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  ListDocumentItem(
+                    documents:
+                        documentShareProvider.userDocuments[user.id!] ?? [],
+                    userId: user.id!,
+                    currentUserId: authUser?.id ?? '',
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -193,18 +227,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const InfoRow({required this.icon, required this.text});
+  final double fontSize;
+  final Color? iconColor;
+  final Color? textColor;
+
+  const InfoRow({
+    required this.icon,
+    required this.text,
+    this.fontSize = 15,
+    this.iconColor,
+    this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue[700]),
+        Icon(icon, color: iconColor ?? Colors.blueGrey, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 18, color: Colors.blue),
+            style: TextStyle(
+              fontSize: fontSize,
+              color: textColor ?? Colors.black87,
+              height: 1.4,
+            ),
           ),
         ),
       ],
