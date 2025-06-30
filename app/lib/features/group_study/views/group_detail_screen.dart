@@ -67,12 +67,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     String errorMessage = "";
     try {
       success = await provider.sendRequest(widget.groupId, currentUser.id!);
-      MessagingProvider().sendJoinRequestNotification(
-          _group!.ownerId!['fcmToken']!,
-          currentUser.username!,
-          _group!.name!,
-          _group!.id!,
-          currentUser.id!);
+      if (success) {
+        MessagingProvider().sendJoinRequestNotification(
+            _group!.ownerId!['fcmToken']!,
+            currentUser.username!,
+            _group!.name!,
+            _group!.id!,
+            currentUser.id!);
+      }
     } catch (e) {
       errorMessage = e.toString();
     }

@@ -190,7 +190,6 @@ const notificationController = {
 
     for (const member of group.membersID) {
       if (
-        member.fcmToken &&
         member._id.toString() !== group.ownerId.toString() &&
         !(
           member.mutedGroups &&
@@ -199,28 +198,36 @@ const notificationController = {
             .includes(group._id.toString())
         )
       ) {
-        const message = {
-          notification: {
-            title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
-            body: `Admin vừa gửi tài liệu: ${documentTitle}`,
-          },
-          token: member.fcmToken,
-        };
-        // Gửi FCM, nhưng không quan trọng thành công/thất bại
-        try {
-          await admin.messaging().send(message);
-        } catch (error) {
-          // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
+        // Nếu có fcmToken thì gửi FCM, còn không thì bỏ qua bước gửi FCM
+        if (member.fcmToken) {
+          const message = {
+            notification: {
+              title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+              body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+            },
+            token: member.fcmToken,
+          };
+          try {
+            await admin.messaging().send(message);
+          } catch (error) {
+            // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
+          }
         }
         // Luôn lưu notification vào DB
-        await Notification.create({
-          userId: member._id,
-          type: "group_document",
-          title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
-          body: `Admin vừa gửi tài liệu: ${documentTitle}`,
-          groupId: group._id,
-          senderId: group.ownerId, // nên lưu cả senderId nếu muốn
-        });
+        console.log("Lưu notification cho user:", member._id);
+        try {
+          await Notification.create({
+            userId: member._id,
+            type: "group_document",
+            title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+            body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+            groupId: group._id,
+            senderId: group.ownerId,
+          });
+          console.log("Đã lưu notification thành công cho user:", member._id);
+        } catch (err) {
+          console.error("Lỗi khi lưu notification:", err);
+        }
       }
     }
     res.status(200).send({
@@ -228,6 +235,69 @@ const notificationController = {
       message: "Đã gửi xong thông báo cho các thành viên",
     });
   },
+  sendQuizNotification: async (req, res) => {
+    const { groupId, quizTitle } = req.body;
+    if (!groupId || !quizTitle) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Thiếu dữ liệu cần thiết" });
+    }
+    const group = await Group.findById(groupId).populate(
+      "membersID",
+      "fcmToken mutedGroups"
+    );
+    if (!group) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Không tìm thấy group" });
+    }
+    for (const member of group.membersID) {
+      if (
+        member._id.toString() !== group.ownerId.toString() &&
+        !(
+          member.mutedGroups &&
+          member.mutedGroups
+            .map((id) => id.toString())
+            .includes(group._id.toString())
+        )
+      ) {
+        if (member.fcmToken) {
+          const message = {
+            notification: {
+              title: `Quiz mới từ admin nhóm ${group.name}`,
+              body: `Admin vừa gửi quiz: ${quizTitle}`,
+            },
+            token: member.fcmToken,
+          };
+          try {
+            await admin.messaging().send(message);
+          } catch (error) {
+            // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
+          }
+        }
+        // Luôn lưu notification vào DB
+        console.log("Lưu notification cho user:", member._id);
+        try {
+          await Notification.create({
+            userId: member._id,
+            type: "quiz",
+            title: `Quiz mới từ admin nhóm ${group.name}`,
+            body: `Admin vừa gửi quiz: ${quizTitle}`,
+            groupId: group._id,
+            senderId: group.ownerId,
+          });
+          console.log("Đã lưu notification thành công cho user:", member._id);
+        } catch (err) {
+          console.error("Lỗi khi lưu notification:", err);
+        }
+      }
+    }
+    res.status(200).send({
+      success: true,
+      message: "Đã gửi xong thông báo cho các thành viên",
+    });
+  },
+
   getMutedGroups: async (req, res) => {
     try {
       const { userId } = req.params;

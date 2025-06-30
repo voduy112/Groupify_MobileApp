@@ -4,6 +4,7 @@ import '../../../core/utils/validate.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
 import '../providers/quiz_provider.dart';
 import '../../../core/widgets/custom_appbar.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class CreateQuizScreen extends StatefulWidget {
   final String groupId;
@@ -91,6 +92,7 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tạo quiz thành công!')),
       );
+      MessagingProvider().sendQuizNotification(widget.groupId, _title!);
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
