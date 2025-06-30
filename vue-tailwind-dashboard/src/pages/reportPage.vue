@@ -165,7 +165,7 @@
 <script>
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/document";
+const API_BASE = "https://groupifymobileapp-production.up.railway.app/api/document";
 
 export default {
   name: "ReportPage",
@@ -273,7 +273,7 @@ export default {
       if (!confirmed) return;
 
       try {
-        const res = await axios.post(`http://localhost:5000/api/reports/approve/${documentId}`);
+        const res = await axios.post(`https://groupifymobileapp-production.up.railway.app/api/reports/approve/${documentId}`);
         alert(res.data.message || "Đã duyệt tài liệu.");
         this.fetchReportedDocuments();
         this.reportDetailsVisible[documentId] = false;

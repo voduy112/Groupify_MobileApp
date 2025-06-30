@@ -96,7 +96,7 @@ import axios from "axios";
 import Chart from "chart.js/auto";
 import dayjs from "dayjs";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://groupifymobileapp-production.up.railway.app/api";
 
 const documentCount = ref(0);
 const userCount = ref(0);
