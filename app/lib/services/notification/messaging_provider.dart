@@ -76,6 +76,10 @@ class MessagingProvider extends ChangeNotifier {
         adminName, groupId, documentTitle);
   }
 
+  Future<void> sendQuizNotification(String groupId, String quizTitle) async {
+    await MessagingService.sendQuizNotification(groupId, quizTitle);
+  }
+
   Future<void> muteGroup(String groupId, String userId) async {
     await MessagingService.muteGroup(groupId, userId);
   }

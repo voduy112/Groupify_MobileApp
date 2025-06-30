@@ -67,6 +67,14 @@ class MessagingService {
     });
   }
 
+  static Future<void> sendQuizNotification(
+      String groupId, String quizTitle) async {
+    await DioClient.instance.post("/api/notification/send-quiz", data: {
+      "groupId": groupId,
+      "quizTitle": quizTitle,
+    });
+  }
+
   static Future<void> muteGroup(String groupId, String userId) async {
     await DioClient.instance.post("/api/notification/mute-group", data: {
       "groupId": groupId,
