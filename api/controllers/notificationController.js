@@ -36,6 +36,7 @@ const notificationController = {
       token: token,
     };
 
+    // Chỉ gửi FCM, không lưu notification vào DB ở hàm này
     try {
       const response = await admin.messaging().send(message);
       res.status(200).send({ success: true, response });
@@ -72,21 +73,22 @@ const notificationController = {
       token: adminFcmToken,
     };
 
+    let fcmResponse = null;
     try {
-      const response = await admin.messaging().send(message);
-      await Notification.create({
-        userId: group.ownerId, // admin nhận
-        type: "join_request",
-        title: "Yêu cầu tham gia nhóm",
-        body: `Người dùng ${userName} muốn tham gia nhóm ${groupName}`,
-        groupId: group._id,
-        senderId: userId, // người gửi yêu cầu
-      });
-      console.log("response", response);
-      res.status(200).send({ success: true, response });
+      fcmResponse = await admin.messaging().send(message);
     } catch (error) {
-      res.status(500).send({ success: false, error: error.message });
+      // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
     }
+    // Luôn lưu notification vào DB
+    await Notification.create({
+      userId: group.ownerId, // admin nhận
+      type: "join_request",
+      title: "Yêu cầu tham gia nhóm",
+      body: `Người dùng ${userName} muốn tham gia nhóm ${groupName}`,
+      groupId: group._id,
+      senderId: userId, // người gửi yêu cầu
+    });
+    res.status(200).send({ success: true, response: fcmResponse });
   },
 
   sendAcceptJoinNotification: async (req, res) => {
@@ -112,20 +114,22 @@ const notificationController = {
       },
       token: userFcmToken,
     };
+    let fcmResponse = null;
     try {
-      const response = await admin.messaging().send(message);
-      await Notification.create({
-        userId: userId, // người dùng nhận
-        type: "join_accepted",
-        title: "Chấp nhận vào nhóm",
-        body: `Bạn đã được chấp nhận vào nhóm ${groupName}`,
-        groupId: group._id,
-        senderId: group.ownerId, // admin xác nhận
-      });
-      res.status(200).send({ success: true, response });
+      fcmResponse = await admin.messaging().send(message);
     } catch (error) {
-      res.status(500).send({ success: false, error: error.message });
+      // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
     }
+    // Luôn lưu notification vào DB
+    await Notification.create({
+      userId: userId, // người dùng nhận
+      type: "join_accepted",
+      title: "Chấp nhận vào nhóm",
+      body: `Bạn đã được chấp nhận vào nhóm ${groupName}`,
+      groupId: group._id,
+      senderId: group.ownerId, // admin xác nhận
+    });
+    res.status(200).send({ success: true, response: fcmResponse });
   },
 
   sendPersonalChatNotification: async (req, res) => {
@@ -149,12 +153,21 @@ const notificationController = {
       },
       token: fcmToken,
     };
+    let fcmResponse = null;
     try {
-      const response = await admin.messaging().send(payload);
-      res.status(200).send({ success: true, response });
+      fcmResponse = await admin.messaging().send(payload);
     } catch (error) {
-      res.status(500).send({ success: false, error: error.message });
+      // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
     }
+    // Luôn lưu notification vào DB
+    await Notification.create({
+      userId: receiverId,
+      type: "personal_chat",
+      title: `Tin nhắn mới từ ${senderName}`,
+      body: message,
+      senderId: null, // Nếu muốn lưu senderId thì truyền vào
+    });
+    res.status(200).send({ success: true, response: fcmResponse });
   },
 
   sendGroupDocumentNotification: async (req, res) => {
@@ -193,19 +206,21 @@ const notificationController = {
           },
           token: member.fcmToken,
         };
+        // Gửi FCM, nhưng không quan trọng thành công/thất bại
         try {
           await admin.messaging().send(message);
-          await Notification.create({
-            userId: member._id,
-            type: "group_document",
-            title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
-            body: `Admin vừa gửi tài liệu: ${documentTitle}`,
-            groupId: group._id,
-            senderId: group.ownerId, // nên lưu cả senderId nếu muốn
-          });
         } catch (error) {
-          // handle error nếu cần
+          // Có thể log lỗi nếu muốn, nhưng vẫn tiếp tục
         }
+        // Luôn lưu notification vào DB
+        await Notification.create({
+          userId: member._id,
+          type: "group_document",
+          title: `Tài liệu mới từ admin ${adminName} nhóm ${group.name}`,
+          body: `Admin vừa gửi tài liệu: ${documentTitle}`,
+          groupId: group._id,
+          senderId: group.ownerId, // nên lưu cả senderId nếu muốn
+        });
       }
     }
     res.status(200).send({
