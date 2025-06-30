@@ -212,7 +212,7 @@ export default {
   methods: {
     async fetchGroups() {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/groups");
+        const res = await axios.get("https://groupifymobileapp-production.up.railway.app/api/admin/groups");
         this.groups = res.data;
       } catch (err) {
         console.error("Không thể tải nhóm", err);
@@ -222,7 +222,7 @@ export default {
     async viewGroupMembers(group) {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/group/${group._id}`,
+          `https://groupifymobileapp-production.up.railway.app/api/group/${group._id}`,
         );
         this.viewingGroup = res.data;
       } catch (err) {
@@ -247,7 +247,7 @@ export default {
     async saveGroup() {
       try {
         await axios.put(
-          `http://localhost:5000/api/admin/groups/${this.selectedGroup._id}`,
+          `https://groupifymobileapp-production.up.railway.app/api/admin/groups/${this.selectedGroup._id}`,
           this.selectedGroup,
         );
         await this.fetchGroups();
@@ -263,7 +263,7 @@ export default {
     },
     async deleteGroup(id) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/groups/${id}`);
+        await axios.delete(`https://groupifymobileapp-production.up.railway.app/api/admin/groups/${id}`);
         this.groups = this.groups.filter((group) => group._id !== id);
       } catch (err) {
         console.error("Không thể xóa nhóm", err);
