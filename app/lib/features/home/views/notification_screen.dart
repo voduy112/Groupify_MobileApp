@@ -38,6 +38,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.insert_drive_file;
       case 'chat':
         return Icons.chat;
+      case 'quiz':
+        return Icons.quiz;
       default:
         return Icons.notifications;
     }
