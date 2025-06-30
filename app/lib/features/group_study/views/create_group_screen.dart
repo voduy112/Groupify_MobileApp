@@ -116,7 +116,33 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9FF),
-      appBar: CustomAppBar(title: "Tạo nhóm mới"),
+      appBar: CustomAppBar(
+        title: "Tạo nhóm mới",
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _isSubmitting
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : Container(
+                    child: IconButton(
+                      icon: const Icon(Icons.check, color: Colors.white),
+                      tooltip: 'Tạo nhóm',
+                      onPressed: _submit,
+                    ),
+                  ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Card(
@@ -215,23 +241,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     style: beautifulButtonStyle,
                   ),
                   const SizedBox(height: 32),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: _isSubmitting ? null : _submit,
-                      icon: _isSubmitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(Icons.group_add_rounded),
-                      label: Text(_isSubmitting ? 'Đang tạo...' : 'Tạo nhóm'),
-                      style: beautifulButtonStyle,
-                    ),
-                  ),
                 ],
               ),
             ),
