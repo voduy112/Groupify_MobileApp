@@ -119,8 +119,8 @@ export default {
     async initData() {
       try {
         const [usersRes, docsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/admin/users"),
-          axios.get("http://localhost:5000/api/document"),
+          axios.get("https://groupifymobileapp-production.up.railway.app/api/admin/users"),
+          axios.get("https://groupifymobileapp-production.up.railway.app/api/document"),
         ]);
 
         this.users = usersRes.data;
@@ -170,7 +170,7 @@ export default {
 
     deleteDocument(id) {
       axios
-        .delete(`http://localhost:5000/api/document/${id}`)
+        .delete(`https://groupifymobileapp-production.up.railway.app/api/document/${id}`)
         .then(() => {
           this.documents = this.documents.filter((doc) => doc._id !== id);
         })
