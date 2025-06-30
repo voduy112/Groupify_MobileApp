@@ -92,8 +92,9 @@ class ChatUserCard extends StatelessWidget {
             title: Text(
               user.username ?? '',
               style: const TextStyle(
-                fontWeight: FontWeight.w600,
                 fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF305973),
               ),
             ),
             subtitle: Text(
