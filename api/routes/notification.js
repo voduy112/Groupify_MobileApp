@@ -23,6 +23,8 @@ router.post(
   notificationController.sendGroupDocumentNotification
 );
 
+router.post("/send-quiz", notificationController.sendQuizNotification);
+
 router.get("/user/:userId", notificationController.getAllNotification);
 
 router.post("/read/:notiId", notificationController.readNotification);

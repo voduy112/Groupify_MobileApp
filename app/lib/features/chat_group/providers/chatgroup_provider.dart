@@ -43,24 +43,29 @@ class ChatgroupProvider with ChangeNotifier {
   }*/
 
   void addMessage(GroupMessage message) {
-    // Nếu có ảnh đang upload tạm thời (cùng fromUser và cùng timestamp gần nhau)
-    final tempIndex = _messages.indexWhere((msg) =>
-        msg.isUploading &&
-        msg.fromUser.id == message.fromUser.id &&
-        (msg.timestamp.difference(message.timestamp).inSeconds).abs() <= 5);
+    // Nếu message có imageUrl và không phải đang upload
+    if (message.imageUrl != null && !message.isUploading) {
+      // Tìm ảnh tạm bằng cách so sánh fromUser + đang isUploading + khác kiểu url
+      final tempIndex = _messages.indexWhere((msg) =>
+          msg.isUploading &&
+          msg.fromUser.id == message.fromUser.id &&
+          msg.imageUrl != null &&
+          File(msg.imageUrl!).existsSync());
 
-    if (tempIndex != -1) {
-      _messages[tempIndex] = message; // thay ảnh tạm bằng ảnh thật
-    } else {
-      final exists = _messages.any((msg) => msg.id == message.id);
-      if (!exists) {
-        _messages.add(message);
+      if (tempIndex != -1) {
+        _messages[tempIndex] = message; // thay thế ảnh tạm bằng ảnh thật
+        notifyListeners();
+        return;
       }
     }
 
-    notifyListeners();
+    // Fallback: nếu chưa có thì thêm mới
+    final exists = _messages.any((msg) => msg.id == message.id);
+    if (!exists) {
+      _messages.add(message);
+      notifyListeners();
+    }
   }
-
 
   // Gán lại toàn bộ danh sách tin nhắn
   void setMessages(List<GroupMessage> messages) {
@@ -80,7 +85,7 @@ class ChatgroupProvider with ChangeNotifier {
 
     // Tạo tin nhắn tạm thời
     final tempMessage = GroupMessage(
-      id: UniqueKey().toString(), 
+      id: UniqueKey().toString(),
       message: '',
       timestamp: DateTime.now(),
       fromUser: User(id: fromUserId),

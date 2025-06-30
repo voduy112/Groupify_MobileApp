@@ -7,6 +7,7 @@ import '../../../features/authentication/providers/auth_provider.dart';
 import '../../../models/user.dart';
 import '../../../core/utils/validate.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
+import '../../../core/widgets/custom_appbar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -95,7 +96,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chỉnh sửa hồ sơ')),
+      appBar: CustomAppBar(
+        title: 'Chỉnh sửa hồ sơ',
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.check,
+              color: Colors.white,
+              size: 30,
+            ),
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      await _updateUser();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Đã lưu thông tin!')),
+                        );
+                        context.go('/profile');
+                      }
+                    }
+                  },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -156,38 +182,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 validator: Validate.notEmpty,
               ),
               const SizedBox(height: 32),
-
-              // Nút lưu
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () async {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            await _updateUser();
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Đã lưu thông tin!')),
-                              );
-                              context.go('/profile');
-                            }
-                          }
-                        },
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text('Lưu'),
-                ),
-              ),
             ],
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import '../providers/document_provider.dart';
+import 'comment_card.dart';
 
 class DocumentRatingScreen extends StatefulWidget {
   final String documentId;
@@ -60,16 +61,71 @@ class _DocumentRatingScreenState extends State<DocumentRatingScreen> {
     }
   }
 
-  Widget _buildRatingStars(double rating) {
-    return RatingBarIndicator(
-      rating: rating,
-      itemBuilder: (context, index) => const Icon(
-        Icons.star,
-        color: Colors.amber,
+  Widget _buildRatingSummary(
+      Map<int, int> ratingCounts, int total, double average) {
+    double getPercent(int count) => total == 0 ? 0 : count / total;
+
+    return Card(
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text('Đánh giá và bình luận ($total)',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: List.generate(5, (index) {
+                      final star = 5 - index;
+                      final count = ratingCounts[star] ?? 0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Text('$star', style: const TextStyle(fontSize: 14)),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 16),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: LinearProgressIndicator(
+                                value: getPercent(count),
+                                minHeight: 8,
+                                backgroundColor: Colors.grey[300],
+                                color: Colors.amber,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text('($count)',
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  children: [
+                    Text(average.toStringAsFixed(1),
+                        style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange)),
+                    const Icon(Icons.star, color: Colors.amber, size: 28),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      itemCount: 5,
-      itemSize: 30.0,
-      direction: Axis.horizontal,
     );
   }
 
@@ -77,9 +133,9 @@ class _DocumentRatingScreenState extends State<DocumentRatingScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<DocumentProvider>(context);
     final avg = provider.averageRating;
-    final total = provider.totalRatings;
     final userRating = provider.userRatedValue;
-
+    final total = provider.totalRatings;
+    print('⭐ TOTAL RATING: $total');
     return Scaffold(
       appBar: AppBar(title: const Text('Đánh giá tài liệu')),
       body: Padding(
@@ -87,40 +143,12 @@ class _DocumentRatingScreenState extends State<DocumentRatingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            total == 0
-                ? const Text(
+            total > 0
+                ? _buildRatingSummary(provider.ratingCounts, total, avg)
+                : const Text(
                     'Chưa có đánh giá nào.',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                  )
-                : Row(
-                    children: [
-                      _buildRatingStars(avg),
-                      const SizedBox(width: 8),
-                      Text('($total lượt đánh giá)'),
-                    ],
                   ),
-            const Divider(indent: 20, endIndent: 20),
-            const SizedBox(height: 10),
-            const Text(
-              'Đánh giá của bạn:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-            ),
-            const SizedBox(height: 8),
-            if (userRating != null)
-              _buildRatingStars(userRating)
-            else
-              RatingBar.builder(
-                initialRating: 0,
-                minRating: 1,
-                allowHalfRating: true,
-                itemCount: 5,
-                itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                itemBuilder: (context, _) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                onRatingUpdate: _submitRating,
-              ),
             const Divider(indent: 20, endIndent: 20),
             const SizedBox(height: 10),
             const Text(
@@ -133,73 +161,20 @@ class _DocumentRatingScreenState extends State<DocumentRatingScreen> {
                 child: CommentList(documentId: widget.documentId),
               ),
             ),
-            CommentForm(documentId: widget.documentId),
           ],
         ),
       ),
-    );
-  }
-}
-
-// widget them binh luan
-class CommentForm extends StatefulWidget {
-  final String documentId;
-
-  const CommentForm({super.key, required this.documentId});
-
-  @override
-  State<CommentForm> createState() => _CommentFormState();
-}
-
-class _CommentFormState extends State<CommentForm> {
-  final TextEditingController _controller = TextEditingController();
-  bool _isSending = false;
-
-  Future<void> _sendComment() async {
-    if (_controller.text.trim().isEmpty) return;
-
-    setState(() => _isSending = true);
-
-    final provider = Provider.of<DocumentProvider>(context, listen: false);
-    final success =
-        await provider.addComment(widget.documentId, _controller.text.trim());
-
-    if (success) {
-      _controller.clear();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Gửi bình luận thất bại')),
-      );
-    }
-
-    setState(() => _isSending = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: TextFormField(
-        controller: _controller,
-        keyboardType: TextInputType.multiline,
-        maxLines: 2,
-        minLines: 1,
-        textInputAction: TextInputAction.newline,
-        decoration: InputDecoration(
-          hintText: 'Nhập bình luận...',
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(25)),
-          ),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendComment,
-            color: Colors.blue,
-          ),
-        ),
-        onFieldSubmitted: (_) => _sendComment(),
-      ),
+      floatingActionButton: provider.userRatedValue == null
+          ? FloatingActionButton(
+              onPressed: () {
+                showRatingCommentDialog(context, widget.documentId);
+              },
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+              shape: const CircleBorder(), // Bo tròn
+            )
+          : null,
     );
   }
 }
@@ -260,149 +235,13 @@ class _CommentListState extends State<CommentList> {
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final cmt = visibleComments[index];
-            final username = cmt['username'] ?? '';
-            final content = cmt['content'];
-            final createdAt = cmt['createdAt'] != null
-                ? DateTime.tryParse(cmt['createdAt'])
-                : null;
-            final avatarUrl = cmt['avatar'];
-
-            final timeDisplay = createdAt != null
-                ? '${createdAt.day}/${createdAt.month}/${createdAt.year} ${createdAt.hour}:${createdAt.minute.toString().padLeft(2, '0')}'
-                : '';
-
-            // Thêm Dismissible ở đây
-            return Dismissible(
-              key: ValueKey(cmt['_id']),
-              direction: provider.currentUserId == cmt['userId']
-                  ? DismissDirection.endToStart
-                  : DismissDirection.none,
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                color: Colors.red,
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
-              confirmDismiss: (_) async {
-                return await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Xác nhận xoá'),
-                    content:
-                        const Text('Bạn có chắc chắn muốn xoá bình luận này?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Huỷ'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.red.shade100),
-                          foregroundColor: MaterialStateProperty.all<Color>(
-                              Colors.red.shade800),
-                          side: MaterialStateProperty.all<BorderSide>(
-                            BorderSide(color: Colors.red.shade800),
-                          ),
-                        ),
-                        child: const Text('Xoá'),
-                      ),
-                    ],
-                  ),
-                );
+            return CommentCard(
+              comment: cmt,
+              currentUserId: provider.currentUserId,
+              onDelete: () async {
+                return await provider.deleteComment(
+                    widget.documentId, cmt['_id']);
               },
-              onDismissed: (_) async {
-                final success =
-                    await provider.deleteComment(widget.documentId, cmt['_id']);
-                if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Xoá bình luận thất bại')),
-                  );
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.grey.shade200,
-                      backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-                          ? NetworkImage(avatarUrl)
-                          : null,
-                      child: avatarUrl == null || avatarUrl.isEmpty
-                          ? Text(
-                              username.isNotEmpty
-                                  ? username[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(color: Colors.black),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          RichText(
-                            text: TextSpan(
-                              style: Theme.of(context).textTheme.titleSmall,
-                              children: [
-                                TextSpan(
-                                    text: username,
-                                    style: TextStyle(color: Colors.blue)),
-                                if (provider.currentUserId ==
-                                    cmt['userId']) ...[
-                                  const TextSpan(
-                                    text: ' · ',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  const TextSpan(
-                                    text: 'You',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Text(content ?? ''),
-                          if (timeDisplay.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                timeDisplay,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             );
           },
         ),
@@ -422,4 +261,104 @@ class _CommentListState extends State<CommentList> {
       ],
     );
   }
+}
+
+void showRatingCommentDialog(BuildContext context, String documentId) {
+  double rating = 0;
+  final TextEditingController controller = TextEditingController();
+  final provider = Provider.of<DocumentProvider>(context, listen: false);
+  bool isLoading = false;
+
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Đánh giá & Bình luận'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Chọn số sao:"),
+                  const SizedBox(height: 8),
+                  RatingBar.builder(
+                    initialRating: 0,
+                    minRating: 1,
+                    itemCount: 5,
+                    itemSize: 30,
+                    itemBuilder: (context, _) => const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                    onRatingUpdate: (value) {
+                      setState(() => rating = value);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: "Nhập bình luận...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Huỷ"),
+              ),
+              ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (rating == 0 || controller.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Vui lòng nhập bình luận và số sao")),
+                          );
+                          return;
+                        }
+
+                        setState(() => isLoading = true);
+
+                        final ok1 =
+                            await provider.rateDocument(documentId, rating);
+                        final ok2 = await provider.addComment(
+                          documentId,
+                          controller.text.trim(),
+                          rating: rating,
+                        );
+
+                        setState(() => isLoading = false);
+
+                        if (ok1 && ok2 && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Gửi đánh giá/bình luận thành công")),
+                          );
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Gửi đánh giá/bình luận thất bại")),
+                          );
+                        }
+                      },
+                child: const Text("Gửi"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }

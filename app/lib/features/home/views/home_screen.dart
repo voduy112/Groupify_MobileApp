@@ -12,8 +12,7 @@ import '../widgets/list_group_item.dart';
 import '../../group_study/providers/group_provider.dart';
 import 'notification_screen.dart';
 import '../../../services/notification/messaging_provider.dart';
-import 'package:shimmer/shimmer.dart';
-import '../../../core/widgets/custom_appbar.dart';
+import '../../../core/widgets/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -78,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               padding:
-                  EdgeInsets.only(top: 36, left: 20, right: 20, bottom: 15),
+                  EdgeInsets.only(top: 15, left: 20, right: 20, bottom: 15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -218,11 +217,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            groupProvider.isLoading ? GroupListShimmer() : ListGroupItem(),
+            groupProvider.isLoading ? GroupGridShimmer() : ListGroupItem(),
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
+      /*floatingActionButton: SizedBox(
         height: 65,
         width: 65,
         child: FloatingActionButton(
@@ -241,112 +240,17 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.blue.shade500,
           ),
         ),
+      ),*/
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/home/upload-document');
+        },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.insert_drive_file_outlined),
+        shape: const CircleBorder(), // Bo tròn
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-}
-
-class DocumentListShimmer extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 220,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 4,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            child: Container(
-              width: 170,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    height: 120,
-                    width: 100,
-                    margin: const EdgeInsets.only(top: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 18,
-                    width: 100,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 14,
-                    width: 80,
-                    color: Colors.grey[300],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class GroupListShimmer extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 220,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 4,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            child: Container(
-              width: 170,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    height: 120,
-                    width: 100,
-                    margin: const EdgeInsets.only(top: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 18,
-                    width: 100,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 14,
-                    width: 80,
-                    color: Colors.grey[300],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

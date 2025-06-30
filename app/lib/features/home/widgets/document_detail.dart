@@ -1,6 +1,7 @@
 import 'package:app/core/utils/validate.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import '../../../models/document.dart';
 import '../../../features/document/views/document_detail_screen.dart';
@@ -8,7 +9,9 @@ import '../../../features/document/services/document_service.dart';
 import '../../../features/document/providers/document_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
+import '../../document/views/comment_card.dart';
 import '../../document/views/document_rating_info.dart';
+import '../../document/views/document_rating_screen.dart';
 import '../../report/providers/report_provider.dart';
 import '../../authentication/providers/auth_provider.dart';
 
@@ -23,20 +26,42 @@ class DocumentDetailScreen extends StatefulWidget {
 class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   Document? document;
   bool isLoading = true;
+  bool isOwner = false;
 
   @override
   void initState() {
     super.initState();
+
     fetchDocument();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<DocumentProvider>(context, listen: false);
+      provider.fetchComments(widget.documentId, limit: 3);
+      provider.fetchRatingOfDocument(widget.documentId);
+      fetchDocument();
+    });
   }
 
   Future<void> fetchDocument() async {
-    final provider = Provider.of<DocumentProvider>(context, listen: false);
-    await provider.fetchDocumentById(widget.documentId);
-    document = provider.selectedDocument;
-    setState(() {
-      isLoading = false;
-    });
+    final docProvider = Provider.of<DocumentProvider>(context, listen: false);
+    final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final documentService = DocumentService();
+
+    await docProvider.fetchDocumentById(widget.documentId);
+    document = docProvider.selectedDocument;
+
+    // Kiểm tra quyền sở hữu
+    final currentUserId = authProvider.user?.id;
+    if (currentUserId != null) {
+      isOwner = await reportProvider.checkOwner(
+        documentId: widget.documentId,
+        userId: currentUserId,
+        documentservice: documentService,
+      );
+    }
+    print("isOwner: $isOwner");
+
+    setState(() => isLoading = false);
   }
 
   bool _canWithdrawReport(String createDateStr) {
@@ -57,20 +82,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bạn cần đăng nhập để báo cáo')),
-      );
-      return;
-    }
-
-    final isOwner = await reportProvider.checkOwner(
-      documentId: document!.id!,
-      userId: userId,
-      documentservice: documentService,
-    );
-
-    if (isOwner) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Bạn không thể báo cáo tài liệu của chính mình')),
       );
       return;
     }
@@ -247,6 +258,9 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<DocumentProvider>();
+    final comments = provider.comments[widget.documentId] ?? [];
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -256,6 +270,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         body: const Center(child: Text('Không tìm thấy tài liệu')),
       );
     }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.user?.id;
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -270,17 +286,21 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              child: DocumentRatingInfo(documentId: widget.documentId),
-            ),
+          IconButton(
+            icon: const Icon(Icons.download_rounded, color: Colors.white),
+            iconSize: 32, // Tăng kích thước icon (mặc định là 24)
+            tooltip: 'Tải xuống',
+            onPressed: () {
+              DocumentService().downloadPdf(context, document!);
+            },
           ),
+          if (!isOwner)
+            IconButton(
+              icon: const Icon(Icons.report, color: Colors.white),
+              iconSize: 32, // Tăng kích thước icon
+              tooltip: 'Báo cáo',
+              onPressed: _showReportDialog,
+            ),
         ],
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -324,22 +344,48 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: Text(
-                              document!.title ?? '',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  document!.title ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.report, color: Colors.red),
-                            tooltip: 'Báo cáo',
+                          ElevatedButton.icon(
                             onPressed: () {
-                              _showReportDialog();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DocumentDetailScreenView(
+                                          documentId: document!.id!),
+                                ),
+                              );
                             },
+                            icon: const Icon(Icons.menu_book_rounded,
+                                color: Colors.white),
+                            label: const Text(
+                              "Đọc",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              elevation: 2,
+                            ),
                           ),
                         ],
                       ),
@@ -394,69 +440,102 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Text(
                         document!.description ?? '',
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        DocumentDetailScreenView(
-                                            documentId: document!.id!),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.menu_book_rounded,
-                                  color: Colors.white),
-                              label: Text("Đọc",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 20, thickness: 1),
+                          const SizedBox(height: 16),
+                          InkWell(
+                            onTap: comments.length <= 1
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => DocumentRatingScreen(
+                                            documentId: widget.documentId),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      provider.averageRating.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.star,
+                                        color: Colors.amber, size: 18),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Đánh giá & Bình luận',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 14),
-                                elevation: 2,
+                                if (comments.length <= 1)
+                                  const Icon(Icons.chevron_right,
+                                      size: 24, color: Colors.grey),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ...comments.take(2).map((cmt) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: CommentCard(
+                                comment: cmt,
+                                currentUserId: provider.currentUserId,
+                                onDelete: () async {
+                                  return await provider.deleteComment(
+                                      widget.documentId, cmt['_id']);
+                                },
+                              ),
+                            );
+                          }).toList(),
+                          if (comments.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text("Chưa có bình luận nào."),
+                            ),
+                          if (comments.length >= 2)
+                            Align(
+                              alignment: Alignment.center,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => DocumentRatingScreen(
+                                          documentId: widget.documentId),
+                                    ),
+                                  );
+                                },
+                                child: const Text("Xem thêm..."),
                               ),
                             ),
-                            SizedBox(width: 16),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                DocumentService()
-                                    .downloadPdf(context, document!);
-                              },
-                              icon: Icon(Icons.download_rounded,
-                                  color: Colors.white),
-                              label: Text("Tải xuống",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[800],
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 14),
-                                elevation: 2,
-                              ),
-                            ),
-                          ],
-                        ),
+                        ],
                       ),
                     ],
                   ),

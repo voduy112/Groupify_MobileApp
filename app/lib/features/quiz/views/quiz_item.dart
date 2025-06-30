@@ -50,6 +50,39 @@ class QuizItem extends StatelessWidget {
     }
   }
 
+  Widget _popupOption(BuildContext context, String label, String value) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context); // đóng popup
+        if (value == 'edit') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EditQuizScreen(quizId: quiz.id),
+            ),
+          );
+        } else if (value == 'delete') {
+          _confirmDelete(context);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -149,22 +182,18 @@ class QuizItem extends StatelessWidget {
                             },
                             icon:
                                 const Icon(Icons.more_vert, color: Colors.grey),
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
-                              const PopupMenuItem<String>(
-                                value: 'edit',
-                                child: ListTile(
-                                  leading:
-                                      Icon(Icons.edit, color: Colors.orange),
-                                  title: Text('Chỉnh sửa'),
-                                ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'delete',
-                                child: ListTile(
-                                  leading:
-                                      Icon(Icons.delete, color: Colors.red),
-                                  title: Text('Xoá'),
+                            color: Colors.white,
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem<String>(
+                                enabled: false,
+                                padding: EdgeInsets.zero,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _popupOption(context, 'Chỉnh sửa', 'edit'),
+                                    _popupOption(context, 'Xoá', 'delete'),
+                                  ],
                                 ),
                               ),
                             ],

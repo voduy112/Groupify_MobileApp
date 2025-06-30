@@ -23,10 +23,11 @@ class _SearchGroupScreenState extends State<SearchGroupScreen> {
         .toList();
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(90),
-        child: Container(
-          padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 8),
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
@@ -34,45 +35,32 @@ class _SearchGroupScreenState extends State<SearchGroupScreen> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+        ),
+        title: Container(
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Center(
+            child: TextField(
+              autofocus: true,
+              onChanged: (value) {
+                setState(() {
+                  query = value;
+                });
+              },
+              style: const TextStyle(color: Colors.black),
+              decoration: const InputDecoration(
+                hintText: 'Tìm kiếm',
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                border: InputBorder.none,
+                isCollapsed: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 10),
+                prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
               ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Container(
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(
-                    child: TextField(
-                      autofocus: true,
-                      onChanged: (value) {
-                        setState(() {
-                          query = value;
-                        });
-                      },
-                      style: const TextStyle(color: Colors.black),
-                      textAlign: TextAlign.start,
-                      decoration: const InputDecoration(
-                        hintText: 'Tìm kiếm',
-                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                        border: InputBorder.none,
-                        isCollapsed: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10),
-                        prefixIcon:
-                            Icon(Icons.search, color: Colors.grey, size: 20),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

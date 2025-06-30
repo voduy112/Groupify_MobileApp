@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../core/utils/validate.dart';
 import '../../../core/widgets/custom_text_form_field.dart';
 import '../providers/quiz_provider.dart';
+import '../../../core/widgets/custom_appbar.dart';
+import '../../../services/notification/messaging_provider.dart';
 
 class CreateQuizScreen extends StatefulWidget {
   final String groupId;
@@ -90,6 +92,7 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tạo quiz thành công!')),
       );
+      MessagingProvider().sendQuizNotification(widget.groupId, _title!);
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,9 +105,34 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<QuizProvider>(context);
 
+    final ButtonStyle beautifulButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0072ff),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 4,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tạo Quiz Mới'),
+      appBar: CustomAppBar(
+        title: 'Tạo bộ câu hỏi mới',
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.check,
+              color: Colors.white,
+              size: 30,
+            ),
+            onPressed: provider.isCreating ? null : _submitQuiz,
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -226,33 +254,12 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
               const SizedBox(height: 12),
               Center(
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[800],
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
+                  style: beautifulButtonStyle,
                   onPressed: _addQuestion,
                   child: const Text(
                     'Thêm câu hỏi',
                     style: TextStyle(color: Colors.white),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[800],
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                  onPressed: provider.isCreating ? null : _submitQuiz,
-                  child: provider.isCreating
-                      ? const CircularProgressIndicator()
-                      : const Text(
-                          'Tạo Quiz',
-                          style: TextStyle(color: Colors.white),
-                        ),
                 ),
               ),
             ],

@@ -91,6 +91,15 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(document?.title ?? 'Chi tiết tài liệu'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF0072ff), Color.fromARGB(255, 92, 184, 241)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           if (totalPages != null)
             Row(
@@ -121,11 +130,17 @@ class _DocumentDetailScreenViewState extends State<DocumentDetailScreenView> {
                             child: Text('Huỷ'),
                           ),
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0072ff),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 14),
+                            ),
                             onPressed: () {
                               Navigator.of(context).pop();
                               goToPage();
                             },
-                            child: Text('Đi'),
+                            child: const Text('Đi'),
                           ),
                         ],
                       ),

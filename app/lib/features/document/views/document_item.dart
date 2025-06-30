@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import '../../../models/document.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+
+import '../providers/document_provider.dart';
 
 class DocumentItem extends StatelessWidget {
   final Document document;
@@ -86,6 +90,40 @@ class DocumentItem extends StatelessWidget {
         SnackBar(content: Text('Lỗi khi tải: $e')),
       );
     }
+  }
+
+  Widget _popupButton(BuildContext context, String label, String value) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context); // đóng popup
+        // gọi onSelected bằng cách gọi lại PopupMenuButton logic
+        switch (value) {
+          case 'download':
+            _downloadPdf(context);
+            break;
+          case 'edit':
+            if (onEdit != null) onEdit!();
+            break;
+          case 'delete':
+            if (onDelete != null) onDelete!();
+            break;
+        }
+      },
+      borderRadius: BorderRadius.zero,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 14, color: Colors.black),
+        ),
+      ),
+    );
   }
 
   @override
@@ -191,30 +229,20 @@ class DocumentItem extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.more_vert, color: Colors.grey),
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'download',
-                    child: ListTile(
-                      leading: Icon(Icons.download_rounded, color: Colors.blue),
-                      title: Text('Tải xuống'),
+                color: Colors.white,
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    enabled: false,
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _popupButton(context, 'Tải xuống', 'download'),
+                        if (isOwner) _popupButton(context, 'Chỉnh sửa', 'edit'),
+                        if (isOwner) _popupButton(context, 'Xoá', 'delete'),
+                      ],
                     ),
                   ),
-                  if (isOwner)
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: ListTile(
-                        leading: Icon(Icons.edit, color: Colors.orange),
-                        title: Text('Chỉnh sửa'),
-                      ),
-                    ),
-                  if (isOwner)
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Xoá'),
-                      ),
-                    ),
                 ],
               ),
             ],
@@ -224,3 +252,5 @@ class DocumentItem extends StatelessWidget {
     );
   }
 }
+
+

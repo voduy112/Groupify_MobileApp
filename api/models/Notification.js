@@ -11,7 +11,14 @@ const notificationSchema = new mongoose.Schema({
     // Loại thông báo: 'join_request', 'join_accepted', 'group_document', ...
     type: String,
     required: true,
-    enum: ["join_request", "join_accepted", "group_document", "chat", "other"],
+    enum: [
+      "join_request",
+      "join_accepted",
+      "group_document",
+      "quiz",
+      "chat",
+      "other",
+    ],
   },
   title: { type: String, required: true },
   body: { type: String, required: true },

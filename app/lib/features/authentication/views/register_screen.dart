@@ -24,6 +24,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _phoneFocusNode = FocusNode();
+  final _phoneFieldKey = GlobalKey<FormFieldState<String>>();
 
   bool isLoading = false;
   bool _obscurePassword = true;
@@ -53,6 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
         _emailFieldKey.currentState?.validate();
       });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _emailFocusNode.addListener(() {
+      if (!_emailFocusNode.hasFocus) {
+        _emailFieldKey.currentState?.validate();
+      }
+    });
+
+    _phoneFocusNode.addListener(() {
+      if (!_phoneFocusNode.hasFocus) {
+        _phoneFieldKey.currentState?.validate();
+      }
     });
   }
 
@@ -93,8 +113,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: 200,
               height: 200,
               decoration: const BoxDecoration(
-                color: Color(0xFF00B4DB),
                 shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF0072ff),
+                    Color.fromARGB(255, 92, 184, 241)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
             ),
           ),
@@ -106,7 +133,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Container(
               height: 180,
               decoration: const BoxDecoration(
-                color: Color(0xFF00B4DB),
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF0072ff),
+                    Color.fromARGB(255, 92, 184, 241)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(100),
                 ),
@@ -124,7 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const Text(
                       'Đăng kí',
                       style: TextStyle(
-                        color: Color(0xFF00B4DB),
+                        color: Color(0xFF0072ff),
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
@@ -144,16 +178,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 16),
                     CustomTextFormField(
                       key: _emailFieldKey,
+                      focusNode: _emailFocusNode,
                       label: 'Email',
                       fieldName: 'Email',
                       keyboardType: TextInputType.emailAddress,
                       onChanged: _checkEmail,
                       validator: (value) {
-                        final emailError = Validate.email(value);
-                        if (emailError != null) return emailError;
+                        final normalized = Validate.normalizeText(value ?? '');
+
+                        final emptyError =
+                            Validate.notEmpty(normalized, fieldName: 'Email');
+                        if (emptyError != null) return emptyError;
+
+                        if (!_emailFocusNode.hasFocus &&
+                            Validate.email(normalized) != null) {
+                          return 'Email không hợp lệ';
+                        }
+
                         if (_emailState == EmailValidationState.unavailable) {
                           return 'Email đã tồn tại';
                         }
+
                         return null;
                       },
                       onSaved: (val) => emailController.text = val ?? '',
@@ -161,72 +206,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     CustomTextFormField(
+                      key: _phoneFieldKey,
+                      focusNode: _phoneFocusNode,
                       label: 'Số điện thoại',
                       fieldName: 'Số điện thoại',
                       keyboardType: TextInputType.phone,
-                      validator: Validate.phone,
+                      validator: (value) {
+                        final normalized = Validate.normalizeText(value ?? '');
+
+                        final emptyError = Validate.notEmpty(normalized,
+                            fieldName: 'Số điện thoại');
+                        if (emptyError != null) return emptyError;
+
+                        if (!_phoneFocusNode.hasFocus &&
+                            Validate.phone(normalized) != null) {
+                          return 'Số điện thoại không hợp lệ';
+                        }
+
+                        return null;
+                      },
                       onSaved: (val) => phoneController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
+                    CustomTextFormField(
+                      label: 'Mật khẩu',
+                      fieldName: 'Mật khẩu',
                       obscureText: _obscurePassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      decoration: InputDecoration(
-                        labelText: 'Mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                       validator: Validate.password,
+                      onSaved: (val) => passwordController.text = val ?? '',
+                      onChanged: (val) => passwordController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: confirmPasswordController,
+                    CustomTextFormField(
+                      label: 'Nhập lại mật khẩu',
+                      fieldName: 'Nhập lại mật khẩu',
                       obscureText: _obscureConfirmPassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      decoration: InputDecoration(
-                        labelText: 'Nhập lại mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                      ),
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please confirm password';
+                          return 'Vui lòng nhập lại mật khẩu';
                         }
-                        if (value != passwordController.text) {
-                          return 'Passwords do not match';
+                        if (Validate.normalizeText(value) !=
+                            Validate.normalizeText(passwordController.text)) {
+                          return 'Mật khẩu không khớp';
                         }
                         return null;
                       },
+                      onSaved: (val) =>
+                          confirmPasswordController.text = val ?? '',
+                      onChanged: (val) =>
+                          confirmPasswordController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -247,7 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Color(0xFF00B4DB),
+                        foregroundColor: Color(0xFF0072ff),
                         minimumSize: const Size.fromHeight(55),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
