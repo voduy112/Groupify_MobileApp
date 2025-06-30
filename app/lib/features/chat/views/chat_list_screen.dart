@@ -165,9 +165,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 : const Text(
                     'Trò chuyện',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.white,
+                      fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
                     ),
                   ),
           ),

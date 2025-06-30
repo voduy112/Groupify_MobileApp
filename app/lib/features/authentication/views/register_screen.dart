@@ -113,8 +113,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: 200,
               height: 200,
               decoration: const BoxDecoration(
-                color: Color(0xFF00B4DB),
                 shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF0072ff),
+                    Color.fromARGB(255, 92, 184, 241)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
             ),
           ),
@@ -126,7 +133,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Container(
               height: 180,
               decoration: const BoxDecoration(
-                color: Color(0xFF00B4DB),
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF0072ff),
+                    Color.fromARGB(255, 92, 184, 241)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(100),
                 ),
@@ -144,7 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const Text(
                       'Đăng kí',
                       style: TextStyle(
-                        color: Color(0xFF00B4DB),
+                        color: Color(0xFF0072ff),
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
@@ -214,67 +228,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onSaved: (val) => phoneController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
+                    CustomTextFormField(
+                      label: 'Mật khẩu',
+                      fieldName: 'Mật khẩu',
                       obscureText: _obscurePassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: InputDecoration(
-                        labelText: 'Mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                       validator: Validate.password,
+                      onSaved: (val) => passwordController.text = val ?? '',
+                      onChanged: (val) => passwordController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: confirmPasswordController,
+                    CustomTextFormField(
+                      label: 'Nhập lại mật khẩu',
+                      fieldName: 'Nhập lại mật khẩu',
                       obscureText: _obscureConfirmPassword,
-                      style: textTheme.bodySmall?.copyWith(fontSize: 15),
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: InputDecoration(
-                        labelText: 'Nhập lại mật khẩu',
-                        labelStyle:
-                            textTheme.labelLarge?.copyWith(fontSize: 15),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                      ),
+                      onToggleObscure: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please confirm password';
+                          return 'Vui lòng nhập lại mật khẩu';
                         }
-                        if (value != passwordController.text) {
-                          return 'Passwords do not match';
+                        if (Validate.normalizeText(value) !=
+                            Validate.normalizeText(passwordController.text)) {
+                          return 'Mật khẩu không khớp';
                         }
                         return null;
                       },
+                      onSaved: (val) =>
+                          confirmPasswordController.text = val ?? '',
+                      onChanged: (val) =>
+                          confirmPasswordController.text = val ?? '',
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -295,7 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Color(0xFF00B4DB),
+                        foregroundColor: Color(0xFF0072ff),
                         minimumSize: const Size.fromHeight(55),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
