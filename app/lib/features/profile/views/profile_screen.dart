@@ -37,9 +37,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final documentShareProvider = context.watch<DocumentShareProvider>();
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Không tìm thấy thông tin người dùng')),
-      );
+      Future.microtask(() => context.go('/login'));
+      return const SizedBox.shrink();
     }
 
     return Scaffold(
