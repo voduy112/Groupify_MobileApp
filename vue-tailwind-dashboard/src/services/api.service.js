@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://groupifymobileapp-production.up.railway.app",
   headers: {
     "Content-Type": "application/json",
   },
