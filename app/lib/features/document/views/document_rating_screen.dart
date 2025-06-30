@@ -339,6 +339,11 @@ void showRatingCommentDialog(BuildContext context, String documentId) {
                         setState(() => isLoading = false);
 
                         if (ok1 && ok2 && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Gửi đánh giá/bình luận thành công")),
+                          );
                           Navigator.pop(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

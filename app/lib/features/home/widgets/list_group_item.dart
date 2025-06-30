@@ -98,10 +98,12 @@ class _ListGroupItemState extends State<ListGroupItem> {
                       children: [
                         Text(
                           group.name ?? 'Tên nhóm',
+                          maxLines: 2,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         SizedBox(height: 4),
