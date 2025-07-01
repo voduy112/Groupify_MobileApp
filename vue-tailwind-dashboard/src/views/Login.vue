@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center bg-blue-50 px-4">
-    <h1 class="text-4xl font-extrabold text-blue-800 mb-8 leading-tight">
+    <h1 class="text-4xl font-extrabold text-blue-800 mb-8 leading-tight font-sans text-center drop-shadow-md">
       Đăng nhập Admin
     </h1>
 
