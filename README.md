@@ -110,5 +110,6 @@ npm run serve
 | Backend API        | [https://groupifymobileapp-production.up.railway.app](https://groupifymobileapp-production.up.railway.app) | REST API server |
 | Dashboard          | [https://groupifyad.netlify.app/login](https://groupifyad.netlify.app/login) | Dashboard quản trị |
 
-![image](https://github.com/user-attachments/assets/45832e30-7dc4-4885-a9cc-da628810450b)
+<img src="https://github.com/user-attachments/assets/45832e30-7dc4-4885-a9cc-da628810450b" width="400"/>
+
 
