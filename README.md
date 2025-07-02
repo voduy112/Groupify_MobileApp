@@ -1,4 +1,4 @@
-# Groupify_MobileApp
+![image](https://github.com/user-attachments/assets/ddb258c9-c31c-4476-b03a-04cdc6304fb7)# Groupify_MobileApp
 
 **Groupify_MobileApp** là một hệ sinh thái ứng dụng quản lý nhóm học tập, bao gồm:
 
@@ -110,10 +110,5 @@ npm run serve
 | Backend API        | [https://groupifymobileapp-production.up.railway.app](https://groupifymobileapp-production.up.railway.app) | REST API server |
 | Dashboard          | [https://groupifyad.netlify.app/login](https://groupifyad.netlify.app/login) | Dashboard quản trị |
 
-## Deployment
+![image](https://github.com/user-attachments/assets/45832e30-7dc4-4885-a9cc-da628810450b)
 
-| Thành phần         | Link Production/Demo                | Ghi chú                |
-|--------------------|-------------------------------------|------------------------|
-| Mobile App (Flutter) | https://drive.google.com/drive/folders/1f2BDn86rETlZ-laRVSgIkR14aictSpcL?usp=sharing | Có thể build APK |
-| Backend API        | [https://groupifymobileapp-production.up.railway.app](https://groupifymobileapp-production.up.railway.app) | REST API server |
-| Dashboard          | [https://groupifyad.netlify.app/login](https://groupifyad.netlify.app/login) | Dashboard quản trị |
