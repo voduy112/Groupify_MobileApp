@@ -110,8 +110,31 @@ npm run serve
 
 ## Screenshots
 
-![image](https://github.com/user-attachments/assets/d88ceab8-6c2e-48d6-8159-a3bbbe31b440)
+<img src="https://github.com/user-attachments/assets/d88ceab8-6c2e-48d6-8159-a3bbbe31b440" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/d3cc517b-8ab3-42b4-b438-462cdcfeb28b" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/d1f56189-652a-4395-9a66-718dc1b8fc0c" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/0f59db49-39a1-472e-84e1-d4ee75ec0506" width="400"/>
 
 <img src="https://github.com/user-attachments/assets/45832e30-7dc4-4885-a9cc-da628810450b" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/24c3513e-4c0b-4833-ac3a-1ced08e071dc" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/7efc6ad2-f44f-4886-a226-cde7b619f362" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/df01d10f-bc8e-4ca4-9e82-35736aa4a9da" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/dc72b012-d7e3-464c-9113-2ee0909e89f6" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/9e0aae0b-4178-4afa-981b-ee4d1d38e907" width="400"/>
+
+<img src="https://github.com/user-attachments/assets/1b8979bc-3358-497a-a01b-15b2f86ccea8" width="400"/>
+
+
+
+
+
 
 
